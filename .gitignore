@@ -1,0 +1,14 @@
+# DataBase files
+/db.json
+
+# Config files
+/config.json
+
+# Log files
+*.log
+
+# VSCode unwanted config
+/.vscode/.ropeproject
+
+# Python
+__pycache__

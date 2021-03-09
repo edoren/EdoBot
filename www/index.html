@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <script>
+        window.addEventListener("load", function () {
+            let fragment = decodeURIComponent(document.location.hash);
+            if (fragment.length == 0) {
+                return 0;
+            }
+            fragment = fragment.replace(/^#/, "");
+            let entries = fragment.split("&");
+            let data = {};
+            for (let entry of entries) {
+                let key_value = entry.split("=");
+                data[key_value[0]] = key_value[1];
+            }
+            data.scope = data.scope.split("+");
+            if ("state" in data) {
+                data.state = data.state.split("+");
+            }
+            console.log(JSON.stringify(data));
+            fetch(document.location.origin, {
+                method: "PUT",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }).then((response) => {
+                console.log(response);
+                if (response.status == 200) {
+                    window.close();
+                    document.getElementById("status").innerText =
+                        "You can close this page now";
+                }
+            });
+        });
+    </script>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <meta content="utf-8" http-equiv="encoding" />
+</head>
+
+<body>
+    <h1>Redirecting...</h1>
+    <p id="status"></p>
+</body>
+
+</html>

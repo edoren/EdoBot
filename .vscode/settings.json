@@ -1,4 +1,13 @@
 {
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "vscode.html-language-features"
+    },
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
     "python.linting.pycodestyleEnabled": true,

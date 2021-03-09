@@ -1,15 +1,15 @@
 import getpass
 import json
+import logging
 import os
 import os.path
-from posixpath import pardir
 import sys
-import webbrowser
 import time
+import webbrowser
 from enum import Enum
-import logging
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from posixpath import pardir
 from types import SimpleNamespace
 from typing import List, Mapping, Optional, Set
 
@@ -17,10 +17,10 @@ import obswebsocket
 import obswebsocket.requests
 import requests
 
+from config import Config
 from data_base import DataBase
-from model import AccessToken
 from irc import TwitchIRC
-
+from model import AccessToken
 
 gLogger = logging.getLogger("me.edoren.edobot.main")
 
@@ -150,9 +150,35 @@ class TwitchService:
         return response["data"]
 
 
-class TwitchBot:
-    def __init__(self, account_login, bot_account_login, websocket):
-        self.websocket_client = obswebsocket.obsws("localhost", websocket["port"], websocket["password"])
+class TwitchChat:
+    def __init__(self, config_file_path: str):
+        self.config = Config(config_file_path)
+
+        if not os.path.exists(config_file_path):
+            print("Welcome to the EdorenBot\n")
+            print("Please input the following data in order to continue")
+            self.config["account"] = input("Account: ")
+            use_different_name = input(f"Use '{~self.config['account']}' "
+                                       "for the chat [yes/no]: ")
+            if use_different_name.lower() != "yes":
+                self.config["bot_account"] = input("Chat account: ")
+            else:
+                self.config["bot_account"] = self.config["account"]
+
+            self.config["obswebsocket"] = {}
+            self.config["obswebsocket"]["port"] = input("obs-websocket port [default:4444]: ")
+            if (len(~self.config["obswebsocket"]["port"]) == 0):
+                self.config["obswebsocket"]["port"] = 4444
+            self.config["obswebsocket"]["password"] = getpass.getpass("obs-websocket password: ")
+
+            print()
+
+        account_login = ~self.config["account"]
+        bot_account_login = ~self.config["bot_account"]
+
+        self.websocket_client = obswebsocket.obsws("localhost",
+                                                   ~self.config["obswebsocket"]["port"],
+                                                   ~self.config["obswebsocket"]["password"])
 
         self.transition_matrix = {
             "Starting": set(),
@@ -263,33 +289,7 @@ if __name__ == "__main__":
     logging.basicConfig(format="[%(asctime)s] %(levelname)s - %(threadName)s[%(thread)d] - %(name)s - %(message)s",
                         level=logging.INFO, handlers=handlers)
 
-    if not os.path.exists(config_file_path):
-        app_config = {}
-        print("Welcome to the EdorenBot\n")
-        print("Please input the following data in order to continue")
-        app_config["account"] = input("Account: ")
-        use_different_name = input(f"Use '{app_config['account']}' "
-                                   "for the chat [yes/no]: ")
-        if use_different_name.lower() != "yes":
-            app_config["bot_account"] = input("Chat account: ")
-        else:
-            app_config["bot_account"] = app_config["account"]
-
-        app_config["obswebsocket"] = {}
-        app_config["obswebsocket"]["port"] = input("obs-websocket port [default:4444]: ")
-        if (len(app_config["obswebsocket"]["port"]) == 0):
-            app_config["obswebsocket"]["port"] = 4444
-        app_config["obswebsocket"]["password"] = getpass.getpass("obs-websocket password: ")
-
-        print()
-
-        with open(config_file_path, "w") as configFile:
-            json.dump(app_config, configFile, indent=4)
-
-    with open(config_file_path, "r") as configFile:
-        app_config = json.load(configFile)
-
-    bot = TwitchBot(app_config["account"], app_config["bot_account"], app_config["obswebsocket"])
+    bot = TwitchChat(config_file_path)
 
     try:
         gLogger.info("EdorenBot 1.0")

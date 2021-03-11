@@ -12,6 +12,12 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Attach",
+            "type": "python",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
             "name": "Current File",
             "type": "python",
             "request": "launch",

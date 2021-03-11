@@ -1,20 +1,22 @@
 import compileall
+import glob
 import os
 import os.path
+import platform
 import shutil
 import subprocess
 import sys
 
 source_dir = os.path.dirname(__file__)
+data_dir = os.path.join(source_dir, "data")
 build_dir = os.path.join(source_dir, "build")
 
 ######################################################################
 
 APP_NAME = "edobot"
-APP_ICON = os.path.join(source_dir, "www", "favicon.ico")
+APP_ICON = os.path.join(data_dir, "icon.ico")
 
 ######################################################################
-
 
 if not os.path.exists(build_dir):
     os.makedirs(build_dir)
@@ -23,7 +25,13 @@ os.chdir(source_dir)
 
 python_exe = sys.executable
 
-optimized = 0
+onefile = True
+optimized = 2
+
+# onefile has issues on Mac, maybe on linux too?
+if platform.system() == "Darwin":
+    onefile = False
+
 if optimized == 0:
     optimized_prefix = ""
 else:
@@ -59,15 +67,21 @@ else:
     pyinstaller_exec.append("--debug=noarchive")
     hidden_imports.append("xmlrpc.server")
     hidden_imports.append("site")
+if onefile:
+    pyinstaller_exec.append("--onefile")
+for imp in hidden_imports:
+    pyinstaller_exec.append(f"--hidden-import={imp}")
 subprocess.run(
-    pyinstaller_exec + [f"--hidden-import={x}" for x in hidden_imports] +
-    ["-F", f"--name={APP_NAME}",  f"--icon={APP_ICON}",
+    pyinstaller_exec +
+    [f"--name={APP_NAME}",  f"--icon={APP_ICON}",
      os.path.join(source_dir, "src", "main.py")]
 )
 
 print("======================== Copying data         ========================")
 
 dist_dir = os.path.join(build_dir, "dist")
+if not onefile:
+    dist_dir = os.path.join(dist_dir, APP_NAME)
 shutil.copytree(os.path.join(source_dir, "www"),
                 os.path.join(dist_dir, "www"), dirs_exist_ok=True,
                 copy_function=copy_function)
@@ -75,6 +89,8 @@ shutil.copytree(components_pycache,
                 os.path.join(dist_dir, "components"), dirs_exist_ok=True,
                 copy_function=copy_function,
                 ignore=shutil.ignore_patterns("*.py"))
+if not onefile:
+    pass
 
 print("=================== Downloading required modules =====================")
 
@@ -91,13 +107,14 @@ for requirement in additional_requirements:
 
 print("===================== Copying required modules =======================")
 
-requirements_lib_folder = os.path.join(pip_install_dir, "Lib", "site-packages")
-compileall.compile_dir(requirements_lib_folder, legacy=True, optimize=optimized)
+requirements_glob_pattern = os.path.join(pip_install_dir, "**", "site-packages")
+requirements_lib_dir = glob.glob(requirements_glob_pattern, recursive=True)[0]
+compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=optimized)
 
 module_dist_dir = os.path.join(dist_dir, "modules")
-shutil.copytree(requirements_lib_folder, module_dist_dir,
+shutil.copytree(requirements_lib_dir, module_dist_dir,
                 dirs_exist_ok=True, copy_function=copy_function,
-                ignore=shutil.ignore_patterns("tests", "__pycache__",
-                                              "*.dist-info", "*.py"))
+                ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py",
+                                              "*.dist-info", "*.egg-info"))
 
 shutil.make_archive(APP_NAME, 'zip', dist_dir)

@@ -5,8 +5,9 @@ import json
 import logging
 import os
 import os.path
+import signal
 import sys
-import time
+import threading
 import traceback
 import webbrowser
 from functools import partial
@@ -26,7 +27,7 @@ gLogger = logging.getLogger("me.edoren.edobot.main")
 
 gClientId = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     gBaseDir = os.path.dirname(sys.executable)
     sys.path.append(os.path.join(gBaseDir, "modules"))
 else:
@@ -115,7 +116,8 @@ class TwitchService:
                     return request.json()
                 else:
                     self.__reauthorize()
-            except Exception:
+            except Exception as e:
+                gLogger.error("Error calling service: ", e)
                 continue
 
     def __reauthorize(self, force_verify=True):
@@ -153,6 +155,7 @@ class TwitchChat:
         self.irc: Optional[TwitchIRC] = None
         self.config = Config(config_file_path)
         self.components: MutableMapping[str, TwitchChatComponent] = {}
+        self.start_stop_lock = threading.Lock()
 
         if not os.path.exists(config_file_path):
             print("Welcome to the EdorenBot\n")
@@ -163,8 +166,6 @@ class TwitchChat:
                                        "for the chat [yes/no]: ")
             if use_different_name.lower() != "yes":
                 self.config["bot_account"] = input("Chat account: ")
-            else:
-                self.config["bot_account"] = self.config["account"]
 
             self.config["components"] = {}
 
@@ -241,28 +242,36 @@ class TwitchChat:
                 try:
                     component.process_command(component_args, user, user_flags)
                 except Exception as e:
-                    gLogger.error(f"Error in component '{name}':\n{''.join(traceback.format_tb(e.__traceback__))}")
+                    traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+                    gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
                     # TODO: POP ITEMS
 
     def run(self):
-        if self.irc is None:
+        with self.start_stop_lock:
+            if self.irc is not None:
+                gLogger.info("Bot already started, stop it first")
+                return
             gLogger.info("Starting bot, please wait...")
             self.irc = TwitchIRC(self.bot_service.user.display_name, self.bot_service.token.access_token)
             self.irc.subscribe(self.handle_message)
             self.irc.join_channel(self.host_service.user.login)
-            self.irc.start()
             self.mods = self.host_service.get_moderators()
             self.subs = self.host_service.get_subscribers()
             for name, component in self.components.items():
                 try:
                     component.start()
                 except Exception as e:
-                    gLogger.error(f"Error in component '{name}':\n{''.join(traceback.format_tb(e.__traceback__))}")
+                    traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+                    gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
                     # TODO: POP ITEMS
             gLogger.info("Bot started")
+        self.irc.run()
 
     def stop(self):
-        if self.irc is not None:
+        with self.start_stop_lock:
+            if self.irc is None:
+                # gLogger.warning("Bot already stopped")
+                return
             gLogger.info("Stopping bot, please wait...")
             self.irc.stop()
             self.irc = None
@@ -270,7 +279,8 @@ class TwitchChat:
                 try:
                     component.stop()
                 except Exception as e:
-                    gLogger.error(f"Error in component '{name}':\n{''.join(traceback.format_tb(e.__traceback__))}")
+                    traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+                    gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
             gLogger.info("Bot stopped")
 
 
@@ -293,18 +303,26 @@ if __name__ == "__main__":
     print("-------------------------------------------------------------")
     print("----------------------- EdorenBot 1.0 -----------------------")
     print("-------------------------------------------------------------", flush=True)
-    bot = None
+
+    if __debug__:
+        print(f"Debug info: [PID: {os.getpid()}]")
+
     try:
         bot = TwitchChat(config_file_path)
+
+        def signal_handler(sig, frame):
+            if sig == signal.SIGINT:
+                if os.name != "posix":
+                    print("^C")
+                if bot is not None:
+                    bot.stop()
+
+        signal.signal(signal.SIGINT, signal_handler)
         bot.run()
-        while True:
-            time.sleep(1)
     except SyntaxError as e:
         raise e
     except KeyboardInterrupt:
-        print("^C")
+        pass
     except Exception as e:
-        gLogger.critical(f"Critical error:\n{''.join(traceback.format_tb(e.__traceback__))}")
-    finally:
-        if bot is not None:
-            bot.stop()
+        traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+        gLogger.critical(f"Critical error: {e}\n{traceback_str}")

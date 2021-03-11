@@ -1,4 +1,9 @@
 {
+    "files.exclude": {
+        "**/*.pyc": true,
+        "**/*.pyo": true,
+        "**/__pycache__": true
+    },
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"
     },

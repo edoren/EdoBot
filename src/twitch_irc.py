@@ -1,10 +1,9 @@
 import logging
 import socket
-import threading
 from typing import List
 
 
-class TwitchIRC(threading.Thread):
+class TwitchIRC:
 
     def __init__(self, nickname: str, password: str, address: str = 'irc.chat.twitch.tv', port: int = 6667):
         super().__init__()
@@ -38,13 +37,11 @@ class TwitchIRC(threading.Thread):
 
                 for sub in self.subscribers:
                     sub(data)
-
             except IOError:
                 break
 
     def stop(self):
         self.is_running = False
-        self.join()
 
     def subscribe(self, subscriber):
         self.subscribers.append(subscriber)
@@ -87,6 +84,6 @@ class TwitchIRC(threading.Thread):
                 if next_byte == b'\n':
                     break
                 data += next_byte
-            except socket.timeout as e:
+            except Exception:
                 continue
         return data

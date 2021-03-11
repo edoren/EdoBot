@@ -12,6 +12,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Build",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/build.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Attach",
             "type": "python",
             "request": "attach",

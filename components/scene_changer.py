@@ -20,12 +20,10 @@ __all__ = ["TwitchChatComponent"]
 
 
 class OBSConnector(threading.Thread):
-    def __init__(self, host: str, port: int,
-                 interval: float, callback: Callable):
+    def __init__(self, host: str, port: int, callback: Callable):
         super().__init__()
         self.host = host
         self.port = port
-        self.interval = interval
         self.callback = callback
         self.running = True
 
@@ -41,7 +39,7 @@ class OBSConnector(threading.Thread):
                     self.running = False
                     self.callback()
             except socket.error:
-                time.sleep(self.interval)
+                time.sleep(5)
 
 
 class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
@@ -84,7 +82,7 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
         return self.command
 
     def start(self) -> None:
-        self.obs_connector = OBSConnector(self.obs_host, self.obs_port, 1.0,
+        self.obs_connector = OBSConnector(self.obs_host, self.obs_port,
                                           self.start_obs_connection)
         self.obs_connector.start()
 
@@ -107,7 +105,10 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
         if self.obs_connector is not None:
             self.obs_connector.stop()
         if self.obs_client is not None:
-            self.obs_client.disconnect()
+            try:
+                self.obs_client.disconnect()
+            except Exception:
+                pass
 
     def obs_disconnected(self, message):
         self.obs_is_connected = False

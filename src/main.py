@@ -246,7 +246,7 @@ class TwitchChat:
 
     def run(self):
         if self.irc is None:
-            gLogger.info("Starting Bot loop")
+            gLogger.info("Starting bot, please wait...")
             self.irc = TwitchIRC(self.bot_service.user.display_name, self.bot_service.token.access_token)
             self.irc.subscribe(self.handle_message)
             self.irc.join_channel(self.host_service.user.login)
@@ -263,7 +263,7 @@ class TwitchChat:
 
     def stop(self):
         if self.irc is not None:
-            gLogger.info("Stopping Bot loop")
+            gLogger.info("Stopping bot, please wait...")
             self.irc.stop()
             self.irc = None
             for name, component in self.components.items():

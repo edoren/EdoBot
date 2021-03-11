@@ -1,5 +1,7 @@
 from typing import List
 
+__all__ = ["AccessToken"]
+
 
 class AccessToken:
     def __init__(self, access_token: str,

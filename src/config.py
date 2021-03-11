@@ -48,17 +48,20 @@ class Config:
     def __getitem__(self, key: Union[str, int]) -> "Config":
         return Config(self.file, self.path + [key])
 
-    def __invert__(self) -> Any:
-        return self.get()
-
-    def __setitem__(self, key: Union[str, int], data: Any) -> bool:
-        return Config(self.file, self.path + [key]).set(data)
-
     def get(self) -> Any:
         if len(self.path) > 0:
             return Config.__read_config(self.file, self.path)
         else:
             return None
+
+    def __invert__(self) -> Any:
+        return self.get()
+
+    def __str__(self) -> str:
+        return str(self.get())
+
+    def __setitem__(self, key: Union[str, int], data: Any) -> bool:
+        return Config(self.file, self.path + [key]).set(data)
 
     def set(self, data: Any) -> bool:
         if len(self.path) > 0:

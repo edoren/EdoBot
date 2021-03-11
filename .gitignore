@@ -11,4 +11,10 @@
 /.vscode/.ropeproject
 
 # Python
+*.pyc
 __pycache__
+
+# Build files
+/build/
+/dist/
+*.spec

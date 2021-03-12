@@ -2,14 +2,13 @@ language: python
 jobs:
     include:
         # ======= OSX ========
-        - name: "Python 3.8.0 on macOS 10.14"
+        - name: "Python 3.9.1 on macOS 10.15.7"
           os: osx
           osx_image: xcode12.2
           language: shell # 'language: python' is an error on Travis CI macOS
           before_install:
-              - brew install pyenv
+              - brew upgrade pyenv
               - env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.9.1
-              - eval "$(pyenv init -)"
               - pyenv global 3.9.1
               - python --version
               - pip install --upgrade pip

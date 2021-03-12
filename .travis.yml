@@ -6,10 +6,6 @@ jobs:
           os: osx
           osx_image: xcode12.2
           language: shell
-          addons:
-              homebrew:
-                  packages:
-                      - pyenv
           before_install:
               - curl https://pyenv.run | bash
               - exec $SHELL

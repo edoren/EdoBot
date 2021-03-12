@@ -1,14 +1,13 @@
+from datetime import datetime
 from typing import List, Optional, Set, Union
 
-from component import TwitchChatComponent
-from config import Config
+from core import ChatComponent, Config, UserType
 from model import User
-from user_type import UserType
 
 __all__ = ["EchoComponent"]
 
 
-class EchoComponent(TwitchChatComponent):
+class EchoComponent(ChatComponent):
     def __init__(self, config: Config):
         pass
 
@@ -17,7 +16,7 @@ class EchoComponent(TwitchChatComponent):
         return "echo"
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
-        return None
+        return None  # To get all the messages without command filtering
 
     def start(self) -> None:
         pass
@@ -25,6 +24,6 @@ class EchoComponent(TwitchChatComponent):
     def stop(self) -> None:
         pass
 
-    def process_message(self, message: str, user: User, user_flags: Set[UserType]) -> bool:
-        print(f"[{user.display_name}] {message}")
+    def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
+        print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] [{user.display_name}] {message}")
         return True

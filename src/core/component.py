@@ -5,10 +5,10 @@ from config import Config
 from model import User
 from user_type import UserType
 
-__all__ = ["TwitchChatComponent"]
+__all__ = ["ChatComponent"]
 
 
-class TwitchChatComponent:
+class ChatComponent:
     @abc.abstractmethod
     def __init__(self, config: Config):
         pass
@@ -31,5 +31,5 @@ class TwitchChatComponent:
         pass
 
     @abc.abstractmethod
-    def process_message(self, message: str, user: User, user_flags: Set[UserType]) -> bool:
+    def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
         pass

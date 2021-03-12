@@ -2,8 +2,10 @@ import logging
 import socket
 from typing import List
 
+__all__ = ["IRC"]
 
-class TwitchIRC:
+
+class IRC:
 
     def __init__(self, nickname: str, password: str, address: str = 'irc.chat.twitch.tv', port: int = 6667):
         super().__init__()

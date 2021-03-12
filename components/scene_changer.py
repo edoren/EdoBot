@@ -9,14 +9,12 @@ import obswebsocket
 import obswebsocket.events
 import obswebsocket.requests
 
-from component import TwitchChatComponent
-from config import Config
+from core import ChatComponent, Config, UserType
 from model import User
-from user_type import UserType
 
 gLogger = logging.getLogger("me.edoren.edobot.components.scene_changer")
 
-__all__ = ["TwitchChatComponent"]
+__all__ = ["SceneChangerComponent"]
 
 
 class OBSConnector(threading.Thread):
@@ -42,7 +40,7 @@ class OBSConnector(threading.Thread):
                 time.sleep(5)
 
 
-class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
+class SceneChangerComponent(ChatComponent):  # threading.Thread
     def __init__(self, config: Config):
         self.config = config
         self.obs_connector: Optional[OBSConnector] = None
@@ -118,11 +116,11 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
             pass
         self.start()  # Start retry loop
 
-    def process_message(self, message: str, user: User, user_flags: Set[UserType]) -> bool:
+    def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
         if not self.obs_is_connected:
             return False
 
-        if UserType.MODERATOR in user_flags:
+        if UserType.MODERATOR in user_types:
             transition_matrix = ~self.config["transitions"]
             scenes_request = self.obs_client.call(obswebsocket.requests.GetSceneList())
             scenes = scenes_request.getScenes()

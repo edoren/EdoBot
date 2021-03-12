@@ -31,3 +31,12 @@ install:
     - pip install pyinstaller
 script:
     - python build.py
+deploy:
+    provider: releases
+    token: $GITHUB_OAUTH_TOKEN
+    file_glob: true
+    overwrite: true
+    file: "build/edobot-*.zip"
+    skip_cleanup: true
+    on:
+        tags: true

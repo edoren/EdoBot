@@ -123,4 +123,5 @@ shutil.copytree(requirements_lib_dir, module_dist_dir,
 
 logger.info("===================== Creating package =====================")
 
-shutil.make_archive(APP_NAME, 'zip', dist_dir, logger=logger)
+zip_file_name = f"{APP_NAME}-{platform.system().lower()}-{platform.system()[0]}"
+shutil.make_archive(zip_file_name, 'zip', dist_dir, logger=logger)

@@ -135,16 +135,16 @@ class TwitchService:
 
     def get_moderators(self) -> List[dict]:
         response = self.__call_endpoint("/moderation/moderators", params={"broadcaster_id": self.user.id})
-        return response["data"]
+        return response["data"] or []
 
     def get_subscribers(self) -> List[dict]:
         response = self.__call_endpoint("/subscriptions", params={"broadcaster_id": self.user.id})
-        return response["data"]
+        return response["data"] or []
 
     def get_users(self, names: List[str]) -> List[User]:
         response = self.__call_endpoint("/users", params={"login[]": names})
         ret = [User(**x) for x in response["data"]]
-        return ret
+        return ret or []
 
     def get_chatters(self):
         pass
@@ -231,18 +231,25 @@ class TwitchChat:
             if user["user_login"] == message_sender:
                 user_flags.add(UserType.SUBSCRIPTOR)
 
-        args = message_text.strip().split(" ")
-        command = args[0].strip("!")
-        component_args = args[1:]
+        user = self.host_service.get_users([message_sender])[0]
+
+        is_command = message_text.startswith("!")
         for name, component in self.components.items():
-            if command == component.get_command():
-                user = self.host_service.get_users([message_sender])[0]
-                try:
-                    component.process_command(component_args, user, user_flags)
-                except Exception as e:
-                    traceback_str = ''.join(traceback.format_tb(e.__traceback__))
-                    gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
-                    # TODO: POP ITEMS
+            try:
+                comp_command = component.get_command()
+                if is_command:
+                    command_pack = message_text.lstrip("!").split(" ", 1)
+                    command = command_pack[0]
+                    message = command_pack[1] if len(command_pack) > 1 else ""
+                    if ((isinstance(comp_command, str) and command == comp_command) or
+                            (isinstance(comp_command, list) and command in comp_command)):
+                        component.process_message(message, user, user_flags)
+                elif comp_command is None:
+                    component.process_message(message_text, user, user_flags)
+            except Exception as e:
+                traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+                gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
+                # TODO: POP ITEMS
 
     def run(self):
         with self.start_stop_lock:

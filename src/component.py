@@ -1,5 +1,5 @@
 import abc
-from typing import List, Set
+from typing import List, Optional, Set, Union
 
 from config import Config
 from model import User
@@ -19,7 +19,7 @@ class TwitchChatComponent:
         pass
 
     @abc.abstractmethod
-    def get_command(self) -> str:
+    def get_command(self) -> Optional[Union[str, List[str]]]:
         pass
 
     @abc.abstractmethod
@@ -31,5 +31,5 @@ class TwitchChatComponent:
         pass
 
     @abc.abstractmethod
-    def process_command(self, args: List[str], user: User, user_flags: Set[UserType]) -> bool:
+    def process_message(self, message: str, user: User, user_flags: Set[UserType]) -> bool:
         pass

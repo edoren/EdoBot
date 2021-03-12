@@ -3,7 +3,7 @@ import logging
 import socket
 import threading
 import time
-from typing import Callable, List, Optional, Set
+from typing import Callable, List, Optional, Set, Union
 
 import obswebsocket
 import obswebsocket.events
@@ -78,7 +78,7 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
     def get_name() -> str:
         return "scene_changer"
 
-    def get_command(self) -> str:
+    def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command
 
     def start(self) -> None:
@@ -118,8 +118,8 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
             pass
         self.start()  # Start retry loop
 
-    def process_command(self, args: List[str], user: User, user_flags: Set[UserType]) -> bool:
-        if len(args) == 0 or not self.obs_is_connected:
+    def process_message(self, message: str, user: User, user_flags: Set[UserType]) -> bool:
+        if not self.obs_is_connected:
             return False
 
         if UserType.MODERATOR in user_flags:
@@ -130,7 +130,7 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
             # Find a suitable scene target name
             target_scene = None
             for scene in scenes:
-                if scene["name"].lower() == args[0].lower():
+                if scene["name"].lower() == message.lower():
                     target_scene = scene["name"]
 
             if target_scene is not None:

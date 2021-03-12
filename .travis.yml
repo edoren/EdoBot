@@ -8,7 +8,7 @@ jobs:
           language: shell
           before_install:
               - curl https://pyenv.run | bash
-              - exec $SHELL
+              - exec bash
               - pyenv update
               - pyenv install --list
               - env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.9.1

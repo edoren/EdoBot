@@ -6,7 +6,14 @@ jobs:
           os: osx
           osx_image: xcode12.2
           language: shell
+          addons:
+              homebrew:
+                  packages:
+                      - pyenv
           before_install:
+              - curl https://pyenv.run | bash
+              - exec $SHELL
+              - pyenv update
               - pyenv install --list
               - env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.9.1
               - pyenv global 3.9.1

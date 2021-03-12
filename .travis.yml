@@ -7,7 +7,7 @@ jobs:
           osx_image: xcode12.2
           language: shell
           before_install:
-              - pyenv versions
+              - pyenv install --list
               - env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.9.1
               - pyenv global 3.9.1
               - python --version

@@ -4,6 +4,8 @@ from typing import Any, List, Mapping, MutableMapping, Union
 
 Path = List[Union[str, int]]
 
+__all__ = ["Config"]
+
 
 class Config:
     @staticmethod

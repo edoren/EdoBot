@@ -179,11 +179,11 @@ if __name__ == "__main__":
     handlers.append(file_handler)
 
     stream_handler = logging.StreamHandler(None)
-    file_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(logging.INFO)
     stream_handler.setFormatter(logging.Formatter(format_txt))
     handlers.append(stream_handler)
 
-    logging.basicConfig(handlers=handlers)
+    logging.basicConfig(level=logging.NOTSET, handlers=handlers)
 
     try:
         bot = TwitchChat(config_file_path)

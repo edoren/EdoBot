@@ -1,9 +1,10 @@
 import abc
 from typing import List, Optional, Set, Union
 
-from config import Config
 from model import User
-from user_type import UserType
+
+from .config import Config
+from .user_type import UserType
 
 __all__ = ["ChatComponent"]
 

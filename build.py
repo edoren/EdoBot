@@ -1,12 +1,12 @@
-import sys
-import subprocess
-import shutil
-import platform
-import os.path
-import os
-import logging
-import glob
 import compileall
+import glob
+import logging
+import os
+import os.path
+import platform
+import shutil
+import subprocess
+import sys
 
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")

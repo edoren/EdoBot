@@ -143,13 +143,3 @@ class SceneChangerComponent(TwitchChatComponent):  # threading.Thread
                     gLogger.error(f"Error: Scene '{current_scene}' not found in transition matrix")
 
         return True
-
-
-if __name__ == "__main__":
-    def set_interval(func, sec):
-        def func_wrapper():
-            set_interval(func, sec)
-            func()
-        t = threading.Timer(sec, func_wrapper)
-        t.start()
-        return t

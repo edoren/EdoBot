@@ -158,18 +158,16 @@ class TwitchChat:
         self.start_stop_lock = threading.Lock()
 
         if not os.path.exists(config_file_path):
-            print("Welcome to the EdorenBot\n")
-            print("Please input the following data in order to continue")
+            print("Please input the following data in order to continue:\n")
 
             self.config["account"] = input("Account: ")
-            use_different_name = input(f"Use '{~self.config['account']}' "
-                                       "for the chat [yes/no]: ")
+            use_different_name = input(f"Use '{~self.config['account']}' for the chat [yes/no]: ")
             if use_different_name.lower() != "yes":
                 self.config["bot_account"] = input("Chat account: ")
 
             self.config["components"] = {}
 
-            print()
+            print(flush=True)
 
         account_login = ~self.config["account"]
         bot_account_login = ~self.config["bot_account"]
@@ -300,9 +298,9 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO, handlers=handlers)
 
-    print("-------------------------------------------------------------")
-    print("----------------------- EdorenBot 1.0 -----------------------")
-    print("-------------------------------------------------------------", flush=True)
+    print("------------------------------------------------------------")
+    print("------------------------ EdoBot 1.0 ------------------------")
+    print("------------------------------------------------------------", flush=True)
 
     if __debug__:
         print(f"Debug info: [PID: {os.getpid()}]")

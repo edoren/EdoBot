@@ -1,11 +1,12 @@
-import compileall
-import glob
-import os
-import os.path
-import platform
-import shutil
-import subprocess
 import sys
+import subprocess
+import shutil
+import platform
+import os.path
+import os
+import logging
+import glob
+import compileall
 
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
@@ -17,6 +18,9 @@ APP_NAME = "edobot"
 APP_ICON = os.path.join(data_dir, "icon.ico")
 
 ######################################################################
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger("me.edoren.edobot.build")
 
 if not os.path.exists(build_dir):
     os.makedirs(build_dir)
@@ -43,11 +47,11 @@ py_cache_prefix = f".{sys.implementation.cache_tag}{optimized_prefix}.pyc"
 def copy_function(src, dst):
     if dst.endswith(py_cache_prefix):
         dst = dst.replace(py_cache_prefix, ".pyc")
-    print('Copying {0}'.format(dst))
+    logger.info('Copying {0}'.format(dst))
     shutil.copy2(src, dst)
 
 
-print("======================== Compiling components ========================")
+logger.info("=================== Compiling components ===================")
 
 components_dir = os.path.join(source_dir, "components")
 components_pycache = os.path.join(components_dir, "__pycache__")
@@ -55,7 +59,7 @@ if os.path.isdir(components_pycache):
     shutil.rmtree(components_pycache)
 compileall.compile_dir(components_dir, optimize=optimized)
 
-print("======================== Creating executable  ========================")
+logger.info("=================== Creating executable  ===================")
 
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
@@ -77,7 +81,7 @@ subprocess.run(
      os.path.join(source_dir, "src", "main.py")]
 )
 
-print("======================== Copying data         ========================")
+logger.info("=================== Copying data         ===================")
 
 dist_dir = os.path.join(build_dir, "dist")
 if not onefile:
@@ -92,7 +96,7 @@ shutil.copytree(components_pycache,
 if not onefile:
     pass
 
-print("=================== Downloading required modules =====================")
+logger.info("============== Downloading required modules ================")
 
 additional_requirements = [
     "obs-websocket-py==0.5.3"
@@ -105,7 +109,7 @@ for requirement in additional_requirements:
     subprocess.run([python_exe, "-m", "pip", "install", "--ignore-installed",
                     f"--prefix={pip_install_dir}", requirement])
 
-print("===================== Copying required modules =======================")
+logger.info("================ Copying required modules ==================")
 
 requirements_glob_pattern = os.path.join(pip_install_dir, "**", "site-packages")
 requirements_lib_dir = glob.glob(requirements_glob_pattern, recursive=True)[0]
@@ -117,4 +121,6 @@ shutil.copytree(requirements_lib_dir, module_dist_dir,
                 ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py",
                                               "*.dist-info", "*.egg-info"))
 
-shutil.make_archive(APP_NAME, 'zip', dist_dir)
+logger.info("===================== Creating package =====================")
+
+shutil.make_archive(APP_NAME, 'zip', dist_dir, logger=logger)

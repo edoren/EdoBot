@@ -7,8 +7,9 @@ jobs:
           osx_image: xcode12.2
           language: shell
           before_install:
-              - curl https://pyenv.run | bash
-              - exec bash
+              - curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+              - export PYENV_ROOT="${HOME}/.pyenv"
+              - export PATH="$PYENV_ROOT/bin:$PATH"
               - pyenv update
               - pyenv install --list
               - env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.9.1

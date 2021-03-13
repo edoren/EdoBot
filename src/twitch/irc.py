@@ -1,20 +1,15 @@
 import logging
 import socket
-from typing import List
+import ssl
+from typing import List, Optional
 
 __all__ = ["IRC"]
 
 
 class IRC:
+    def __init__(self, nickname: str, password: str):
+        self.socket: Optional[ssl.SSLSocket] = None
 
-    def __init__(self, nickname: str, password: str, address: str = 'irc.chat.twitch.tv', port: int = 6667):
-        super().__init__()
-
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(0.5)
-
-        self.address: str = address
-        self.port: int = port
         self.channels: List[str] = []
         self.nickname: str = nickname
         self.password: str = 'oauth:' + password.lstrip('oauth:')
@@ -37,8 +32,9 @@ class IRC:
                     logging.fatal('IRC authentication error: ' + text or '')
                     return
 
-                for sub in self.subscribers:
-                    sub(data)
+                if data is not None and len(data) != 0:
+                    for sub in self.subscribers:
+                        sub(data)
             except IOError:
                 break
 
@@ -57,7 +53,12 @@ class IRC:
         self.send_raw(f'PRIVMSG #{channel} :{message}')
 
     def connect(self) -> None:
-        self.socket.connect((self.address, self.port))
+        hostname = "irc.chat.twitch.tv"
+        port = 6697
+        sock = socket.create_connection((hostname, port))
+        context = ssl.create_default_context()
+        self.socket = context.wrap_socket(sock, server_hostname=hostname)
+        self.socket.settimeout(0.5)
 
     def authenticate(self) -> None:
         self.send_raw(f'PASS {self.password}')

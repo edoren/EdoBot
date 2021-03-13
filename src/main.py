@@ -38,10 +38,11 @@ class TwitchChat:
         account_login = ~self.config["account"]
         bot_account_login = ~self.config["bot_account"]
 
-        host_scope = ["user:read:email",  "channel:read:subscriptions", "moderation:read"]
+        host_scope = ["bits:read", "channel:moderate", "channel:read:redemptions",
+                      "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"]
         bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
         if bot_account_login is None:
-            scope = host_scope + bot_scope
+            scope = list(set(host_scope).union(set(bot_scope)))
             self.host_service = twitch.Service(account_login, scope)
             self.bot_service = self.host_service
         else:

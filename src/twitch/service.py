@@ -85,9 +85,10 @@ class Service:
 
     def __call_endpoint(self, path: str, params: dict = {}):
         while True:
+            request_url = "https://api.twitch.tv/helix" + path
             try:
                 request = requests.get(
-                    "https://api.twitch.tv/helix" + path,
+                    request_url,
                     params=params,
                     headers={
                         "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
@@ -99,7 +100,7 @@ class Service:
                 else:
                     self.__reauthorize()
             except Exception as e:
-                gLogger.error("Error calling service: ", e)
+                gLogger.error(f"Error reaching url '{request_url}': {e}")
                 continue
 
     def __reauthorize(self, force_verify=True):

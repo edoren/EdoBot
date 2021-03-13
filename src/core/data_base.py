@@ -14,12 +14,16 @@ class DataBasePrivate:
 
     def set_user_token(self, user: str, token: AccessToken) -> None:
         tokens_table = self.db.table("tokens")
-        tokens_table.insert({"user": user, "token": token.__dict__})
+        findings = tokens_table.search(where("user") == user)
+        if len(findings) == 0:
+            tokens_table.insert({"user": user, "token": token.__dict__})
+        else:
+            tokens_table.update({"user": user, "token": token.__dict__}, where("user") == user)
 
     def get_token_for_user(self, user: str) -> Optional[AccessToken]:
         tokens_table = self.db.table("tokens")
         findings = tokens_table.search(where("user") == user)
-        if (len(findings) > 0):
+        if len(findings) > 0:
             return AccessToken(**findings[0]["token"])
 
 

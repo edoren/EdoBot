@@ -64,6 +64,7 @@ logger.info("=================== Creating executable  ===================")
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 hidden_imports = []
+excluded_modules = []
 if optimized:
     pyinstaller_exec.insert(1, "-" + "O" * optimized)
 else:
@@ -75,6 +76,8 @@ if onefile:
     pyinstaller_exec.append("--onefile")
 for imp in hidden_imports:
     pyinstaller_exec.append(f"--hidden-import={imp}")
+for mod in excluded_modules:
+    pyinstaller_exec.append(f"--exclude-module={mod}")
 subprocess.run(
     pyinstaller_exec +
     [f"--name={APP_NAME}",  f"--icon={APP_ICON}",

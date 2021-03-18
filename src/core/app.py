@@ -22,6 +22,6 @@ else:
 
 
 class App:
-    CLIENT_ID: Final = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"
-    EXECUTABLE_DIRECTORY: Final = _exe_dir
-    SAVE_DIRECTORY: Final = _save_dir
+    CLIENT_ID: Final[str] = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"
+    EXECUTABLE_DIRECTORY: Final[str] = _exe_dir
+    SAVE_DIRECTORY: Final[str] = _save_dir

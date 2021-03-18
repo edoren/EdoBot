@@ -1,8 +1,12 @@
 import json
 import os.path
-from typing import Any, List, Mapping, MutableMapping, Union
+from typing import Any, List, MutableMapping, Union
 
 Path = List[Union[str, int]]
+ConfigType = Union[
+    MutableMapping[Union[str, int], Any],
+    List[Any]
+]
 
 __all__ = ["Config"]
 
@@ -14,16 +18,24 @@ class Config:
             with open(file, 'w') as f:
                 f.write("{}")
         with open(file, "r") as f:
-            config: MutableMapping = json.load(f)
+            config: ConfigType = json.load(f)
         initial_config = config
         for key in path[:-1]:
             if isinstance(config, dict):
                 if key not in config:
                     config[key] = {}
                 config = config[key]
+            elif isinstance(config, list) and isinstance(key, int) and key < len(config):
+                config = config[key]
             else:
                 return False
-        config[path[-1]] = data
+        last_key = path[-1]
+        if isinstance(config, dict):
+            config[last_key] = data
+        elif isinstance(config, list) and isinstance(last_key, int) and last_key < len(config):
+            config[last_key] = data
+        else:
+            return False
         with open(file, "w") as f:
             json.dump(initial_config, f, indent=4)
         return True
@@ -34,10 +46,11 @@ class Config:
             with open(file, 'w') as f:
                 f.write("{}")
         with open(file, "r") as f:
-            config: Mapping = json.load(f)
+            config: ConfigType = json.load(f)
         for key in path:
-            if (isinstance(config, dict) and key in config) or \
-                    (isinstance(config, list) and isinstance(key, int) and key < len(config)):
+            if isinstance(config, dict) and key in config:
+                config = config[key]
+            elif isinstance(config, list) and isinstance(key, int) and key < len(config):
                 config = config[key]
             else:
                 return None

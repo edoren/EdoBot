@@ -2,9 +2,10 @@ import json
 import logging
 import os.path
 import webbrowser
+import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from typing import List, Mapping
+from typing import Any, List, Mapping
 
 import requests
 
@@ -12,9 +13,9 @@ import model
 from core import App
 from core.data_base import DataBase
 
-gLogger = logging.getLogger("me.edoren.edobot.twitch.service")
-
 __all__ = ["Service"]
+
+gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class TokenRedirectWebServer:
@@ -46,7 +47,7 @@ class TokenRedirectWebServer:
                                      TokenRedirectWebServer.port)
 
     def __init__(self, url: str) -> None:
-        self.token: Mapping = {}
+        self.token: Mapping["str", Any] = {}
         self.url = url
 
     def run(self) -> model.AccessToken:
@@ -83,7 +84,8 @@ class Service:
         self.user = self.get_users([self.user_login])[0]
         self.chatters: List[model.User] = []
 
-    def __call_endpoint(self, path: str, params: dict = {}):
+    def __call_endpoint(self, path: str, params: Mapping[str, Any] = {}):
+        retry_time = 0.5
         while True:
             request_url = "https://api.twitch.tv/helix" + path
             try:
@@ -97,10 +99,15 @@ class Service:
                 )
                 if request.status_code == 200:
                     return request.json()
-                else:
+                elif request.status_code == 401:
                     self.__reauthorize()
+                else:
+                    gLogger.error(f"Error reaching url '{request_url}' failed: {request.json()}")
+                    return {"data": None}
             except Exception as e:
-                gLogger.error(f"Error reaching url '{request_url}': {e}")
+                gLogger.error(f"Error reaching url '{request_url}' retying in {retry_time} seconds: {e}")
+                time.sleep(retry_time)
+                retry_time *= 2
                 continue
 
     def __reauthorize(self, force_verify=True):
@@ -129,7 +136,7 @@ class Service:
     def get_users(self, names: List[str]) -> List[model.User]:
         response = self.__call_endpoint("/users", params={"login[]": names})
         ret = [model.User(**x) for x in response["data"] or []]
-        return ret
+        return ret or []
 
     def get_chatters(self):
         pass

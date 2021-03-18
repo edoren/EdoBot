@@ -7,6 +7,7 @@ import platform
 import shutil
 import subprocess
 import sys
+from typing import List
 
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
@@ -20,7 +21,7 @@ APP_ICON = os.path.join(data_dir, "icon.ico")
 ######################################################################
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
-logger = logging.getLogger("me.edoren.edobot.build")
+logger = logging.getLogger("edobot.build")
 
 if not os.path.exists(build_dir):
     os.makedirs(build_dir)
@@ -44,7 +45,7 @@ else:
 py_cache_prefix = f".{sys.implementation.cache_tag}{optimized_prefix}.pyc"
 
 
-def copy_function(src, dst):
+def copy_function(src: str, dst: str):
     if dst.endswith(py_cache_prefix):
         dst = dst.replace(py_cache_prefix, ".pyc")
     logger.info('Copying {0}'.format(dst))
@@ -63,8 +64,8 @@ logger.info("=================== Creating executable  ===================")
 
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
-hidden_imports = []
-excluded_modules = []
+hidden_imports: List[str] = []
+excluded_modules: List[str] = []
 if optimized:
     pyinstaller_exec.insert(1, "-" + "O" * optimized)
 else:
@@ -101,9 +102,7 @@ if not onefile:
 
 logger.info("============== Downloading required modules ================")
 
-additional_requirements = [
-    "obs-websocket-py==0.5.3"
-]
+additional_requirements: List[str] = []
 
 pip_install_dir = os.path.join(build_dir, "pip")
 if os.path.isdir(pip_install_dir):
@@ -115,14 +114,15 @@ for requirement in additional_requirements:
 logger.info("================ Copying required modules ==================")
 
 requirements_glob_pattern = os.path.join(pip_install_dir, "**", "site-packages")
-requirements_lib_dir = glob.glob(requirements_glob_pattern, recursive=True)[0]
-compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=optimized)
-
-module_dist_dir = os.path.join(dist_dir, "modules")
-shutil.copytree(requirements_lib_dir, module_dist_dir,
-                dirs_exist_ok=True, copy_function=copy_function,
-                ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py",
-                                              "*.dist-info", "*.egg-info"))
+requirements_lib_dirs = glob.glob(requirements_glob_pattern, recursive=True)
+if len(requirements_lib_dirs) > 0:
+    requirements_lib_dir = requirements_lib_dirs[0]
+    compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=optimized)
+    module_dist_dir = os.path.join(dist_dir, "modules")
+    shutil.copytree(requirements_lib_dir, module_dist_dir,
+                    dirs_exist_ok=True, copy_function=copy_function,
+                    ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py",
+                                                  "*.dist-info", "*.egg-info"))
 
 logger.info("===================== Creating package =====================")
 

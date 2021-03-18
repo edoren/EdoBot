@@ -1,0 +1,18 @@
+{
+    "include": [
+        "src",
+        "components"
+    ],
+    "exclude": [
+        "**/__pycache__"
+    ],
+    "typeCheckingMode": "strict",
+    "reportIncompatibleMethodOverride": "error",
+    "reportIncompatibleVariableOverride": "error",
+    "reportMissingImports": true,
+    "reportUnknownArgumentType": "none",
+    "reportUnknownMemberType": "none",
+    "reportUnknownParameterType": "none",
+    "reportMissingTypeStubs": "none",
+    "reportUnknownVariableType": "warning",
+}

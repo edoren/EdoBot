@@ -1,77 +1,17 @@
-import getpass
 import logging
-import socket
-import threading
-import time
-from typing import Callable, List, Optional, Set, Union
+from typing import Any, List, Mapping, Optional, Set, Union
 
-import obswebsocket
-import obswebsocket.events
-import obswebsocket.requests
+import obswebsocket.requests as obs_requests
 
-from core import ChatComponent, Config, UserType
+from core import ChatComponent, UserType
 from model import User
 
-gLogger = logging.getLogger("me.edoren.edobot.components.scene_changer")
+gLogger = logging.getLogger("edobot.components.scene_changer")
 
 __all__ = ["SceneChangerComponent"]
 
 
-class OBSConnector(threading.Thread):
-    def __init__(self, host: str, port: int, callback: Callable):
-        super().__init__()
-        self.host = host
-        self.port = port
-        self.callback = callback
-        self.running = True
-
-    def stop(self):
-        self.running = False
-
-    def run(self):
-        while self.running:
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = sock.connect_ex((self.host, self.port))
-                if result == 0:
-                    self.running = False
-                    self.callback()
-            except socket.error:
-                time.sleep(5)
-
-
-class SceneChangerComponent(ChatComponent):  # threading.Thread
-    def __init__(self, config: Config):
-        self.config = config
-        self.obs_connector: Optional[OBSConnector] = None
-        self.obs_is_connected = False
-
-        self.command = ~self.config["command"]
-
-        self.obs_host = "localhost"
-        self.obs_port = ~self.config["obswebsocket"]["port"]
-        self.obs_password = ~self.config["obswebsocket"]["password"]
-
-        if self.command is None:
-            print("----- Scene Changer config -----")
-            self.command = input("Chat command [scene]: ")
-            if self.command == "":
-                self.command = "scene"
-            while True:
-                try:
-                    self.obs_port = int(input("OBS port [4444]: ") or 4444)
-                    break
-                except ValueError:
-                    print("Please input a number or just leave it blank")
-            self.obs_password = getpass.getpass("OBS password: ")
-
-            self.config["command"] = self.command
-            self.config["obswebsocket"]["port"] = self.obs_port
-            self.config["obswebsocket"]["password"] = self.obs_password
-
-        self.obs_client = obswebsocket.obsws("localhost", self.obs_port, self.obs_password)
-        self.obs_client.register(self.obs_disconnected, obswebsocket.events.Exiting)
-
+class SceneChangerComponent(ChatComponent):
     @staticmethod
     def get_name() -> str:
         return "scene_changer"
@@ -80,50 +20,33 @@ class SceneChangerComponent(ChatComponent):  # threading.Thread
         return self.command
 
     def start(self) -> None:
-        self.obs_connector = OBSConnector(self.obs_host, self.obs_port,
-                                          self.start_obs_connection)
-        self.obs_connector.start()
+        self.command = ~self.config["command"]
+        if self.command is None:
+            print("----- Scene Changer config -----")
+            self.command = input("Chat command [scene]: ")
+            if self.command == "":
+                self.command = "scene"
+            self.config["command"] = self.command
 
-    def start_obs_connection(self):
-        try:
-            self.obs_client.connect()
-            self.obs_is_connected = True
-        except Exception:
-            self.start()  # Start retry loop
         if ~self.config["transitions"] is None:
-            scenes_request = self.obs_client.call(obswebsocket.requests.GetSceneList())
-            scenes = scenes_request.getScenes()
+            scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
+            scenes: List[Mapping[str, Any]] = scenes_request.getScenes()
             transition_matrix = {}
             for scene in scenes:
                 transition_matrix[scene["name"]] = []
             self.config["transitions"] = transition_matrix
 
     def stop(self) -> None:
-        self.obs_is_connected = False
-        if self.obs_connector is not None:
-            self.obs_connector.stop()
-        if self.obs_client is not None:
-            try:
-                self.obs_client.disconnect()
-            except Exception:
-                pass
-
-    def obs_disconnected(self, message):
-        self.obs_is_connected = False
-        try:
-            self.obs_client.disconnect()
-        except Exception:
-            pass
-        self.start()  # Start retry loop
+        pass
 
     def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
-        if not self.obs_is_connected:
+        if self.obs_client.thread_recv is None or not self.obs_client.thread_recv.running:
             return False
 
         if UserType.MODERATOR in user_types:
             transition_matrix = ~self.config["transitions"]
-            scenes_request = self.obs_client.call(obswebsocket.requests.GetSceneList())
-            scenes = scenes_request.getScenes()
+            scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
+            scenes: List[Mapping[str, Any]] = scenes_request.getScenes()
 
             # Find a suitable scene target name
             target_scene = None
@@ -136,8 +59,11 @@ class SceneChangerComponent(ChatComponent):  # threading.Thread
                 if current_scene in transition_matrix:
                     if target_scene in transition_matrix[current_scene]:
                         gLogger.info(f"[{user.display_name}] Transitioning: {current_scene} -> {target_scene}")
-                        self.obs_client.call(obswebsocket.requests.SetCurrentScene(target_scene))
+                        self.obs_client.call(obs_requests.SetCurrentScene(target_scene))
                 else:
                     gLogger.error(f"Error: Scene '{current_scene}' not found in transition matrix")
 
+        return True
+
+    def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
         return True

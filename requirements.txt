@@ -1,4 +1,4 @@
 requests==2.25.1
 tinydb==4.4.0
-ws4py==0.5.1
 obs-websocket-py==0.5.3
+arrow==1.0.3

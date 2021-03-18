@@ -23,9 +23,12 @@ gLogger = logging.getLogger(f"edobot.main")
 
 class EdoBot:
     def __init__(self, config_file_path: str):
+        self.is_running = False
         self.config = Config(config_file_path)
         self.components: MutableMapping[str, ChatComponent] = {}
+        self.failed_components: List[str] = []
         self.start_stop_lock = threading.Lock()
+        self.components_lock = threading.Lock()
 
         self.obs_port = ~self.config["obswebsocket"]["port"]
         self.obs_password = ~self.config["obswebsocket"]["password"]
@@ -73,37 +76,53 @@ class EdoBot:
         self.pubsub = twitch.PubSub(self.host_service.user.id, self.host_service.token.access_token)
         self.obs_client = OBSWrapper(self.obs_port, self.obs_password)
 
+    def add_component(self, name: str) -> None:
         components_config = self.config["components"]
 
         components_folder = os.path.join(App.EXECUTABLE_DIRECTORY, "components")
         if not os.path.isdir(components_folder):
             return
 
+        module_name = None
+        file_path = None
         for filename in os.listdir(components_folder):
             file_path = os.path.join(components_folder, filename)
-            filename, extension = os.path.splitext(filename)
-            if extension == ".py":
-                module_name = f"components.{filename}"
-            elif extension == ".pyc":
-                module_name = f"components.{filename.split('.')[0]}"
-            else:
-                continue
-            spec = importlib.util.spec_from_file_location(module_name, file_path)
-            module = importlib.util.module_from_spec(spec)
-            sys.modules[module_name] = module
-            spec.loader.exec_module(module)  # type: ignore
-            for name, class_type in inspect.getmembers(module, inspect.isclass):
-                if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
-                    component_name = class_type.get_name()
-                    if component_name not in ~components_config:
-                        components_config[component_name] = {}
-                    gLogger.info(f"Adding component '{component_name}' with class name '{name}'")
-                    class_instance = class_type()  # type: ignore
-                    class_instance.config_component(config=components_config[component_name],
-                                                    obs_client=self.obs_client.get_client())
-                    self.components[component_name] = class_instance
+            basename, extension = os.path.splitext(filename)
+            if name == basename and extension in [".py", ".pyc"]:
+                module_name = f"components.{basename}"
+                break
 
-            self.is_running = False
+        if module_name is None or file_path is None:
+            gLogger.error(f"Error loading component, name '{name}' not found")
+            return
+
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)  # type: ignore
+        for class_name, class_type in inspect.getmembers(module, inspect.isclass):
+            if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
+                component_name = class_type.get_name()
+                if component_name not in ~components_config:
+                    components_config[component_name] = {}
+                gLogger.info(f"Adding component '{component_name}' with class name '{class_name}'")
+                class_instance = class_type()  # type: ignore
+                class_instance.config_component(config=components_config[component_name],
+                                                obs_client=self.obs_client.get_client(),
+                                                twitch=self.host_service)
+                with self.components_lock:
+                    if self.is_running:
+                        succeded = self.__secure_component_method_call(class_instance, "start")
+                        if not succeded:
+                            self.__secure_component_method_call(class_instance, "stop")
+                        else:
+                            self.components[component_name] = class_instance
+
+    def remove_component(self, component_name: str) -> None:
+        with self.components_lock:
+            component = self.components[component_name]
+            self.__secure_component_method_call(component, "stop")
+            del self.components[component_name]
 
     def handle_message(self, sender: str, text: str) -> None:
         user_types: Set[UserType] = {UserType.CHATTER}
@@ -125,8 +144,8 @@ class EdoBot:
         user = self.host_service.get_users([sender])[0]
 
         is_command = text.startswith("!")
-        for name, component in self.components.items():
-            try:
+        with self.components_lock:
+            for _, component in self.components.items():
                 comp_command = component.get_command()
                 if is_command:
                     command_pack = text.lstrip("!").split(" ", 1)
@@ -134,13 +153,11 @@ class EdoBot:
                     message = command_pack[1] if len(command_pack) > 1 else ""
                     if ((isinstance(comp_command, str) and command == comp_command) or
                             (isinstance(comp_command, list) and command in comp_command)):
-                        component.process_message(message, user, user_types)
+                        self.__secure_component_method_call(component, "process_message", message,
+                                                            user, user_types)
                 elif comp_command is None:
-                    component.process_message(text, user, user_types)
-            except Exception as e:
-                traceback_str = ''.join(traceback.format_tb(e.__traceback__))
-                gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
-                # TODO: POP ITEMS
+                    self.__secure_component_method_call(component, "process_message", text,
+                                                        user, user_types)
 
     def handle_event(self, topic: str, data: PubSub.EventTypes):
         # for component in self.components.values():
@@ -153,21 +170,16 @@ class EdoBot:
             gLogger.info("Bot already started, stop it first")
             return
 
+        self.is_running = True
+
         with self.start_stop_lock:
             gLogger.info("Starting bot, please wait...")
             self.obs_client.connect()
             self.mods = self.host_service.get_moderators()
             self.subs = self.host_service.get_subscribers()
-            for name, component in self.components.items():
-                try:
-                    component.start()
-                except Exception as e:
-                    traceback_str = ''.join(traceback.format_tb(e.__traceback__))
-                    gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
-                    # TODO: POP ITEMS
+            for component in self.components.values():
+                self.__secure_component_method_call(component, "start")
             gLogger.info("Bot started")
-
-        self.is_running = True
 
         self.chat.start()
         self.chat.subscribe(self.handle_message)
@@ -186,13 +198,24 @@ class EdoBot:
             self.pubsub.stop()
             self.pubsub.join()
             self.obs_client.disconnect()
-            for name, component in self.components.items():
-                try:
-                    component.stop()
-                except Exception as e:
-                    traceback_str = ''.join(traceback.format_tb(e.__traceback__))
-                    gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
+            with self.components_lock:
+                for component in self.components.values():
+                    self.__secure_component_method_call(component, "stop")
+                self.components.clear()
+            self.is_running = False
             gLogger.info("Bot stopped")
+
+    @staticmethod
+    def __secure_component_method_call(component: ChatComponent, method_name: str, *args, **kwargs) -> bool:
+        try:
+            method = getattr(component, method_name)
+            method(*args, **kwargs)
+            return True
+        except Exception as e:
+            name = component.get_name()
+            traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+            gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
+        return False
 
 
 class TimeFormatter(logging.Formatter):
@@ -235,17 +258,9 @@ if __name__ == "__main__":
     bot = None
     try:
         bot = EdoBot(config_file_path)
-
-        # def signal_handler(sig, frame):
-        #     if sig == signal.SIGINT:
-        #         if os.name != "posix":
-        #             print("^C")
-        #         if bot is not None:
-        #             bot.stop()
-        #             bot = None
-
-        # signal.signal(signal.SIGINT, signal_handler)
         bot.run()
+        bot.add_component("scene_changer")
+        bot.add_component("echo")
         while True:
             time.sleep(1000)
     except SyntaxError as e:

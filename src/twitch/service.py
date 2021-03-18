@@ -10,7 +10,7 @@ from typing import Any, List, Mapping
 import requests
 
 import model
-from core import App
+from core.app import App
 from core.data_base import DataBase
 
 __all__ = ["Service"]

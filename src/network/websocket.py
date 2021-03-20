@@ -11,7 +11,7 @@ import websocket
 
 __any__ = ["WebSocket"]
 
-gLogger = logging.getLogger(f"edobot.{__name__}")
+gLogger = logging.getLogger(__name__)
 gWebSocketRegex = re.compile(r"^(wss?:\/\/)([0-9]{1,3}(?:\.[0-9]{1,3}){3}|[a-zA-Z0-9-\.]+)(?::([0-9]{1,5}))?")
 
 

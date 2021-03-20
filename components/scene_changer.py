@@ -3,8 +3,8 @@ from typing import Any, List, Mapping, Optional, Set, Union
 
 import obswebsocket.requests as obs_requests
 
-from core import ChatComponent, UserType
 from model import User
+from twitch import ChatComponent, UserType
 
 gLogger = logging.getLogger("edobot.components.scene_changer")
 

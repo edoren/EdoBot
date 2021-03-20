@@ -4,7 +4,7 @@ import platform
 import sys
 from typing import Final
 
-__all__ = ["App"]
+__all__ = ["Constants"]
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     _exe_dir = os.path.dirname(sys.executable)
@@ -21,7 +21,7 @@ else:
     sys.exit(-1)
 
 
-class App:
+class Constants:
     CLIENT_ID: Final[str] = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"
     EXECUTABLE_DIRECTORY: Final[str] = _exe_dir
     SAVE_DIRECTORY: Final[str] = _save_dir

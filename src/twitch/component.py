@@ -3,10 +3,10 @@ from typing import Any, List, Mapping, Optional, Set, Union, final
 
 import obswebsocket
 
+from core.config import Config
 from model import User
 from twitch.service import Service as TwitchService
 
-from .config import Config
 from .user_type import UserType
 
 __all__ = ["ChatComponent"]

@@ -1,8 +1,8 @@
 import json
 import logging
 import os.path
-import webbrowser
 import time
+import webbrowser
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, List, Mapping
@@ -10,12 +10,12 @@ from typing import Any, List, Mapping
 import requests
 
 import model
-from core.app import App
+from core.constants import Constants
 from core.data_base import DataBase
 
 __all__ = ["Service"]
 
-gLogger = logging.getLogger(f"edobot.{__name__}")
+gLogger = logging.getLogger(__name__)
 
 
 class TokenRedirectWebServer:
@@ -27,7 +27,7 @@ class TokenRedirectWebServer:
             if "request_close" in kwargs:
                 self.request_close = kwargs["request_close"]
                 del kwargs["request_close"]
-            kwargs["directory"] = os.path.join(App.EXECUTABLE_DIRECTORY, "www")
+            kwargs["directory"] = os.path.join(Constants.EXECUTABLE_DIRECTORY, "www")
             super().__init__(*args, **kwargs)
 
         def do_PUT(self):
@@ -73,7 +73,7 @@ class TokenRedirectWebServer:
 
 class Service:
     def __init__(self, user_login: str, scope: List[str]):
-        self.db = DataBase(App.SAVE_DIRECTORY)
+        self.db = DataBase(Constants.SAVE_DIRECTORY)
         self.user_login = user_login
         self.scope = scope
 
@@ -94,7 +94,7 @@ class Service:
                     params=params,
                     headers={
                         "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
-                        "Client-Id": App.CLIENT_ID
+                        "Client-Id": Constants.CLIENT_ID
                     }
                 )
                 if request.status_code == 200:
@@ -114,7 +114,7 @@ class Service:
         input(f"You will be redirected to the browser to login with '{self.user_login}' [Press Enter]")
         redirect_url = TokenRedirectWebServer.get_redirect_url()
         authenticate_url = (f"https://id.twitch.tv/oauth2/authorize"
-                            f"?client_id={App.CLIENT_ID}"
+                            f"?client_id={Constants.CLIENT_ID}"
                             f"&redirect_uri={redirect_url}"
                             f"&response_type=token"
                             f"&scope={'+'.join(self.scope)}"

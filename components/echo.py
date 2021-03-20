@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Any, List, Mapping, Optional, Set, Union
 
-from core import ChatComponent, UserType
 from model import User
+from twitch import ChatComponent, UserType
 
 __all__ = ["EchoComponent"]
 

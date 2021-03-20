@@ -10,7 +10,7 @@ import obswebsocket.requests
 
 __all__ = ["OBSWrapper"]
 
-gLogger = logging.getLogger(f"edobot.{__name__}")
+gLogger = logging.getLogger(__name__)
 
 
 class OBSConnector(threading.Thread):

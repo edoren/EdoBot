@@ -1,11 +1,11 @@
 import logging
 from typing import Callable, List, Optional
 
-from core import WebSocket
+from network import WebSocket
 
 __all__ = ["Chat"]
 
-gLogger = logging.getLogger(f"edobot.{__name__}")
+gLogger = logging.getLogger(__name__)
 
 
 class Chat(WebSocket):

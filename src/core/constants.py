@@ -8,9 +8,11 @@ __all__ = ["Constants"]
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     _exe_dir = os.path.dirname(sys.executable)
+    _data_dir = os.path.join(sys._MEIPASS, "data")  # type: ignore
     sys.path.append(os.path.join(_exe_dir, "modules"))
 else:
     _exe_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    _data_dir = os.path.join(_exe_dir, "data")
 
 if platform.system() == "Windows":
     _save_dir = os.path.join(os.environ["APPDATA"], "EdoBot")
@@ -25,4 +27,5 @@ class Constants:
     CLIENT_ID: Final[str] = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"
     EXECUTABLE_DIRECTORY: Final[str] = _exe_dir
     SAVE_DIRECTORY: Final[str] = _save_dir
+    DATA_DIRECTORY: Final[str] = _data_dir
     CONFIG_DIRECTORY: Final[str] = os.path.join(_save_dir, "config")

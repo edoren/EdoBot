@@ -38,7 +38,7 @@ class TokenRedirectWebServer(threading.Thread):
         def __init__(self, *args, **kwargs):
             self.token_received = kwargs["token_received"]
             del kwargs["token_received"]
-            kwargs["directory"] = os.path.join(Constants.EXECUTABLE_DIRECTORY, "www")
+            kwargs["directory"] = os.path.join(Constants.DATA_DIRECTORY, "www")
             super().__init__(*args, **kwargs)
 
         def do_PUT(self):

@@ -9,7 +9,7 @@ from typing import Callable, List, Optional
 
 import arrow
 from PySide2.QtCore import QSettings, Qt, Signal
-from PySide2.QtGui import QCloseEvent, QFont, QKeySequence, QResizeEvent
+from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                                QMessageBox, QSizePolicy, QTextBrowser, QWidget)
 
@@ -148,6 +148,8 @@ class MainWindow(QMainWindow):
                                                      comp_type.get_description())
 
         self.setWindowTitle("EdoBot")
+        self.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
+
         self.read_settings()
 
     def reconnect_bot(self):

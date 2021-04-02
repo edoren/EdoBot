@@ -73,15 +73,21 @@ if not optimized:
     hidden_imports.append("site")
 if onefile:
     pyinstaller_args.append("--onefile")
+else:
+    pyinstaller_args.append("--onedir")
 for imp in hidden_imports:
     pyinstaller_args.append(f"--hidden-import={imp}")
 for mod in excluded_modules:
     pyinstaller_args.append(f"--exclude-module={mod}")
+for root, dire, files in os.walk(data_dir):
+    relpath = os.path.relpath(root, data_dir)
+    for fname in files:
+        pyinstaller_args.append(f"--add-data={os.path.join(root, fname)}{os.pathsep}{os.path.join('data', relpath)}")
 pyinstaller_args += [
     f"--name={APP_NAME}",
     f"--icon={APP_ICON}",
-    f"--add-data={os.path.join(source_dir, 'www', '*')}{os.pathsep}www",
     "--noconsole",
+    "--windowed",
     os.path.join(source_dir, "src", "main_gui.py")
 ]
 my_env = os.environ.copy()

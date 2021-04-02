@@ -5,7 +5,7 @@ from network import WebSocket
 
 __all__ = ["Chat"]
 
-gLogger = logging.getLogger(__name__)
+gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class Chat(WebSocket):
@@ -22,15 +22,18 @@ class Chat(WebSocket):
         self.subscribers: List[Chat.MessageCallable] = []
 
     def start(self) -> None:
-        gLogger.info("Starting Chat connection...")
         self.connect()
-        self.send(f"PASS oauth:{self.password}")
-        self.send(f"NICK {self.nickname}")
-        self.send(f"JOIN #{self.channel_name}")
         super().start()
 
-    def stop(self) -> None:
-        self.disconnect()
+    def connect(self) -> None:
+        if not self.connected:
+            gLogger.info("Starting Chat connection...")
+            self.has_started = False
+            super().connect()
+            if self.connected:
+                self.send(f"PASS oauth:{self.password}")
+                self.send(f"NICK {self.nickname}")
+                self.send(f"JOIN #{self.channel_name}")
 
     def subscribe(self, subscriber: MessageCallable):
         self.subscribers.append(subscriber)
@@ -58,5 +61,5 @@ class Chat(WebSocket):
                     gLogger.critical(f"Error authenticating chat with Twitch. {line}")
                     return
                 elif not self.has_started:
-                    gLogger.info("Chat connection started")
+                    gLogger.info("Chat connection completed")
                     self.has_started = True

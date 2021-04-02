@@ -64,35 +64,40 @@ logger.info("=================== Creating executable  ===================")
 
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
+pyinstaller_args: List[str] = []
 hidden_imports: List[str] = []
 excluded_modules: List[str] = []
-if optimized:
-    pyinstaller_exec.insert(1, "-" + "O" * optimized)
-else:
-    # pyinstaller_exec.append("--debug=bootloader")
-    pyinstaller_exec.append("--debug=noarchive")
+if not optimized:
+    pyinstaller_args.append("--debug=noarchive")
     hidden_imports.append("xmlrpc.server")
     hidden_imports.append("site")
 if onefile:
-    pyinstaller_exec.append("--onefile")
+    pyinstaller_args.append("--onefile")
 for imp in hidden_imports:
-    pyinstaller_exec.append(f"--hidden-import={imp}")
+    pyinstaller_args.append(f"--hidden-import={imp}")
 for mod in excluded_modules:
-    pyinstaller_exec.append(f"--exclude-module={mod}")
-subprocess.run(
-    pyinstaller_exec +
-    [f"--name={APP_NAME}",  f"--icon={APP_ICON}",
-     os.path.join(source_dir, "src", "main.py")]
-)
+    pyinstaller_args.append(f"--exclude-module={mod}")
+pyinstaller_args += [
+    f"--name={APP_NAME}",
+    f"--icon={APP_ICON}",
+    f"--add-data={os.path.join(source_dir, 'www', '*')}{os.pathsep}www",
+    "--noconsole",
+    os.path.join(source_dir, "src", "main_gui.py")
+]
+my_env = os.environ.copy()
+my_env["PYTHONOPTIMIZE"] = str(optimized)
+result = subprocess.run(pyinstaller_exec + pyinstaller_args, env=my_env)
+if result.returncode != 0:
+    sys.exit(result.returncode)
 
 logger.info("=================== Copying data         ===================")
 
 dist_dir = os.path.join(build_dir, "dist")
 if not onefile:
     dist_dir = os.path.join(dist_dir, APP_NAME)
-shutil.copytree(os.path.join(source_dir, "www"),
-                os.path.join(dist_dir, "www"), dirs_exist_ok=True,
-                copy_function=copy_function)
+# shutil.copytree(os.path.join(source_dir, "www"),
+#                 os.path.join(dist_dir, "www"), dirs_exist_ok=True,
+#                 copy_function=copy_function)
 shutil.copytree(components_pycache,
                 os.path.join(dist_dir, "components"), dirs_exist_ok=True,
                 copy_function=copy_function,

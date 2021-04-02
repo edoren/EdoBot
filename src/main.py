@@ -9,7 +9,7 @@ import arrow
 
 from core import Constants, EdoBot
 
-gLogger = logging.getLogger(f"main")
+gLogger = logging.getLogger(f"edobot.main")
 
 
 class TimeFormatter(logging.Formatter):
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     bot = None
     try:
-        bot = EdoBot(config_file_path)
+        bot = EdoBot()
         bot.run()
         components_folder = os.path.join(Constants.EXECUTABLE_DIRECTORY, "components")
         components = set()

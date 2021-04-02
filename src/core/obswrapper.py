@@ -2,23 +2,22 @@ import logging
 import socket
 import threading
 import time
-from typing import Callable, Optional
+from typing import Optional
 
-import obswebsocket
 import obswebsocket.events as obs_events
-import obswebsocket.requests
+import obswebsocket.requests  # type: ignore
+from obswebsocket.exceptions import ConnectionFailure
+from obswebsocket import obsws
 
 __all__ = ["OBSWrapper"]
 
-gLogger = logging.getLogger(__name__)
+gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class OBSConnector(threading.Thread):
-    def __init__(self, host: str, port: int, callback: Callable[[], None]):
+    def __init__(self, parent: "OBSWrapper"):
         super().__init__(name=f"{self.__class__.__name__}Thread")
-        self.host = host
-        self.port = port
-        self.callback = callback
+        self.parent = parent
         self.running = True
 
     def stop(self):
@@ -28,59 +27,78 @@ class OBSConnector(threading.Thread):
         gLogger.info("Waiting OBS connection...")
         while self.running:
             try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = sock.connect_ex((self.host, self.port))
-                if result == 0:
-                    self.running = False
-                    self.callback()
+                if self.parent.host and self.parent.port:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    result = sock.connect_ex((self.parent.host, self.parent.port))
+                    if result == 0:
+                        self.running = not self.parent.start_obs_connection()
             except socket.error:
-                time.sleep(5)
+                time.sleep(1)
 
 
 class OBSWrapper:
-    def __init__(self, obs_port: int, obs_password: str):
-        self.obs_host = "localhost"
-        self.obs_port = obs_port
-        self.obs_password = obs_password
-        self.obs_client = obswebsocket.obsws(self.obs_host, self.obs_port,
-                                             self.obs_password)
-        self.obs_client.register(self.obs_disconnected, obs_events.Exiting)
-        self.obs_is_connected = False
-        self.obs_connector: Optional[OBSConnector] = None
+    def __init__(self):
+        self.host = "localhost"
+        self.port = 4444
+        self.password = "changeme"
+        self.is_connected = False
+        self.waiting_password = False
+        self.client: obsws = obsws(self.host, self.port, self.password)
+        self.client.register(self.obs_disconnected, obs_events.Exiting)
+        self.connector: Optional[OBSConnector] = None
+
+    def set_config(self, host: str, port: int, password: str):
+        self.host = host
+        self.port = port
+        self.password = password
+        self.waiting_password = False
 
     def connect(self) -> None:
-        self.obs_connector = OBSConnector(self.obs_host, self.obs_port,
-                                          self.start_obs_connection)
-        self.obs_connector.start()
+        self.connector = OBSConnector(self)
+        self.connector.start()
 
     def disconnect(self) -> None:
-        self.obs_is_connected = False
-        if self.obs_connector is not None:
-            self.obs_connector.stop()
-            self.obs_connector.join()
-        if self.obs_client is not None:
+        self.waiting_password = False
+        self.is_connected = False
+        if self.connector is not None:
+            self.connector.stop()
+            self.connector.join()
+        if self.client is not None:
             try:
-                self.obs_client.disconnect()
+                self.client.disconnect()
             except Exception:
                 pass
 
-    def get_client(self) -> obswebsocket.obsws:
-        return self.obs_client
+    def get_client(self) -> obsws:
+        return self.client
 
-    def start_obs_connection(self):
-        if self.obs_is_connected:
-            return
+    def start_obs_connection(self) -> bool:  # Runs in OBSConnector thread
+        if self.is_connected:
+            return True
         try:
-            self.obs_client.connect()
-            self.obs_client.thread_recv.name = f"OBSClientThread"  # type: ignore
-            self.obs_is_connected = True
+            gLogger.info("Trying to connect to OBS")
+            self.client.password = self.password
+            self.client.connect(self.host, self.port)
+            self.client.thread_recv.name = f"OBSClientThread"  # type: ignore
+            self.is_connected = True
+            gLogger.info("Connected to OBS")
+            return True
+        except ConnectionFailure as e:
+            if str(e) == "Authentication Failed.":
+                gLogger.error("Error authenticating to OBS, please check your configuration")
+                self.waiting_password = True
+                while self.waiting_password:
+                    time.sleep(1)
+            return False
         except Exception:
-            self.connect()  # Start retry loop
+            time.sleep(1)
+            return False
 
     def obs_disconnected(self, message):
-        self.obs_is_connected = False
-        try:
-            self.obs_client.disconnect()
-        except Exception:
-            pass
+        self.is_connected = False
+        if self.client:
+            try:
+                self.client.disconnect()
+            except Exception:
+                pass
         self.connect()  # Start retry loop

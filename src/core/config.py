@@ -63,11 +63,11 @@ class Config:
     def __getitem__(self, key: Union[str, int]) -> "Config":
         return Config(self.file, self.path + [key])
 
-    def get(self) -> Any:
+    def get(self, default: Any = None) -> Any:
         if len(self.path) > 0:
             return Config.__read_config(self.file, self.path)
         else:
-            return None
+            return default
 
     def __invert__(self) -> Any:
         return self.get()

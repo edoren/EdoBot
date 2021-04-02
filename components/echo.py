@@ -7,10 +7,18 @@ from twitch import ChatComponent, UserType
 __all__ = ["EchoComponent"]
 
 
-class EchoComponent(ChatComponent):
+class EchoComponent(ChatComponent):  # TODO: Change to chat store
+    @staticmethod
+    def get_id() -> str:
+        return "echo"
+
     @staticmethod
     def get_name() -> str:
-        return "echo"
+        return "Echo"
+
+    @staticmethod
+    def get_description() -> str:
+        return "This component just prints the chat"
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering

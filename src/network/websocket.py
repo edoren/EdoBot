@@ -11,7 +11,7 @@ import websocket
 
 __any__ = ["WebSocket"]
 
-gLogger = logging.getLogger(__name__)
+gLogger = logging.getLogger(f"edobot.{__name__}")
 gWebSocketRegex = re.compile(r"^(wss?:\/\/)([0-9]{1,3}(?:\.[0-9]{1,3}){3}|[a-zA-Z0-9-\.]+)(?::([0-9]{1,5}))?")
 
 
@@ -29,7 +29,7 @@ class WebSocket(threading.Thread, abc.ABC):
         self.port = int(result.group(3) or 443 if result.group(1) == "wss://" else 80)
 
         self.running = True
-        self.reconnecting = False
+        self.connected = False
 
         self.socket: websocket.WebSocket = websocket.WebSocket()
         self.socket.settimeout(timeout)
@@ -39,20 +39,25 @@ class WebSocket(threading.Thread, abc.ABC):
     def handle_message(self, message: str) -> None:
         pass
 
-    def connect(self, retry: bool = False) -> None:
+    def connect(self) -> None:
         try:
             self.socket.connect(self.url)
+            self.connected = True
         except websocket.WebSocketException:
-            if retry:
-                self.reconnecting = True
+            self.connected = False
 
     def disconnect(self) -> None:
         try:
-            self.running = False
-            self.reconnecting = False
             self.socket.close()
         except websocket.WebSocketException:
             pass
+        self.connected = False
+
+    def stop(self) -> None:
+        if self.is_alive():
+            self.running = False
+            self.join()
+        self.disconnect()
 
     def ping(self) -> None:
         pass
@@ -77,28 +82,25 @@ class WebSocket(threading.Thread, abc.ABC):
 
     @final
     def run(self):
+        reconnect_time = 1
         while self.running:
             message = ""
             try:
-                if not self.reconnecting:
-                    self.ping()
-                    with self.lock:
-                        message: str = self.socket.recv()
-                    if message:
-                        self.handle_message(message)
-                else:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    result = sock.connect_ex((self.host, self.port))
-                    if result == 0:
-                        self.reconnecting = False
-                        self.connect()
-            except websocket.WebSocketConnectionClosedException as e:
-                gLogger.error(f"Error receiving data: {e}")
+                self.ping()
+                with self.lock:
+                    message: str = self.socket.recv()
+                if message:
+                    self.handle_message(message)
+            except (OSError, websocket.WebSocketConnectionClosedException) as e:
+                gLogger.error(f"Connection failed for endpoint {self.host}: {e}")
+                self.connected = False
                 if self.running:
-                    if self.reconnecting:
-                        time.sleep(5)
+                    gLogger.info(f"Retrying connection in {reconnect_time}s")
+                    time.sleep(reconnect_time)
+                    self.connect()
+                    if not self.connected:
+                        reconnect_time *= 2
+                    else:
+                        reconnect_time = 1
             except websocket.WebSocketTimeoutException:
                 continue
-            except OSError as e:
-                if self.running:
-                    raise e

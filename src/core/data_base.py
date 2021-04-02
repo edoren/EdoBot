@@ -26,6 +26,10 @@ class DataBasePrivate:
         if len(findings) > 0:
             return AccessToken(**findings[0]["token"])
 
+    def remove_user(self, user: str) -> Optional[AccessToken]:
+        tokens_table = self.db.table("tokens")
+        tokens_table.remove(where("user") == user)
+
 
 class DataBase:
     instance: Optional[DataBasePrivate] = None

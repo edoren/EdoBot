@@ -25,3 +25,4 @@ class Constants:
     CLIENT_ID: Final[str] = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"
     EXECUTABLE_DIRECTORY: Final[str] = _exe_dir
     SAVE_DIRECTORY: Final[str] = _save_dir
+    CONFIG_DIRECTORY: Final[str] = os.path.join(_save_dir, "config")

@@ -1,7 +1,8 @@
-import abc
+from abc import ABC, abstractmethod
 from typing import Any, List, Mapping, Optional, Set, Union, final
 
 import obswebsocket
+from PySide2.QtWidgets import QWidget
 
 from core.config import Config
 from model import User
@@ -12,7 +13,7 @@ from .user_type import UserType
 __all__ = ["ChatComponent"]
 
 
-class ChatComponent(abc.ABC):
+class ChatComponent(ABC):
     @final
     def config_component(self, config: Config, obs_client: obswebsocket.obsws, twitch: TwitchService) -> None:
         self.config = config
@@ -20,26 +21,42 @@ class ChatComponent(abc.ABC):
         self.twitch = twitch
 
     @staticmethod
-    @abc.abstractmethod
+    @abstractmethod
+    def get_id() -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
     def get_name() -> str:
         pass
 
-    @abc.abstractmethod
+    @staticmethod
+    @abstractmethod
+    def get_description() -> str:
+        pass
+
+    @abstractmethod
     def get_command(self) -> Optional[Union[str, List[str]]]:
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def start(self) -> None:
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def stop(self) -> None:
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
+        pass
+
+    def get_config_something(self) -> Union[QWidget, dict[str, Any], None]:
+        pass
+
+    def on_config_updated(self, name: str, value: Any) -> None:
         pass

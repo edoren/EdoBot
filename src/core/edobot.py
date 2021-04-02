@@ -2,156 +2,166 @@ import getpass
 import importlib
 import importlib.util
 import inspect
+import json
 import logging
 import os
 import os.path
+from re import T
 import sys
 import threading
+import time
 import traceback
-from typing import Any, List, MutableMapping, Set
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from typing import (Any, Callable, List, Mapping, MutableMapping, Optional,
+                    Set, Type, ValuesView)
 
+import model
 import twitch
+from core.data_base import DataBase
 from core.obswrapper import OBSWrapper
-from twitch.component import ChatComponent
-from twitch.pubsub import PubSub
-from twitch.user_type import UserType
 
 from .config import Config
 from .constants import Constants
 
 __all__ = ["EdoBot"]
 
-gLogger = logging.getLogger(__name__)
+gLogger = logging.getLogger(f"edobot.{__name__}")
+
+
+class TokenRedirectWebServer(threading.Thread):
+    host: str = ""
+    port: int = 3506
+
+    class RequestHandler(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            self.token_received = kwargs["token_received"]
+            del kwargs["token_received"]
+            kwargs["directory"] = os.path.join(Constants.EXECUTABLE_DIRECTORY, "www")
+            super().__init__(*args, **kwargs)
+
+        def do_PUT(self):
+            self.send_response(200)
+            self.end_headers()
+            content_len = int(self.headers.get("Content-Length"))  # type: ignore
+            put_body = self.rfile.read(content_len)
+            json_body = json.loads(put_body)
+            self.token_received(model.AccessToken(**json_body))
+
+        # def log_message(self, format, *args):
+        #     pass
+
+    def __init__(self, token_listener: Callable[[model.AccessToken], None]) -> None:
+        super().__init__(name="TokenRedirectWebServerThread")
+        self.httpd = None
+        self.token_listener = token_listener
+
+    def run(self) -> None:
+        server_address = (TokenRedirectWebServer.host, TokenRedirectWebServer.port)
+        handler_class = partial(TokenRedirectWebServer.RequestHandler, token_received=self.token_listener)
+        with ThreadingHTTPServer(server_address, handler_class) as self.httpd:
+            self.httpd.serve_forever()
+
+    def stop(self):
+        if self.httpd is not None:
+            self.httpd.shutdown()
 
 
 class EdoBot:
-    def __init__(self, config_file_path: str):
+    def __init__(self):
+        config_file_path = os.path.join(Constants.CONFIG_DIRECTORY, "settings.json")
+
         self.is_running = False
         self.config = Config(config_file_path)
-        self.components: MutableMapping[str, ChatComponent] = {}
-        self.failed_components: List[str] = []
         self.start_stop_lock = threading.Lock()
-        self.components_lock = threading.Lock()
+        self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="EdoBotWorker")
 
-        self.obs_port = ~self.config["obswebsocket"]["port"]
-        self.obs_password = ~self.config["obswebsocket"]["password"]
+        self.host_twitch_service = None
+        self.bot_twitch_service = None
+        self.db = DataBase(Constants.SAVE_DIRECTORY)
+
+        self.chat_service = None
+        self.pubsub_service = None
+
+        self.obs_client = OBSWrapper()
+
+        self.available_components: MutableMapping[str, Type[twitch.ChatComponent]] = {}
+        self.failed_components: List[str] = []
+        self.active_components: MutableMapping[str, twitch.ChatComponent] = {}
+        self.components_lock = threading.Lock()
+        self.update_available_components()
+
+        self.host_scope = ["bits:read", "channel:moderate", "channel:read:redemptions",
+                           "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"]
+        self.bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
+
+        self.token_web_server = TokenRedirectWebServer(self.token_received)
+
+        # callbacks
+        self.component_added: Optional[Callable[[twitch.ChatComponent], None]] = None
+        self.component_removed: Optional[Callable[[twitch.ChatComponent], None]] = None
+        self.host_connected: Optional[Callable[[model.User], None]] = None
+        self.host_disconnected: Optional[Callable[[model.User], None]] = None
+        self.bot_connected: Optional[Callable[[model.User], None]] = None
+        self.bot_disconnected: Optional[Callable[[model.User], None]] = None
 
         if not os.path.exists(config_file_path):
-            print("Please input the following data in order to continue:\n")
+            self.config["obswebsocket"]["host"] = self.obs_client.host
+            self.config["obswebsocket"]["port"] = self.obs_client.port
+            self.config["obswebsocket"]["password"] = self.obs_client.password
+            self.config["components"] = []
 
-            self.config["account"] = input("Account: ")
-            use_different_name = input(f"Use '{~self.config['account']}' for the chat [yes/no]: ")
-            if use_different_name.lower() != "yes":
-                self.config["bot_account"] = input("Chat account: ")
+        obswebsocket_config = ~self.config["obswebsocket"]
+        self.obs_client.set_config(
+            obswebsocket_config["host"],
+            obswebsocket_config["port"],
+            obswebsocket_config["password"]
+        )
+        self.obs_client.connect()
 
-            while True:
-                try:
-                    self.obs_port = int(input("OBS port [4444]: ") or 4444)
-                    break
-                except ValueError:
-                    print("Please input a number or just leave it blank")
-            self.obs_password = getpass.getpass("OBS password: ")
+    #################################################################
+    # Listeners
+    #################################################################
 
-            self.config["obswebsocket"]["port"] = self.obs_port
-            self.config["obswebsocket"]["password"] = self.obs_password
-
-            self.config["components"] = {}
-
-            print(flush=True)
-
-        account_login = ~self.config["account"]
-        bot_account_login = ~self.config["bot_account"]
-
-        host_scope = ["bits:read", "channel:moderate", "channel:read:redemptions",
-                      "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"]
-        bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
-        if bot_account_login is None:
-            scope = list(set(host_scope).union(set(bot_scope)))
-            self.host_service = twitch.Service(account_login, scope)
-            self.bot_service = self.host_service
-        else:
-            self.host_service = twitch.Service(account_login, host_scope)
-            self.bot_service = twitch.Service(bot_account_login, bot_scope)
-
-        self.chat = twitch.Chat(self.bot_service.user.display_name,
-                                self.bot_service.token.access_token,
-                                self.host_service.user.login)
-        self.pubsub = twitch.PubSub(self.host_service.user.id, self.host_service.token.access_token)
-        self.obs_client = OBSWrapper(self.obs_port, self.obs_password)
-
-    def add_component(self, name: str) -> None:
-        components_config = self.config["components"]
-
-        components_folder = os.path.join(Constants.EXECUTABLE_DIRECTORY, "components")
-        if not os.path.isdir(components_folder):
-            return
-
-        module_name = None
-        file_path = None
-        for filename in os.listdir(components_folder):
-            file_path = os.path.join(components_folder, filename)
-            basename, extension = os.path.splitext(filename)
-            if name == basename and extension in [".py", ".pyc"]:
-                module_name = f"components.{basename}"
-                break
-
-        if module_name is None or file_path is None:
-            gLogger.error(f"Error loading component, name '{name}' not found")
-            return
-
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)  # type: ignore
-        for class_name, class_type in inspect.getmembers(module, inspect.isclass):
-            if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
-                component_name = class_type.get_name()
-                if component_name not in ~components_config:
-                    components_config[component_name] = {}
-                gLogger.info(f"Adding component '{component_name}' with class name '{class_name}'.")
-                if component_name in self.components:
-                    gLogger.error(f"Component with name '{component_name}' already exists. Adding failed.")
-                    return
-                class_instance = class_type()  # type: ignore
-                class_instance.config_component(config=components_config[component_name],
-                                                obs_client=self.obs_client.get_client(),
-                                                twitch=self.host_service)
-                with self.components_lock:
-                    if self.is_running:
-                        succeded = self.__secure_component_method_call(class_instance, "start")
-                        if not succeded:
-                            self.__secure_component_method_call(class_instance, "stop")
-                        else:
-                            self.components[component_name] = class_instance
-
-    def remove_component(self, component_name: str) -> None:
-        with self.components_lock:
-            component = self.components[component_name]
-            self.__secure_component_method_call(component, "stop")
-            del self.components[component_name]
+    def token_received(self, token: model.AccessToken):
+        if token.state[0] == "host":
+            self.host_twitch_service = twitch.Service(token)
+            if self.host_connected:
+                self.host_connected(self.host_twitch_service.user)
+        elif token.state[0] == "bot":
+            self.bot_twitch_service = twitch.Service(token)
+            if self.bot_connected:
+                self.bot_connected(self.bot_twitch_service.user)
+        self.db.set_user_token(token.state[0], token)
+        if self.host_twitch_service is not None and self.bot_twitch_service is not None:
+            self.token_web_server.stop()
 
     def handle_message(self, sender: str, text: str) -> None:
-        user_types: Set[UserType] = {UserType.CHATTER}
+        if self.host_twitch_service is None or self.bot_twitch_service is None:
+            return
 
-        if self.host_service.user.login == sender:
-            user_types.add(UserType.BROADCASTER)
-            user_types.add(UserType.MODERATOR)
-            user_types.add(UserType.SUBSCRIPTOR)
-            user_types.add(UserType.VIP)
+        user_types: Set[twitch.UserType] = {twitch.UserType.CHATTER}
+
+        if self.host_twitch_service.user.login == sender:
+            user_types.add(twitch.UserType.BROADCASTER)
+            user_types.add(twitch.UserType.MODERATOR)
+            user_types.add(twitch.UserType.SUBSCRIPTOR)
+            user_types.add(twitch.UserType.VIP)
 
         for user in self.mods:
             if user.user_login == sender:
-                user_types.add(UserType.MODERATOR)
+                user_types.add(twitch.UserType.MODERATOR)
 
         for user in self.subs:
             if user.user_login == sender:
-                user_types.add(UserType.SUBSCRIPTOR)
+                user_types.add(twitch.UserType.SUBSCRIPTOR)
 
-        user = self.host_service.get_users([sender])[0]
+        user = self.host_twitch_service.get_users([sender])[0]
 
         is_command = text.startswith("!")
         with self.components_lock:
-            for _, component in self.components.items():
+            for component in self.active_components.values():
                 comp_command = component.get_command()
                 if is_command:
                     command_pack = text.lstrip("!").split(" ", 1)
@@ -165,61 +175,224 @@ class EdoBot:
                     self.__secure_component_method_call(component, "process_message", text,
                                                         user, user_types)
 
-    def handle_event(self, topic: str, data: PubSub.EventTypes):
+    def handle_event(self, topic: str, data: twitch.PubSub.EventTypes):
+        if self.host_twitch_service is None or self.bot_twitch_service is None:
+            return
         # for component in self.components.values():
         #     component.process_event(topic, data["data"])
         print(topic, data)
         pass
 
-    def run(self):
-        if self.is_running:
-            gLogger.info("Bot already started, stop it first")
+    #################################################################
+    # Public
+    #################################################################
+
+    def get_host_connect_url(self) -> str:
+        return self.__get_auth_url(self.host_scope, "host", True)
+
+    def get_bot_connect_url(self) -> str:
+        return self.__get_auth_url(self.bot_scope, "bot", True)
+
+    def reset_host_account(self) -> None:
+        return self.db.remove_user("host")
+
+    def reset_bot_account(self) -> None:
+        return self.db.remove_user("bot")
+
+    def get_available_components(self) -> Mapping[str, Type[twitch.ChatComponent]]:
+        return self.available_components
+
+    def get_active_components(self) -> Mapping[str, twitch.ChatComponent]:
+        return self.active_components
+
+    def set_obs_config(self, host: str, port: int, password: str):
+        self.config["obswebsocket"]["host"] = host
+        self.config["obswebsocket"]["port"] = port
+        self.config["obswebsocket"]["password"] = password
+        self.obs_client.set_config(host, port, password)
+
+    def get_obs_config(self):
+        return ~self.config["obswebsocket"]
+
+    def update_available_components(self):
+        self.available_components = {}
+
+        components_folder = os.path.join(Constants.EXECUTABLE_DIRECTORY, "components")
+        if not os.path.isdir(components_folder):
             return
 
-        self.is_running = True
+        for filename in os.listdir(components_folder):
+            file_path = os.path.join(components_folder, filename)
+            if os.path.isfile(file_path):
+                basename, extension = os.path.splitext(filename)
+                if extension in [".py", ".pyc"]:
+                    module_name = f"components.{basename}"
+                    spec = importlib.util.spec_from_file_location(module_name, file_path)
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[module_name] = module
+                    spec.loader.exec_module(module)  # type: ignore
+                    for class_name, class_type in inspect.getmembers(module, inspect.isclass):
+                        if issubclass(class_type, twitch.ChatComponent) and class_type is not twitch.ChatComponent:
+                            component_id = class_type.get_id()
+                            if component_id in self.available_components:
+                                gLogger.error(f"Error loading component with id '{component_id}' for class name "
+                                              f"'{class_name}': another component has the same id")
+                            self.available_components[component_id] = class_type
+            elif os.path.isdir(file_path):
+                pass  # TODO: More complex modules
 
-        with self.start_stop_lock:
-            gLogger.info("Starting bot, please wait...")
-            self.obs_client.connect()
-            self.mods = self.host_service.get_moderators()
-            self.subs = self.host_service.get_subscribers()
-            with self.components_lock:
-                for component in self.components.values():
-                    self.__secure_component_method_call(component, "start")
-            gLogger.info("Bot started")
+    def add_component(self, component_id: str) -> Optional[twitch.ChatComponent]:
+        if component_id in self.active_components:
+            return
 
-        self.chat.start()
-        self.chat.subscribe(self.handle_message)
-        self.pubsub.start()
-        self.pubsub.subscribe(self.handle_event)
-        self.pubsub.listen(twitch.PubSubEvent.CHANNEL_POINTS)
-        self.pubsub.listen(twitch.PubSubEvent.CHANNEL_SUBSCRIPTIONS)
-        self.pubsub.listen(twitch.PubSubEvent.BITS)
-        self.pubsub.listen(twitch.PubSubEvent.BITS_BADGE_NOTIFICATION)
+        class_type = None
+        for comp_id in self.available_components.keys():
+            if component_id == comp_id:
+                class_type = self.available_components[comp_id]
+
+        if class_type is None:
+            gLogger.error(f"Error loading component with id '{component_id}' not found")
+            return
+
+        component_name = class_type.get_name()
+        gLogger.info(f"Adding component '{component_name}' with class name '{class_type.__name__}'.")
+        if component_id in self.active_components:
+            gLogger.error(f"Component with name '{component_name}' already exists. Adding failed.")
+            return
+
+        instance = class_type()  # type: ignore
+        self.active_components[component_id] = instance
+
+        with self.components_lock:
+            if component_id not in ~self.config["components"]:
+                self.config["components"] = ~self.config["components"] + [component_id]
+            if self.component_added:
+                self.component_added(instance)
+            return instance
+
+    def remove_component(self, component_id: str) -> None:
+        with self.components_lock:
+            component = self.active_components[component_id]
+            self.__secure_component_method_call(component, "stop")
+            gLogger.info(f"Removing component '{component.get_name()}' with class name "
+                         f"'{component.__class__.__name__}'.")
+            current_components = ~self.config["components"]
+            current_components.remove(component_id)
+            self.config["components"] = current_components
+            if self.component_removed:
+                self.component_removed(self.active_components[component_id])
+            del self.active_components[component_id]
+
+    def start(self):
+        def __run(self: EdoBot):
+            if self.is_running:
+                gLogger.info("Bot already started, stop it first")
+                return
+
+            self.is_running = True
+
+            for component_id in set(~self.config["components"]):
+                self.add_component(component_id)
+
+            host_token = self.db.get_token_for_user("host")
+            bot_token = self.db.get_token_for_user("bot")
+            if host_token is not None:
+                self.host_twitch_service = twitch.Service(host_token)
+                if self.host_connected:
+                    self.host_connected(self.host_twitch_service.user)
+            if bot_token is not None:
+                self.bot_twitch_service = twitch.Service(bot_token)
+                if self.bot_connected:
+                    self.bot_connected(self.bot_twitch_service.user)
+
+            # Waiting for tokens available
+            gLogger.info("Waiting for tokens available to start Services")
+            if host_token is None or bot_token is None:
+                self.token_web_server.start()
+
+            while self.is_running:
+                if self.host_twitch_service is not None and self.bot_twitch_service is not None:
+                    break
+                time.sleep(1)
+            else:  # Check if it's running as it can be canceled before reaching the start
+                return
+
+            with self.start_stop_lock:
+                gLogger.info("Starting bot, please wait...")
+
+                self.chat_service = twitch.Chat(self.bot_twitch_service.user.display_name,
+                                                self.bot_twitch_service.token.access_token,
+                                                self.host_twitch_service.user.login)
+                self.pubsub_service = twitch.PubSub(self.host_twitch_service.user.id,
+                                                    self.host_twitch_service.token.access_token)
+
+                self.mods = self.host_twitch_service.get_moderators()
+                self.subs = self.host_twitch_service.get_subscribers()
+
+                for instance in self.active_components.values():
+                    instance.config_component(config=self.__get_component_config(instance.get_id()),
+                                              obs_client=self.obs_client.get_client(),
+                                              twitch=self.host_twitch_service)
+                    succeded = self.__secure_component_method_call(instance, "start")
+                    if not succeded:
+                        self.__secure_component_method_call(instance, "stop")
+
+                gLogger.info("Bot started")
+
+            self.chat_service.start()
+            self.chat_service.subscribe(self.handle_message)
+            self.pubsub_service.start()
+            self.pubsub_service.subscribe(self.handle_event)
+
+        self.executor.submit(__run, self)
 
     def stop(self):
+        if not self.is_running:
+            return
         with self.start_stop_lock:
             gLogger.info("Stopping bot, please wait...")
-            self.chat.stop()
-            self.chat.join()
-            self.pubsub.stop()
-            self.pubsub.join()
-            self.obs_client.disconnect()
-            with self.components_lock:
-                for component in self.components.values():
-                    self.__secure_component_method_call(component, "stop")
-                self.components.clear()
             self.is_running = False
+            self.executor.shutdown(wait=True)
+            if self.chat_service is not None:
+                self.chat_service.stop()
+            if self.pubsub_service is not None:
+                self.pubsub_service.stop()
+            if self.obs_client is not None:
+                self.obs_client.disconnect()
+            self.token_web_server.stop()
+            with self.components_lock:
+                for component in self.active_components.values():
+                    self.__secure_component_method_call(component, "stop")
+                self.active_components.clear()
             gLogger.info("Bot stopped")
 
+    #################################################################
+    # Private
+    #################################################################
+
     @staticmethod
-    def __secure_component_method_call(component: ChatComponent, method_name: str, *args: Any, **kwargs: Any) -> bool:
+    def __get_auth_url(scope: List[str], state: str, force_verify=True) -> str:
+        return (f"https://id.twitch.tv/oauth2/authorize"
+                f"?client_id={Constants.CLIENT_ID}"
+                f"&redirect_uri=http://localhost:3506"
+                f"&response_type=token"
+                f"&scope={'+'.join(scope)}"
+                f"&force_verify={str(force_verify).lower()}"
+                f"&state={state}")
+
+    @staticmethod
+    def __get_component_config(component_id: str) -> Config:
+        component_config_file = os.path.join(Constants.CONFIG_DIRECTORY, "components",  f"{component_id}.json")
+        return Config(component_config_file)
+
+    @staticmethod
+    def __secure_component_method_call(component: twitch.ChatComponent,
+                                       method_name: str, *args: Any, **kwargs: Any) -> bool:
         try:
             method = getattr(component, method_name)
             method(*args, **kwargs)
             return True
         except Exception as e:
-            name = component.get_name()
             traceback_str = ''.join(traceback.format_tb(e.__traceback__))
-            gLogger.error(f"Error in component '{name}': {e}\n{traceback_str}")
+            gLogger.error(f"Error in component '{component.get_name()}': {e}\n{traceback_str}")
         return False

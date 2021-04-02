@@ -13,8 +13,16 @@ __all__ = ["SceneChangerComponent"]
 
 class SceneChangerComponent(ChatComponent):
     @staticmethod
-    def get_name() -> str:
+    def get_id() -> str:
         return "scene_changer"
+
+    @staticmethod
+    def get_name() -> str:
+        return "Scene Changer"
+
+    @staticmethod
+    def get_description() -> str:
+        return "This component allows Mods change the OBS scenes"
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command
@@ -22,19 +30,8 @@ class SceneChangerComponent(ChatComponent):
     def start(self) -> None:
         self.command = ~self.config["command"]
         if self.command is None:
-            print("----- Scene Changer config -----")
-            self.command = input("Chat command [scene]: ")
-            if self.command == "":
-                self.command = "scene"
+            self.command = "scene"
             self.config["command"] = self.command
-
-        if ~self.config["transitions"] is None:
-            scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
-            scenes: List[Mapping[str, Any]] = scenes_request.getScenes()
-            transition_matrix = {}
-            for scene in scenes:
-                transition_matrix[scene["name"]] = []
-            self.config["transitions"] = transition_matrix
 
     def stop(self) -> None:
         pass
@@ -44,7 +41,8 @@ class SceneChangerComponent(ChatComponent):
             return False
 
         if UserType.MODERATOR in user_types:
-            transition_matrix = ~self.config["transitions"]
+            transition_matrix = self.__get_transitions()
+
             scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
             scenes: List[Mapping[str, Any]] = scenes_request.getScenes()
 
@@ -67,3 +65,13 @@ class SceneChangerComponent(ChatComponent):
 
     def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
         return True
+
+    def __get_transitions(self) -> Any:
+        if self.obs_client is not None and ~self.config["transitions"] is None:
+            scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
+            scenes: List[Mapping[str, Any]] = scenes_request.getScenes()
+            transition_matrix = {}
+            for scene in scenes:
+                transition_matrix[scene["name"]] = []
+            self.config["transitions"] = transition_matrix
+        return ~self.config["transitions"]

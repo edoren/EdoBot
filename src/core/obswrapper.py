@@ -41,6 +41,7 @@ class OBSWrapper:
         self.host = "localhost"
         self.port = 4444
         self.password = "changeme"
+        self.exit_requested = False
         self.is_connected = False
         self.waiting_password = False
         self.client: obsws = obsws(self.host, self.port, self.password)
@@ -54,10 +55,12 @@ class OBSWrapper:
         self.waiting_password = False
 
     def connect(self) -> None:
+        self.exit_requested = False
         self.connector = OBSConnector(self)
         self.connector.start()
 
     def disconnect(self) -> None:
+        self.exit_requested = True
         self.waiting_password = False
         self.is_connected = False
         if self.connector is not None:
@@ -78,18 +81,19 @@ class OBSWrapper:
         try:
             gLogger.info("Trying to connect to OBS")
             self.client.password = self.password
+            self.waiting_password = True
             self.client.connect(self.host, self.port)
             self.client.thread_recv.name = f"OBSClientThread"  # type: ignore
             self.is_connected = True
+            self.waiting_password = False
             gLogger.info("Connected to OBS")
             return True
         except ConnectionFailure as e:
             if str(e) == "Authentication Failed.":
                 gLogger.error("Error authenticating to OBS, please check your configuration")
-                self.waiting_password = True
                 while self.waiting_password:
                     time.sleep(1)
-            return False
+            return self.exit_requested
         except Exception:
             time.sleep(1)
             return False

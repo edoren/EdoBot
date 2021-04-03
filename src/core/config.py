@@ -1,4 +1,5 @@
 import json
+import os
 import os.path
 from typing import Any, List, MutableMapping, Union
 
@@ -13,10 +14,17 @@ __all__ = ["Config"]
 
 class Config:
     @staticmethod
-    def __write_config(file: str, path: Path, data: Any) -> bool:
+    def __create_if_not_exist(file: str) -> None:
         if not os.path.exists(file):
+            file_dir = os.path.dirname(file)
+            if not os.path.isdir(file_dir):
+                os.makedirs(file_dir)
             with open(file, 'w') as f:
                 f.write("{}")
+
+    @staticmethod
+    def __write_config(file: str, path: Path, data: Any) -> bool:
+        Config.__create_if_not_exist(file)
         with open(file, "r") as f:
             config: ConfigType = json.load(f)
         initial_config = config
@@ -42,9 +50,7 @@ class Config:
 
     @staticmethod
     def __read_config(file: str, path: Path) -> Any:
-        if not os.path.exists(file):
-            with open(file, 'w') as f:
-                f.write("{}")
+        Config.__create_if_not_exist(file)
         with open(file, "r") as f:
             config: ConfigType = json.load(f)
         for key in path:

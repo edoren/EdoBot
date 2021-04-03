@@ -68,10 +68,8 @@ class TokenRedirectWebServer(threading.Thread):
 
 class App:
     def __init__(self):
-        config_file_path = os.path.join(Constants.CONFIG_DIRECTORY, "settings.json")
-
         self.is_running = False
-        self.config = Config(config_file_path)
+        self.config = Config(os.path.join(Constants.CONFIG_DIRECTORY, "settings.json"))
         self.start_stop_lock = threading.Lock()
         self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="AppWorker")
 
@@ -106,11 +104,13 @@ class App:
         self.bot_connected: Optional[Callable[[model.User], None]] = None
         self.bot_disconnected: Optional[Callable[[model.User], None]] = None
 
-        if not os.path.exists(config_file_path):
+        if ~self.config["components"] is None:
+            self.config["components"] = []
+
+        if ~self.config["obswebsocket"] is None:
             self.config["obswebsocket"]["host"] = self.obs_client.host
             self.config["obswebsocket"]["port"] = self.obs_client.port
             self.config["obswebsocket"]["password"] = self.obs_client.password
-            self.config["components"] = []
 
         obswebsocket_config = ~self.config["obswebsocket"]
         self.obs_client.set_config(
@@ -261,13 +261,19 @@ class App:
             return
 
         instance = class_type()  # type: ignore
-        self.active_components[component_id] = instance
-
         with self.components_lock:
+            self.active_components[component_id] = instance
             if component_id not in ~self.config["components"]:
                 self.config["components"] = ~self.config["components"] + [component_id]
             if self.component_added:
                 self.component_added(instance)
+            if self.is_running and self.host_twitch_service is not None:
+                instance.config_component(config=self.__get_component_config(instance.get_id()),
+                                          obs_client=self.obs_client.get_client(),
+                                          twitch=self.host_twitch_service)
+                succeded = self.__secure_component_method_call(instance, "start")
+                if not succeded:
+                    self.__secure_component_method_call(instance, "stop")
             return instance
 
     def remove_component(self, component_id: str) -> None:
@@ -329,13 +335,14 @@ class App:
                 self.mods = self.host_twitch_service.get_moderators()
                 self.subs = self.host_twitch_service.get_subscribers()
 
-                for instance in self.active_components.values():
-                    instance.config_component(config=self.__get_component_config(instance.get_id()),
-                                              obs_client=self.obs_client.get_client(),
-                                              twitch=self.host_twitch_service)
-                    succeded = self.__secure_component_method_call(instance, "start")
-                    if not succeded:
-                        self.__secure_component_method_call(instance, "stop")
+                with self.components_lock:
+                    for instance in self.active_components.values():
+                        instance.config_component(config=self.__get_component_config(instance.get_id()),
+                                                  obs_client=self.obs_client.get_client(),
+                                                  twitch=self.host_twitch_service)
+                        succeded = self.__secure_component_method_call(instance, "start")
+                        if not succeded:
+                            self.__secure_component_method_call(instance, "stop")
 
                 gLogger.info("Bot started")
 

@@ -164,11 +164,7 @@ class MainWindow(QMainWindow):
         self.app.start()
 
     def about(self):
-        QMessageBox.about(self, "EdoBot",
-                          "The <b>Dock Widgets</b> example demonstrates how to use "
-                          "Qt's dock widgets. You can enter your own text, click a "
-                          "customer to add a customer name and address, and click "
-                          "standard paragraphs to add them.")
+        QMessageBox.about(self, "EdoBot", "Hello this is a bot")
 
     def create_actions(self):
         self.settings_action = QAction("&Settings", self)

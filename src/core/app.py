@@ -1,4 +1,3 @@
-import getpass
 import importlib
 import importlib.util
 import inspect
@@ -6,7 +5,6 @@ import json
 import logging
 import os
 import os.path
-from re import T
 import sys
 import threading
 import time
@@ -15,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from typing import (Any, Callable, List, Mapping, MutableMapping, Optional,
-                    Set, Type, ValuesView)
+                    Set, Type)
 
 import model
 import twitch
@@ -25,7 +23,7 @@ from core.obswrapper import OBSWrapper
 from .config import Config
 from .constants import Constants
 
-__all__ = ["EdoBot"]
+__all__ = ["App"]
 
 gLogger = logging.getLogger(f"edobot.{__name__}")
 
@@ -68,14 +66,14 @@ class TokenRedirectWebServer(threading.Thread):
             self.httpd.shutdown()
 
 
-class EdoBot:
+class App:
     def __init__(self):
         config_file_path = os.path.join(Constants.CONFIG_DIRECTORY, "settings.json")
 
         self.is_running = False
         self.config = Config(config_file_path)
         self.start_stop_lock = threading.Lock()
-        self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="EdoBotWorker")
+        self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="AppWorker")
 
         self.host_twitch_service = None
         self.bot_twitch_service = None
@@ -99,6 +97,8 @@ class EdoBot:
         self.token_web_server = TokenRedirectWebServer(self.token_received)
 
         # callbacks
+        self.started: Optional[Callable[[], None]] = None
+        self.stopped: Optional[Callable[[], None]] = None
         self.component_added: Optional[Callable[[twitch.ChatComponent], None]] = None
         self.component_removed: Optional[Callable[[twitch.ChatComponent], None]] = None
         self.host_connected: Optional[Callable[[model.User], None]] = None
@@ -284,7 +284,7 @@ class EdoBot:
             del self.active_components[component_id]
 
     def start(self):
-        def __run(self: EdoBot):
+        def __run(self: App):
             if self.is_running:
                 gLogger.info("Bot already started, stop it first")
                 return
@@ -344,6 +344,9 @@ class EdoBot:
             self.pubsub_service.start()
             self.pubsub_service.subscribe(self.handle_event)
 
+            if self.started:
+                self.started()
+
         self.executor.submit(__run, self)
 
     def stop(self):
@@ -355,15 +358,18 @@ class EdoBot:
             self.executor.shutdown(wait=True)
             if self.chat_service is not None:
                 self.chat_service.stop()
+                self.chat_service = None
             if self.pubsub_service is not None:
                 self.pubsub_service.stop()
-            if self.obs_client is not None:
-                self.obs_client.disconnect()
+                self.pubsub_service = None
+            self.obs_client.disconnect()
             self.token_web_server.stop()
             with self.components_lock:
                 for component in self.active_components.values():
                     self.__secure_component_method_call(component, "stop")
                 self.active_components.clear()
+            if self.stopped:
+                self.stopped()
             gLogger.info("Bot stopped")
 
     #################################################################

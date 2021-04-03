@@ -24,10 +24,10 @@ class EchoComponent(ChatComponent):  # TODO: Change to chat store
         return None  # To get all the messages without command filtering
 
     def start(self) -> None:
-        pass
+        super().start()
 
     def stop(self) -> None:
-        pass
+        super().stop()
 
     def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
         print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] [{user.display_name}] {message}")

@@ -13,6 +13,6 @@
     "reportUnknownArgumentType": "none",
     "reportUnknownMemberType": "none",
     "reportUnknownParameterType": "none",
+    "reportUnknownVariableType": "none",
     "reportMissingTypeStubs": "none",
-    "reportUnknownVariableType": "warning",
 }

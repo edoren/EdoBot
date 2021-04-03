@@ -52,20 +52,12 @@ def copy_function(src: str, dst: str):
     shutil.copy2(src, dst)
 
 
-logger.info("=================== Compiling components ===================")
-
-components_dir = os.path.join(source_dir, "components")
-components_pycache = os.path.join(components_dir, "__pycache__")
-if os.path.isdir(components_pycache):
-    shutil.rmtree(components_pycache)
-compileall.compile_dir(components_dir, optimize=optimized)
-
 logger.info("=================== Creating executable  ===================")
 
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
-hidden_imports: List[str] = []
+hidden_imports: List[str] = ["PySide2.QtXml"]
 excluded_modules: List[str] = []
 if not optimized:
     pyinstaller_args.append("--debug=noarchive")
@@ -88,7 +80,7 @@ pyinstaller_args += [
     f"--icon={APP_ICON}",
     "--noconsole",
     "--windowed",
-    os.path.join(source_dir, "src", "main_gui.py")
+    os.path.join(source_dir, "src", "main.py")
 ]
 my_env = os.environ.copy()
 my_env["PYTHONOPTIMIZE"] = str(optimized)
@@ -98,16 +90,14 @@ if result.returncode != 0:
 
 logger.info("=================== Copying data         ===================")
 
+components_dir = os.path.join(source_dir, "components")
 dist_dir = os.path.join(build_dir, "dist")
 if not onefile:
     dist_dir = os.path.join(dist_dir, APP_NAME)
-# shutil.copytree(os.path.join(source_dir, "www"),
-#                 os.path.join(dist_dir, "www"), dirs_exist_ok=True,
-#                 copy_function=copy_function)
-shutil.copytree(components_pycache,
+shutil.copytree(components_dir,
                 os.path.join(dist_dir, "components"), dirs_exist_ok=True,
                 copy_function=copy_function,
-                ignore=shutil.ignore_patterns("*.py"))
+                ignore=shutil.ignore_patterns("__pycache__"))
 if not onefile:
     pass
 

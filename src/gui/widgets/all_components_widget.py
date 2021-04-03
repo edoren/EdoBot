@@ -4,10 +4,10 @@ from typing import Optional
 from PySide2.QtCore import QByteArray, QMimeData, Qt
 from PySide2.QtWidgets import QLabel, QListWidget, QListWidgetItem, QWidget
 
-from .edolist import EdoListWidget
+from .base_list_widget import BaseListWidget
 
 
-class AllComponentsWidget(EdoListWidget):
+class AllComponentsWidget(BaseListWidget):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setDragDropMode(QListWidget.DragDropMode.DragOnly)

@@ -8,7 +8,7 @@
             "name": "Project",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main_gui.py",
+            "program": "${workspaceFolder}/src/main.py",
             "console": "integratedTerminal",
             "justMyCode": false
         },

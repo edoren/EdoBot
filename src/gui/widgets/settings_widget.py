@@ -1,0 +1,103 @@
+import os.path
+from typing import Optional
+
+from PySide2.QtCore import QCoreApplication, QFile, Signal
+from PySide2.QtGui import QCloseEvent, QIntValidator, QShowEvent
+from PySide2.QtUiTools import QUiLoader
+from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QVBoxLayout,
+                               QWidget)
+
+from core.constants import Constants
+
+
+class SettingsWidget(QWidget):
+    accountHostConnectPressed = Signal()
+    accountBotConnectPressed = Signal()
+    accountHostDisconnectPressed = Signal()
+    accountBotDisconnectPressed = Signal()
+    obsWebsocketSettingsChanged = Signal(dict)
+
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
+        super().__init__(parent=parent)
+
+        file = QFile(os.path.join(Constants.DATA_DIRECTORY, "designer", "settings.ui"))
+        file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
+        my_widget = QUiLoader().load(file, self)
+        file.close()
+
+        self.host_account_label: QLabel = getattr(my_widget, "host_account_label")
+        self.host_account_status_label: QLabel = getattr(my_widget, "host_account_status_label")
+        self.host_account_button: QPushButton = getattr(my_widget, "host_account_button")
+        self.bot_account_label: QLabel = getattr(my_widget, "bot_account_label")
+        self.bot_account_status_label: QLabel = getattr(my_widget, "bot_account_status_label")
+        self.bot_account_button: QPushButton = getattr(my_widget, "bot_account_button")
+        self.host_line_edit: QLineEdit = getattr(my_widget, "host_line_edit")
+        self.port_line_edit: QLineEdit = getattr(my_widget, "port_line_edit")
+        self.password_line_edit: QLineEdit = getattr(my_widget, "password_line_edit")
+
+        self.port_line_edit.setValidator(QIntValidator(0, 2**16-1, self))
+
+        # Connect signals
+        self.obs_config_changed_flag = False
+        self.host_line_edit.textEdited.connect(self.obs_config_changed)  # type: ignore
+        self.port_line_edit.textEdited.connect(self.obs_config_changed)  # type: ignore
+        self.password_line_edit.textEdited.connect(self.obs_config_changed)  # type: ignore
+        self.set_host_account(None)
+        self.set_bot_account(None)
+
+        layout = QVBoxLayout()
+        layout.addWidget(my_widget)
+        self.setLayout(layout)
+
+    def obs_config_changed(self):
+        self.obs_config_changed_flag = True
+
+    def set_host_account(self, name: Optional[str]):
+        try:
+            self.host_account_button.clicked.disconnect()  # type: ignore
+        except Exception:
+            pass
+        if name:
+            self.host_account_label.setText(name)
+            self.host_account_status_label.setText(self.__get_translation("Connected"))
+            self.host_account_button.setText("Disconnect Host")
+            self.host_account_button.clicked.connect(self.accountHostDisconnectPressed.emit)  # type: ignore
+        else:
+            self.host_account_label.setText("")
+            self.host_account_status_label.setText(self.__get_translation("Disconnected"))
+            self.host_account_button.setText(self.__get_translation("Connect Host"))
+            self.host_account_button.clicked.connect(self.accountHostConnectPressed.emit)  # type: ignore
+        self.host_account_button.setDisabled(False)
+
+    def set_bot_account(self, name: Optional[str]):
+        try:
+            self.bot_account_button.clicked.disconnect()  # type: ignore
+        except Exception:
+            pass
+        if name:
+            self.bot_account_label.setText(name)
+            self.bot_account_status_label.setText(self.__get_translation("Connected"))
+            self.bot_account_button.setText(self.__get_translation("Disconnect Bot"))
+            self.bot_account_button.clicked.connect(self.accountBotDisconnectPressed.emit)  # type: ignore
+        else:
+            self.bot_account_label.setText("")
+            self.bot_account_status_label.setText(self.__get_translation("Disconnected"))
+            self.bot_account_button.setText(self.__get_translation("Connect Bot"))
+            self.bot_account_button.clicked.connect(self.accountBotConnectPressed.emit)  # type: ignore
+        self.bot_account_button.setDisabled(False)
+
+    def showEvent(self, event: QShowEvent) -> None:
+        self.obs_config_changed_flag = False
+        event.accept()
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        if self.obs_config_changed_flag:
+            self.obsWebsocketSettingsChanged.emit({  # type: ignore
+                "host": self.host_line_edit.text(),
+                "port": int(self.port_line_edit.text()),
+                "password": self.password_line_edit.text()
+            })
+        event.accept()
+
+    def __get_translation(self, value: str) -> str:
+        return QCoreApplication.translate("Settings", value, None)  # type: ignore

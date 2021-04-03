@@ -5,12 +5,12 @@ from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
 from PySide2.QtWidgets import QListWidget, QListWidgetItem, QWidget
 
-from .all_components import AllComponentsWidget
-from .component import ComponentWidget
-from .edolist import EdoListWidget
+from .all_components_widget import AllComponentsWidget
+from .base_list_widget import BaseListWidget
+from .component_widget import ComponentWidget
 
 
-class ActiveComponentsWidget(EdoListWidget):
+class ActiveComponentsWidget(BaseListWidget):
     componentClicked = Signal(str)
     componentDropped = Signal(str)
     componentRemoved = Signal(str)

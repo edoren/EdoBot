@@ -1,8 +1,8 @@
 import os.path
 from typing import Optional
 
-from PySide2.QtCore import QCoreApplication, QFile, Signal
-from PySide2.QtGui import QCloseEvent, QIntValidator, QShowEvent
+from PySide2.QtCore import QCoreApplication, QFile, Qt, Signal
+from PySide2.QtGui import QIntValidator, QShowEvent
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QVBoxLayout,
                                QWidget)
@@ -17,8 +17,12 @@ class SettingsWidget(QWidget):
     accountBotDisconnectPressed = Signal()
     obsWebsocketSettingsChanged = Signal(dict)
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent=parent)
+
+        self.setWindowTitle(self.__get_translation("Settings"))
+        self.overrideWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.CustomizeWindowHint |  # type: ignore
+                                 Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
 
         file = QFile(os.path.join(Constants.DATA_DIRECTORY, "designer", "settings.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
@@ -38,19 +42,23 @@ class SettingsWidget(QWidget):
         self.port_line_edit.setValidator(QIntValidator(0, 2**16-1, self))
 
         # Connect signals
-        self.obs_config_changed_flag = False
-        self.host_line_edit.textEdited.connect(self.obs_config_changed)  # type: ignore
-        self.port_line_edit.textEdited.connect(self.obs_config_changed)  # type: ignore
-        self.password_line_edit.textEdited.connect(self.obs_config_changed)  # type: ignore
+        self.host_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
+        self.port_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
+        self.password_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.set_host_account(None)
         self.set_bot_account(None)
 
         layout = QVBoxLayout()
         layout.addWidget(my_widget)
         self.setLayout(layout)
+        self.setFixedSize(self.sizeHint())
 
     def obs_config_changed(self):
-        self.obs_config_changed_flag = True
+        self.obsWebsocketSettingsChanged.emit({  # type: ignore
+            "host": self.host_line_edit.text(),
+            "port": int(self.port_line_edit.text()),
+            "password": self.password_line_edit.text()
+        })
 
     def set_host_account(self, name: Optional[str]):
         try:
@@ -87,16 +95,10 @@ class SettingsWidget(QWidget):
         self.bot_account_button.setDisabled(False)
 
     def showEvent(self, event: QShowEvent) -> None:
-        self.obs_config_changed_flag = False
-        event.accept()
-
-    def closeEvent(self, event: QCloseEvent) -> None:
-        if self.obs_config_changed_flag:
-            self.obsWebsocketSettingsChanged.emit({  # type: ignore
-                "host": self.host_line_edit.text(),
-                "port": int(self.port_line_edit.text()),
-                "password": self.password_line_edit.text()
-            })
+        r = self.parentWidget().geometry()
+        self.setGeometry(r.left() + int((r.width() - self.width()) / 2),
+                         r.top() + int((r.height() - self.height()) / 2),
+                         self.width(), self.height())
         event.accept()
 
     def __get_translation(self, value: str) -> str:

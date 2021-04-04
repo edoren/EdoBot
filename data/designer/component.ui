@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>Component</class>
+ <widget class="QWidget" name="Component">
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -54,7 +54,8 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset theme="edit-undo"/>
+      <iconset theme="edit-undo">
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <property name="flat">
       <bool>true</bool>

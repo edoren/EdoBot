@@ -52,6 +52,15 @@ def copy_function(src: str, dst: str):
     shutil.copy2(src, dst)
 
 
+logger.info("=================== Collecting version =====================")
+
+with open(os.path.join(data_dir, "version.info"), "w") as f:
+    try:
+        version_str = subprocess.check_output(["git", "describe", "--tags"]).decode("utf-8").strip()
+    except Exception:
+        version_str = "unknown"
+    f.write(version_str)
+
 logger.info("=================== Creating executable  ===================")
 
 os.chdir(build_dir)
@@ -80,6 +89,7 @@ pyinstaller_args += [
     f"--icon={APP_ICON}",
     "--noconsole",
     "--windowed",
+    "--noupx",
     os.path.join(source_dir, "src", "main.py")
 ]
 my_env = os.environ.copy()

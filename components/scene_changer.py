@@ -43,7 +43,7 @@ class SceneChangerComponentConfigWidget(QWidget):
         # Connect signals
         self.add_button.clicked.connect(self.on_add_clicked)  # type: ignore
         self.scene_changes_widget.customContextMenuRequested.connect(self.open_context_menu)  # type: ignore
-        self.command_line_edit.textEdited.connect(self.command_changed)  # type: ignore
+        self.command_line_edit.editingFinished.connect(self.command_changed)  # type: ignore
         self.mod_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore
         self.vip_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore
         self.sub_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore

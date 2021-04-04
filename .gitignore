@@ -21,4 +21,5 @@ __pycache__
 # Build files
 /build/
 /dist/
+/data/version.info
 *.spec

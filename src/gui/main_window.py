@@ -103,10 +103,14 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren", "EdoBot")
+        self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope,
+                                  "Edoren", Constants.APP_NAME)
+
+        self.setWindowTitle(f"{Constants.APP_NAME} {Constants.APP_VERSION}")
+        self.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
 
         self.component_list = ActiveComponentsWidget()
-        self.component_list.setMinimumSize(400, 300)
+        self.component_list.setMinimumSize(400, 200)
         self.setCentralWidget(self.component_list)
 
         self.create_actions()
@@ -155,16 +159,13 @@ class MainWindow(QMainWindow):
             self.avaiable_comps_widget.add_component(comp_type.get_id(), comp_type.get_name(),
                                                      comp_type.get_description())
 
-        self.setWindowTitle("EdoBot")
-        self.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
-
         self.read_settings()
 
     def reconnect_bot(self):
         self.app.start()
 
     def about(self):
-        QMessageBox.about(self, "EdoBot", "Hello this is a bot")
+        QMessageBox.about(self, "About", f"Hello this is a bot.\nVersion: {Constants.APP_VERSION}")
 
     def create_actions(self):
         self.settings_action = QAction("&Settings", self)
@@ -241,7 +242,7 @@ class MainWindow(QMainWindow):
         dock.setWidget(self.component_config_main_widget)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
 
-        self.settings_widget = SettingsWidget()
+        self.settings_widget = SettingsWidget(self)
         self.settings_widget.obsWebsocketSettingsChanged.connect(self.obs_websocket_settings_changed)  # type: ignore
         self.settings_widget.accountHostConnectPressed.connect(self.account_host_connect_pressed)  # type: ignore
         self.settings_widget.accountBotConnectPressed.connect(self.account_bot_connect_pressed)  # type: ignore
@@ -361,7 +362,6 @@ class MainWindow(QMainWindow):
     #################################################################
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        self.settings_widget.close()
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
         self.settings.setValue("maximized", self.isMaximized())

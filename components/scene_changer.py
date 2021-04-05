@@ -44,10 +44,10 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.add_button.clicked.connect(self.on_add_clicked)  # type: ignore
         self.scene_changes_widget.customContextMenuRequested.connect(self.open_context_menu)  # type: ignore
         self.command_line_edit.editingFinished.connect(self.command_changed)  # type: ignore
-        self.mod_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore
-        self.vip_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore
-        self.sub_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore
-        self.chatter_check_box.stateChanged.connect(self.who_can_use_changed)  # type: ignore
+        self.mod_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
+        self.vip_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
+        self.sub_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
+        self.chatter_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
 
         layout = QVBoxLayout()
         layout.addWidget(my_widget)
@@ -114,7 +114,7 @@ class SceneChangerComponent(ChatComponent):
 
     @staticmethod
     def get_description() -> str:
-        return "This component allows Mods change the OBS scenes"
+        return "This component allows chat to change the OBS scenes"
 
     def __init__(self) -> None:
         super().__init__()
@@ -130,8 +130,10 @@ class SceneChangerComponent(ChatComponent):
             self.command = "scene"
             self.config["command"] = self.command
 
-        self.who_can = ~self.config["self.who_can"]
-        if self.who_can is None or not isinstance(self.who_can, dict):
+        who_can = ~self.config["who_can"]
+        if who_can is not None or isinstance(who_can, dict):
+            self.update_who_can(who_can["mod"], who_can["vip"], who_can["sub"], who_can["chatter"])
+        else:
             self.update_who_can(True, False, False, False)
 
         self.transitions = ~self.config["transitions"]
@@ -164,8 +166,6 @@ class SceneChangerComponent(ChatComponent):
                     if target_scene in self.transitions[current_scene]:
                         gLogger.info(f"[{user.display_name}] Transitioning: {current_scene} -> {target_scene}")
                         self.obs_client.call(obs_requests.SetCurrentScene(target_scene))
-                else:
-                    gLogger.error(f"Error: Scene '{current_scene}' not found in transition matrix")
 
         return True
 

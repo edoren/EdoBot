@@ -2,121 +2,206 @@
 <ui version="4.0">
  <class>SceneChangerConfig</class>
  <widget class="QWidget" name="SceneChangerConfig">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>618</width>
+    <height>222</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="vertical_layout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <layout class="QHBoxLayout" name="command_input_layout">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
      <item>
-      <widget class="QLabel" name="command_label">
-       <property name="text">
+      <widget class="QGroupBox" name="groupBox">
+       <property name="styleSheet">
+        <string notr="true">QGroupBox { font-weight: bold; }</string>
+       </property>
+       <property name="title">
+        <string>Add Transition</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="from_label">
+          <property name="text">
+           <string>From</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="from_combo_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="to_label">
+          <property name="text">
+           <string>To</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="to_combo_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="add_button">
+          <property name="text">
+           <string>Add</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="styleSheet">
+        <string notr="true">QGroupBox { font-weight: bold; }</string>
+       </property>
+       <property name="title">
         <string>Command</string>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <widget class="QLineEdit" name="command_line_edit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>scene</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="command_line_edit">
-       <property name="text">
-        <string>scene</string>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="styleSheet">
+        <string notr="true">QGroupBox { font-weight: bold; }</string>
        </property>
+       <property name="title">
+        <string>Who Can Use It?</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="mod_check_box">
+            <property name="text">
+             <string>Mods</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="sub_check_box">
+            <property name="text">
+             <string>Subs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="vip_check_box">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>VIP</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="chatter_check_box">
+            <property name="text">
+             <string>Chatter</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="enabled_users_input_layout">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLabel" name="who_can_use_label">
-       <property name="text">
-        <string>Who can use it?</string>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="styleSheet">
+        <string notr="true">QGroupBox { font-weight: bold; }</string>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="mod_check_box">
-       <property name="text">
-        <string>Mods</string>
+       <property name="title">
+        <string>Transitions</string>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="vip_check_box">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>VIP</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="sub_check_box">
-       <property name="text">
-        <string>Subs</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="chatter_check_box">
-       <property name="text">
-        <string>Chatter</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="scene_change_input_layout">
-     <item>
-      <widget class="QLabel" name="from_label">
-       <property name="text">
-        <string>From</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="from_combo_box">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="to_label">
-       <property name="text">
-        <string>To</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="to_combo_box">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="add_button">
-       <property name="text">
-        <string>Add</string>
-       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QListWidget" name="scene_changes_widget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::CustomContextMenu</enum>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel { padding: 0 5px 0 5px; }
+QListWidget::item { color: transparent; }</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>dasdsad</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QListWidget" name="scene_changes_widget">
-     <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

@@ -6,8 +6,8 @@ import obswebsocket.requests as obs_requests
 from PySide2.QtCore import QCoreApplication, QFile
 from PySide2.QtGui import QShowEvent
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QLineEdit,
-                               QListWidget, QMenu, QPushButton, QVBoxLayout,
+from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit,
+                               QListWidget, QListWidgetItem, QMenu, QPushButton, QSizePolicy, QVBoxLayout,
                                QWidget)
 
 from model import User
@@ -58,7 +58,23 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.scene_changes_widget.clear()
         for from_transition, to_list in transitions.items():
             for to_transition in to_list:
-                self.scene_changes_widget.addItem(f"{from_transition} -> {to_transition}")
+                widget = QWidget()
+                layout = QHBoxLayout()
+                label = QLabel(from_transition)
+                label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+                layout.addWidget(label)
+                label = QLabel("->")
+                label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+                layout.addWidget(label)
+                label = QLabel(to_transition)
+                label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+                layout.addWidget(label)
+                layout.setContentsMargins(0, 2, 0, 2)
+                widget.setLayout(layout)
+                item = QListWidgetItem(f"{from_transition}||{to_transition}")
+                item.setSizeHint(widget.sizeHint())
+                self.scene_changes_widget.addItem(item)
+                self.scene_changes_widget.setItemWidget(item, widget)
 
     def on_add_clicked(self):
         self.data_parent.add_transition(self.from_combo_box.currentText(), self.to_combo_box.currentText())
@@ -75,7 +91,7 @@ class SceneChangerComponentConfigWidget(QWidget):
 
     def delete_item_selection(self):
         for item in self.scene_changes_widget.selectedItems():
-            pair = item.text().split(" -> ")
+            pair = item.text().split("||")
             self.data_parent.remove_transition(pair[0], pair[1])
         self.update_list_items()
 
@@ -97,6 +113,8 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.vip_check_box.setChecked(UserType.VIP in self.data_parent.who_can)
         self.sub_check_box.setChecked(UserType.SUBSCRIPTOR in self.data_parent.who_can)
         self.chatter_check_box.setChecked(UserType.CHATTER in self.data_parent.who_can)
+        self.from_combo_box.clear()
+        self.to_combo_box.clear()
         self.from_combo_box.addItems(scene_list)
         self.to_combo_box.addItems(scene_list)
         self.update_list_items()

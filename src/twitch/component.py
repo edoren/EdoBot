@@ -59,7 +59,7 @@ class ChatComponent(ABC):
     def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
         pass
 
-    def is_obs_conneccted(self) -> bool:
+    def is_obs_connected(self) -> bool:
         return (hasattr(self, "obs_client") and
                 self.obs_client is not None and
                 self.obs_client.thread_recv is not None and

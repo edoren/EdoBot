@@ -165,7 +165,7 @@ class SceneChangerComponent(ChatComponent):
         super().stop()
 
     def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
-        if not self.is_obs_conneccted():
+        if not self.is_obs_connected():
             return False
 
         if len(self.who_can.intersection(user_types)) != 0:
@@ -228,7 +228,7 @@ class SceneChangerComponent(ChatComponent):
         self.config["who_can"] = {"mod": mod, "vip": vip, "sub": sub, "chatter": chatter}
 
     def get_obs_scenes(self) -> List[str]:
-        if not self.is_obs_conneccted():
+        if not self.is_obs_connected():
             return []
         scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
         return [scene["name"] for scene in scenes_request.getScenes()]

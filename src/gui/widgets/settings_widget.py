@@ -23,6 +23,7 @@ class SettingsWidget(QWidget):
         self.setWindowTitle(self.__get_translation("Settings"))
         self.overrideWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.CustomizeWindowHint |  # type: ignore
                                  Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         file = QFile(os.path.join(Constants.DATA_DIRECTORY, "designer", "settings.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
@@ -30,10 +31,8 @@ class SettingsWidget(QWidget):
         file.close()
 
         self.host_account_label: QLabel = getattr(my_widget, "host_account_label")
-        self.host_account_status_label: QLabel = getattr(my_widget, "host_account_status_label")
         self.host_account_button: QPushButton = getattr(my_widget, "host_account_button")
         self.bot_account_label: QLabel = getattr(my_widget, "bot_account_label")
-        self.bot_account_status_label: QLabel = getattr(my_widget, "bot_account_status_label")
         self.bot_account_button: QPushButton = getattr(my_widget, "bot_account_button")
         self.host_line_edit: QLineEdit = getattr(my_widget, "host_line_edit")
         self.port_line_edit: QLineEdit = getattr(my_widget, "port_line_edit")
@@ -67,13 +66,13 @@ class SettingsWidget(QWidget):
             pass
         if name:
             self.host_account_label.setText(name)
-            self.host_account_status_label.setText(self.__get_translation("Connected"))
-            self.host_account_button.setText("Disconnect Host")
+            self.host_account_label.setStyleSheet("QLabel {  color: black; }")
+            self.host_account_button.setText(self.__get_translation("Disconnect"))
             self.host_account_button.clicked.connect(self.accountHostDisconnectPressed.emit)  # type: ignore
         else:
-            self.host_account_label.setText("")
-            self.host_account_status_label.setText(self.__get_translation("Disconnected"))
-            self.host_account_button.setText(self.__get_translation("Connect Host"))
+            self.host_account_label.setText(self.__get_translation("Not Connected"))
+            self.host_account_label.setStyleSheet("QLabel {  color: gray; }")
+            self.host_account_button.setText(self.__get_translation("Connect"))
             self.host_account_button.clicked.connect(self.accountHostConnectPressed.emit)  # type: ignore
         self.host_account_button.setDisabled(False)
 
@@ -84,13 +83,13 @@ class SettingsWidget(QWidget):
             pass
         if name:
             self.bot_account_label.setText(name)
-            self.bot_account_status_label.setText(self.__get_translation("Connected"))
-            self.bot_account_button.setText(self.__get_translation("Disconnect Bot"))
+            self.bot_account_label.setStyleSheet("QLabel {  color: black; }")
+            self.bot_account_button.setText(self.__get_translation("Disconnect"))
             self.bot_account_button.clicked.connect(self.accountBotDisconnectPressed.emit)  # type: ignore
         else:
-            self.bot_account_label.setText("")
-            self.bot_account_status_label.setText(self.__get_translation("Disconnected"))
-            self.bot_account_button.setText(self.__get_translation("Connect Bot"))
+            self.bot_account_label.setText(self.__get_translation("Not Connected"))
+            self.bot_account_label.setStyleSheet("QLabel {  color: gray; }")
+            self.bot_account_button.setText(self.__get_translation("Connect"))
             self.bot_account_button.clicked.connect(self.accountBotConnectPressed.emit)  # type: ignore
         self.bot_account_button.setDisabled(False)
 

@@ -35,6 +35,8 @@ class AllComponentsWidget(BaseListWidget):
 
     def add_component(self, id: str, name: str, description: str):
         widget = QLabel(name)
+        widget.setStyleSheet("QLabel { padding: 0 5px 0 5px; }")
+        widget.setFixedHeight(20)
         widget.setToolTip(description)
         item = QListWidgetItem()
         item.setData(Qt.ItemDataRole.UserRole, {"id": id})  # type: ignore

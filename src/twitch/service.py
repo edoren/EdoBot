@@ -13,6 +13,10 @@ __all__ = ["Service"]
 gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
+class UnauthenticatedException(Exception):
+    pass
+
+
 class Service:
     def __init__(self, token: AccessToken):
         self.token = token
@@ -38,10 +42,12 @@ class Service:
                 if request.status_code == 200:
                     return request.json()
                 elif request.status_code == 401:
-                    pass  # TODO: Notify as exception
+                    raise UnauthenticatedException("Unauthenticated: Missing/invalid Token")
                 else:
                     gLogger.error(f"Error reaching url '{request_url}' failed: {request.json()}")
                     return {"data": None}
+            except UnauthenticatedException as e:
+                raise e
             except Exception as e:
                 gLogger.error(f"Error reaching url '{request_url}' retying in {retry_time} seconds: {e}")
                 time.sleep(retry_time)

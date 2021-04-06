@@ -69,9 +69,9 @@ class TokenRedirectWebServer(threading.Thread):
 class App:
     def __init__(self):
         self.is_running = False
+        self.has_started = False
         self.config = Config(os.path.join(Constants.CONFIG_DIRECTORY, "settings.json"))
         self.start_stop_lock = threading.Lock()
-        self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="AppWorker")
 
         self.host_twitch_service = None
         self.bot_twitch_service = None
@@ -92,7 +92,10 @@ class App:
                            "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"]
         self.bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
 
-        self.token_web_server = TokenRedirectWebServer(self.token_received)
+        self.executor: Optional[ThreadPoolExecutor] = None
+
+        self.token_web_server: Optional[TokenRedirectWebServer] = None
+        self.__start_token_web_server()
 
         # callbacks
         self.started: Optional[Callable[[], None]] = None
@@ -100,9 +103,9 @@ class App:
         self.component_added: Optional[Callable[[twitch.ChatComponent], None]] = None
         self.component_removed: Optional[Callable[[twitch.ChatComponent], None]] = None
         self.host_connected: Optional[Callable[[model.User], None]] = None
-        self.host_disconnected: Optional[Callable[[model.User], None]] = None
+        self.host_disconnected: Optional[Callable[[], None]] = None
         self.bot_connected: Optional[Callable[[model.User], None]] = None
-        self.bot_disconnected: Optional[Callable[[model.User], None]] = None
+        self.bot_disconnected: Optional[Callable[[], None]] = None
 
         if ~self.config["components"] is None:
             self.config["components"] = []
@@ -135,7 +138,7 @@ class App:
                 self.bot_connected(self.bot_twitch_service.user)
         self.db.set_user_token(token.state[0], token)
         if self.host_twitch_service is not None and self.bot_twitch_service is not None:
-            self.token_web_server.stop()
+            self.__stop_token_web_server()
 
     def handle_message(self, sender: str, text: str) -> None:
         if self.host_twitch_service is None or self.bot_twitch_service is None:
@@ -194,10 +197,20 @@ class App:
         return self.__get_auth_url(self.bot_scope, "bot", True)
 
     def reset_host_account(self) -> None:
-        return self.db.remove_user("host")
+        self.db.remove_user("host")
+        self.host_twitch_service = None
+        self.stop()
+        self.start()
+        if self.host_disconnected:
+            self.host_disconnected()
 
     def reset_bot_account(self) -> None:
-        return self.db.remove_user("bot")
+        self.db.remove_user("bot")
+        self.bot_twitch_service = None
+        self.stop()
+        self.start()
+        if self.bot_disconnected:
+            self.bot_disconnected()
 
     def get_available_components(self) -> Mapping[str, Type[twitch.ChatComponent]]:
         return self.available_components
@@ -267,7 +280,7 @@ class App:
                 self.config["components"] = ~self.config["components"] + [component_id]
             if self.component_added:
                 self.component_added(instance)
-            if self.is_running and self.host_twitch_service is not None:
+            if self.has_started and self.host_twitch_service is not None:
                 instance.config_component(config=self.__get_component_config(instance.get_id()),
                                           obs_client=self.obs_client.get_client(),
                                           twitch=self.host_twitch_service)
@@ -291,30 +304,30 @@ class App:
 
     def start(self):
         def __run(self: App):
-            if self.is_running:
-                gLogger.info("Bot already started, stop it first")
-                return
-
-            self.is_running = True
-
             for component_id in set(~self.config["components"]):
                 self.add_component(component_id)
 
             host_token = self.db.get_token_for_user("host")
             bot_token = self.db.get_token_for_user("bot")
             if host_token is not None:
-                self.host_twitch_service = twitch.Service(host_token)
-                if self.host_connected:
-                    self.host_connected(self.host_twitch_service.user)
+                try:
+                    self.host_twitch_service = twitch.Service(host_token)
+                    if self.host_connected:
+                        self.host_connected(self.host_twitch_service.user)
+                except twitch.service.UnauthenticatedException:
+                    self.db.remove_user("host")
             if bot_token is not None:
-                self.bot_twitch_service = twitch.Service(bot_token)
-                if self.bot_connected:
-                    self.bot_connected(self.bot_twitch_service.user)
+                try:
+                    self.bot_twitch_service = twitch.Service(bot_token)
+                    if self.bot_connected:
+                        self.bot_connected(self.bot_twitch_service.user)
+                except twitch.service.UnauthenticatedException:
+                    self.db.remove_user("bot")
 
             # Waiting for tokens available
             gLogger.info("Waiting for tokens available to start Services")
             if host_token is None or bot_token is None:
-                self.token_web_server.start()
+                self.__start_token_web_server()
 
             while self.is_running:
                 if self.host_twitch_service is not None and self.bot_twitch_service is not None:
@@ -351,37 +364,67 @@ class App:
             self.pubsub_service.start()
             self.pubsub_service.subscribe(self.handle_event)
 
+            self.has_started = True
             if self.started:
                 self.started()
 
-        self.executor.submit(__run, self)
+        with self.start_stop_lock:
+            if self.is_running:
+                gLogger.info("Bot already started, stop it first")
+                return
+            self.is_running = True
+            self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="AppWorker")
+            self.executor.submit(__run, self)
 
     def stop(self):
         if not self.is_running:
             return
         with self.start_stop_lock:
-            gLogger.info("Stopping bot, please wait...")
             self.is_running = False
-            self.executor.shutdown(wait=True)
-            if self.chat_service is not None:
-                self.chat_service.stop()
-                self.chat_service = None
-            if self.pubsub_service is not None:
-                self.pubsub_service.stop()
-                self.pubsub_service = None
+            if self.executor is not None:
+                self.executor.shutdown(wait=True)
+            if self.has_started:
+                gLogger.info("Stopping bot, please wait...")
+                if self.chat_service is not None:
+                    self.chat_service.stop()
+                    self.chat_service = None
+                if self.pubsub_service is not None:
+                    self.pubsub_service.stop()
+                    self.pubsub_service = None
+                if self.stopped:
+                    self.stopped()
+                with self.components_lock:
+                    for component in self.active_components.values():
+                        self.__secure_component_method_call(component, "stop")
+                    self.active_components.clear()
+                gLogger.info("Bot stopped")
+            self.has_started = False
+
+    def shutdown(self):
+        if not self.is_running:
+            return
+        self.bot_twitch_service = None
+        self.host_twitch_service = None
+        self.stop()
+        with self.start_stop_lock:
+            gLogger.info("Shutting down bot, please wait...")
             self.obs_client.disconnect()
-            self.token_web_server.stop()
-            with self.components_lock:
-                for component in self.active_components.values():
-                    self.__secure_component_method_call(component, "stop")
-                self.active_components.clear()
-            if self.stopped:
-                self.stopped()
-            gLogger.info("Bot stopped")
+            self.__stop_token_web_server()
+            gLogger.info("Bot shut down")
 
     #################################################################
     # Private
     #################################################################
+
+    def __start_token_web_server(self):
+        if self.token_web_server is None:
+            self.token_web_server = TokenRedirectWebServer(self.token_received)
+            self.token_web_server.start()
+
+    def __stop_token_web_server(self):
+        if self.token_web_server is not None:
+            self.token_web_server.stop()
+            self.token_web_server = None
 
     @staticmethod
     def __get_auth_url(scope: List[str], state: str, force_verify=True) -> str:

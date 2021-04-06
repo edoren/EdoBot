@@ -11,7 +11,7 @@ import arrow
 from PySide2.QtCore import QSettings, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout,
-                               QMainWindow, QMessageBox, QSizePolicy,
+                               QMainWindow, QMessageBox, QScrollArea, QSizePolicy,
                                QTextBrowser, QWidget)
 
 import model
@@ -98,6 +98,8 @@ class MainWindow(QMainWindow):
     edobotStopped = Signal()
     hostConnected = Signal(model.User)
     botConnected = Signal(model.User)
+    hostDisconnected = Signal()
+    botDisconnected = Signal()
     componentAdded = Signal(ChatComponent)
 
     def __init__(self):
@@ -121,7 +123,7 @@ class MainWindow(QMainWindow):
         handlers: List[logging.Handler] = []
 
         file_handler = logging.FileHandler(os.path.join(Constants.SAVE_DIRECTORY, "out.log"), "a")
-        file_handler.setLevel(logging.NOTSET)
+        file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(TimeFormatter(
             "[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))
         handlers.append(file_handler)
@@ -130,21 +132,25 @@ class MainWindow(QMainWindow):
         stream_handler.setLevel(logging.INFO)
         handlers.append(stream_handler)
 
-        logging.getLogger(f"obswebsocket").setLevel(logging.CRITICAL)
-        logging.basicConfig(level=logging.NOTSET, handlers=handlers)
+        logging.getLogger(f"obswebsocket").setLevel(logging.NOTSET)
+        logging.basicConfig(level=logging.DEBUG, handlers=handlers)
 
         self.app: App = App()
         self.app.started = self.edobotStarted.emit  # type: ignore
-        self.app.stopped = self.edobotStopped.emit  # type: ignore
-        self.app.component_added = self.componentAdded.emit  # type: ignore
-        self.app.host_connected = self.hostConnected.emit  # type: ignore
-        self.app.bot_connected = self.botConnected.emit  # type: ignore
         self.edobotStarted.connect(self.edobot_started)  # type: ignore
+        self.app.stopped = self.edobotStopped.emit  # type: ignore
         self.edobotStopped.connect(self.edobot_stopped)  # type: ignore
+        self.app.component_added = self.componentAdded.emit  # type: ignore
         self.componentAdded.connect(self.add_component_widget)  # type: ignore
+        self.app.host_connected = self.hostConnected.emit  # type: ignore
         self.hostConnected.connect(self.host_connected)  # type: ignore
+        self.app.bot_connected = self.botConnected.emit  # type: ignore
         self.botConnected.connect(self.bot_connected)  # type: ignore
-        self.reconnect_bot()
+        self.app.host_disconnected = self.hostDisconnected.emit  # type: ignore
+        self.hostDisconnected.connect(self.host_disconnected)  # type: ignore
+        self.app.bot_disconnected = self.botDisconnected.emit  # type: ignore
+        self.botDisconnected.connect(self.bot_disconnected)  # type: ignore
+        self.app.start()
 
         self.last_clicked_component = None
 
@@ -161,11 +167,13 @@ class MainWindow(QMainWindow):
 
         self.read_settings()
 
-    def reconnect_bot(self):
-        self.app.start()
-
     def about(self):
-        QMessageBox.about(self, "About", f"Hello this is a bot.\nVersion: {Constants.APP_VERSION}")
+        text = ("EdoBot is an Open Source tool to create Twitch components that interacts with the chat."
+                "<br><br>"
+                "Please go to <a href='https://github.com/edoren/EdoBot'>github.com/edoren/EdoBot</a> for more info."
+                "<br><br>"
+                "Download latest release <a href='https://github.com/edoren/edobot/releases/latest'>here</a>.")
+        QMessageBox.about(self, f"About {Constants.APP_NAME}", text)
 
     def create_actions(self):
         self.settings_action = QAction("&Settings", self)
@@ -229,18 +237,24 @@ class MainWindow(QMainWindow):
         dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)  # type: ignore
         dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea)  # type: ignore
         dock.setMinimumHeight(150)
+
+        self.component_config_scroll_area = QScrollArea(dock)
+        self.component_config_scroll_area.setWidgetResizable(True)
+
         self.component_config_main_widget = QWidget(dock)
         self.component_config_main_widget.setObjectName("CompConfObj")
         self.component_config_main_widget.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding,
                                                                     QSizePolicy.Policy.Expanding))
-        self.component_config_main_widget.setStyleSheet("QWidget#CompConfObj\n"
-                                                        "{ background-color: #f5f5f5; border: 1px solid #828790; }")
+
         self.component_config_main_widget_layout = QHBoxLayout()
         self.component_config_main_widget_layout.setContentsMargins(0, 0, 0, 0)
         self.component_config_main_widget.setLayout(self.component_config_main_widget_layout)
-        self.active_component_config_widget: Optional[QWidget] = None
-        dock.setWidget(self.component_config_main_widget)
+
+        self.component_config_scroll_area.setWidget(self.component_config_main_widget)
+        dock.setWidget(self.component_config_scroll_area)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
+
+        self.active_component_config_widget: Optional[QWidget] = None
 
         self.settings_widget = SettingsWidget(self)
         self.settings_widget.obsWebsocketSettingsChanged.connect(self.obs_websocket_settings_changed)  # type: ignore
@@ -269,13 +283,11 @@ class MainWindow(QMainWindow):
 
     def account_host_connect_pressed(self):
         if self.app is not None and self.app.host_twitch_service is None:
-            gLogger.info(f"You will be redirected to the browser to login [Press Enter]")
             self.__open_url(self.app.get_host_connect_url())
             self.settings_widget.host_account_button.setDisabled(True)
 
     def account_bot_connect_pressed(self):
         if self.app is not None and self.app.bot_twitch_service is None:
-            gLogger.info(f"You will be redirected to the browser to login [Press Enter]")
             self.__open_url(self.app.get_bot_connect_url())
             self.settings_widget.bot_account_button.setDisabled(True)
 
@@ -323,11 +335,13 @@ class MainWindow(QMainWindow):
                         self.active_component_config_widget.setParent(None)  # type: ignore
                         self.active_component_config_widget = None
                 self.component_config_main_widget_layout.addWidget(config_something)
+                self.component_config_scroll_area.setMinimumWidth(config_something.width())
                 self.active_component_config_widget = config_something
             if config_something is None:
                 if self.active_component_config_widget:
                     self.component_config_main_widget_layout.removeWidget(self.active_component_config_widget)
                     self.active_component_config_widget.setParent(None)  # type: ignore
+                    self.component_config_scroll_area.setMinimumWidth(0)
                     self.active_component_config_widget = None
 
     #################################################################
@@ -339,7 +353,10 @@ class MainWindow(QMainWindow):
             self.component_clicked(self.last_clicked_component)
 
     def edobot_stopped(self):
-        pass
+        if self.active_component_config_widget:
+            self.component_config_main_widget_layout.removeWidget(self.active_component_config_widget)
+            self.active_component_config_widget.setParent(None)  # type: ignore
+            self.active_component_config_widget = None
 
     def add_component_widget(self, component: ChatComponent):
         widget = ComponentWidget(component.get_id(), component.get_name(), component.get_description())
@@ -351,10 +368,10 @@ class MainWindow(QMainWindow):
     def bot_connected(self, user: model.User):
         self.settings_widget.set_bot_account(user.display_name)
 
-    def host_disconnected(self, user: model.User):
+    def host_disconnected(self):
         self.settings_widget.set_host_account(None)
 
-    def bot_disconnected(self, user: model.User):
+    def bot_disconnected(self):
         self.settings_widget.set_bot_account(None)
 
     #################################################################
@@ -372,7 +389,7 @@ class MainWindow(QMainWindow):
 
     def __del__(self) -> None:
         if self.app is not None:
-            self.app.stop()
+            self.app.shutdown()
 
     #################################################################
     # Private

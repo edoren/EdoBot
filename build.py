@@ -54,7 +54,9 @@ def copy_function(src: str, dst: str):
 
 logger.info("=================== Collecting version =====================")
 
-with open(os.path.join(data_dir, "version.info"), "w") as f:
+version_info_file = os.path.join(data_dir, "version.info")
+logger.info(f"{version_info_file}")
+with open(version_info_file, "w") as f:
     try:
         version_str = subprocess.check_output(["git", "describe", "--tags"]).decode("utf-8").strip()
     except Exception:
@@ -137,5 +139,10 @@ if len(requirements_lib_dirs) > 0:
 
 logger.info("===================== Creating package =====================")
 
-zip_file_name = f"{APP_NAME}-{platform.system().lower()}-{platform.architecture()[0]}"
+os_name = platform.system().lower()
+if os_name == "darwin":
+    os_name == "macos"
+arch = platform.architecture()[0]
+
+zip_file_name = f"{APP_NAME}-{version_str}-{os_name}-{arch}"
 shutil.make_archive(zip_file_name, 'zip', dist_dir, logger=logger)

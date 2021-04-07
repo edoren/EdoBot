@@ -15,9 +15,6 @@ init:
     - C:\Python39-x64\python.exe --version
     - C:\Python39-x64\python.exe getpip.py
 
-# Clone directory
-clone_folder: C:\projects\app
-
 # Scripts that run after cloning repository
 install:
     - git submodule update --init --recursive

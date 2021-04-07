@@ -30,8 +30,10 @@ class SettingsWidget(QWidget):
         my_widget = QUiLoader().load(file, self)
         file.close()
 
+        self.host_account_info_label = getattr(my_widget, "host_account_info_label")
         self.host_account_label: QLabel = getattr(my_widget, "host_account_label")
         self.host_account_button: QPushButton = getattr(my_widget, "host_account_button")
+        self.bot_account_info_label = getattr(my_widget, "bot_account_info_label")
         self.bot_account_label: QLabel = getattr(my_widget, "bot_account_label")
         self.bot_account_button: QPushButton = getattr(my_widget, "bot_account_button")
         self.host_line_edit: QLineEdit = getattr(my_widget, "host_line_edit")
@@ -39,6 +41,8 @@ class SettingsWidget(QWidget):
         self.password_line_edit: QLineEdit = getattr(my_widget, "password_line_edit")
 
         self.port_line_edit.setValidator(QIntValidator(0, 2**16-1, self))
+        self.host_account_info_label.setText(self.host_account_info_label.text() + ":")
+        self.bot_account_info_label.setText(self.bot_account_info_label.text() + ":")
 
         # Connect signals
         self.host_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore

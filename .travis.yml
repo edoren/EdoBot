@@ -37,6 +37,6 @@ deploy:
     file_glob: true
     overwrite: true
     file: "build/edobot-*.zip"
-    skip_cleanup: true
+    cleanup: true
     on:
         tags: true

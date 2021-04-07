@@ -27,11 +27,11 @@ artifacts:
 
 deploy:
     provider: GitHub
+    description: 'Release $(APPVEYOR_BUILD_VERSION)'
     auth_token:
         secure: nCEK3ggRnABshEsWDPG17mDPKAnQPiQGd3KImvAqeK7m3ohhOzszXhbejJb1292W
     artifact: /.*\.zip/
-    draft: false
-    prerelease: false
+    force_update: true
     on:
         branch: master # release from master branch only
         APPVEYOR_REPO_TAG: true # deploy on tag push only

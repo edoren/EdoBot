@@ -1,0 +1,43 @@
+# Specify version format
+version: "{build}-{branch}"
+
+# Build worker image (VM template)
+image: Visual Studio 2019
+
+# Build platform, i.e. Win32, x64.
+platform:
+    - x64
+
+# Scripts that are called at very beginning, before repo cloning
+init:
+    - git submodule update --init --recursive
+    - choco install python --version 3.9.2
+    - python --version
+    - python -m pip install --upgrade pip
+
+# Clone directory
+clone_folder: C:\projects\app
+
+# Scripts that run after cloning repository
+install:
+    - pip install -r requirements.txt
+    - pip install pyinstaller
+
+build_script:
+    - python build.py
+
+artifacts:
+    - path: build\*.zip
+      name: Build Files
+      type: zip
+
+deploy:
+    provider: GitHub
+    auth_token:
+        secure: nCEK3ggRnABshEsWDPG17mDPKAnQPiQGd3KImvAqeK7m3ohhOzszXhbejJb1292W
+    artifact: build\*.zip
+    draft: false
+    prerelease: false
+    on:
+        branch: master # release from master branch only
+        APPVEYOR_REPO_TAG: true # deploy on tag push only

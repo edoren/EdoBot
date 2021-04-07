@@ -29,7 +29,7 @@ deploy:
     provider: GitHub
     auth_token:
         secure: nCEK3ggRnABshEsWDPG17mDPKAnQPiQGd3KImvAqeK7m3ohhOzszXhbejJb1292W
-    artifact: build\*.zip
+    artifact: /.*\.zip/
     draft: false
     prerelease: false
     on:

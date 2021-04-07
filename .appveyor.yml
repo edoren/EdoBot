@@ -30,9 +30,8 @@ deploy:
     provider: GitHub
     release: Release $(APPVEYOR_REPO_TAG_NAME)
     description: |
-        Release created automatically by [AppVeyor](https://ci.appveyor.com/project/edoren/edobot/history)
-
-        Build number: $(APPVEYOR_BUILD_NUMBER)
+        Created automatically by AppVeyor.
+        https://ci.appveyor.com/project/edoren/edobot/builds/$(APPVEYOR_BUILD_ID)
     auth_token:
         secure: nCEK3ggRnABshEsWDPG17mDPKAnQPiQGd3KImvAqeK7m3ohhOzszXhbejJb1292W
     artifact: /.*\.zip/

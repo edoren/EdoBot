@@ -11,8 +11,8 @@ platform:
 # Scripts that are called at very beginning, before repo cloning
 init:
     - choco install python --version 3.9.2
-    - python --version
-    - python -m pip install --upgrade pip
+    - C:\Python39-x64\python.exe --version
+    - C:\Python39-x64\python.exe -m pip install --upgrade pip
 
 # Clone directory
 clone_folder: C:\projects\app
@@ -24,7 +24,7 @@ install:
     - pip install pyinstaller
 
 build_script:
-    - python build.py
+    - C:\Python39-x64\python.exe build.py
 
 artifacts:
     - path: build\*.zip

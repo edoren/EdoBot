@@ -68,3 +68,9 @@ class ActiveComponentsWidget(BaseListWidget):
             for component in components:
                 self.componentDropped.emit(component["id"])  # type: ignore
         event.accept()
+
+    def get_component_order(self):
+        current_comps = []
+        for i in range(self.count()):
+            current_comps.append(self.item(i).data(Qt.ItemDataRole.UserRole)["id"])  # type: ignore
+        return current_comps

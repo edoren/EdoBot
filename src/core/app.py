@@ -115,6 +115,11 @@ class App:
             self.config["obswebsocket"]["port"] = self.obs_client.port
             self.config["obswebsocket"]["password"] = self.obs_client.password
 
+        # Load the components and remove the repeated items mantaining the order
+        self.current_components = ~self.config["components"]
+        seen = set()
+        self.current_components = [x for x in self.current_components if not (x in seen or seen.add(x))]
+
         obswebsocket_config = ~self.config["obswebsocket"]
         self.obs_client.set_config(
             obswebsocket_config["host"],
@@ -276,8 +281,9 @@ class App:
         instance = class_type()  # type: ignore
         with self.components_lock:
             self.active_components[component_id] = instance
-            if component_id not in ~self.config["components"]:
-                self.config["components"] = ~self.config["components"] + [component_id]
+            if component_id not in self.current_components:
+                self.current_components += [component_id]
+                self.config["components"] = self.current_components
             if self.component_added:
                 self.component_added(instance)
             if self.has_started and self.host_twitch_service is not None:
@@ -295,16 +301,15 @@ class App:
             self.__secure_component_method_call(component, "stop")
             gLogger.info(f"Removing component '{component.get_name()}' with class name "
                          f"'{component.__class__.__name__}'.")
-            current_components = ~self.config["components"]
-            current_components.remove(component_id)
-            self.config["components"] = current_components
+            self.current_components.remove(component_id)
+            self.config["components"] = self.current_components
             if self.component_removed:
                 self.component_removed(self.active_components[component_id])
             del self.active_components[component_id]
 
     def start(self):
         def __run(self: App):
-            for component_id in set(~self.config["components"]):
+            for component_id in self.current_components:
                 self.add_component(component_id)
 
             host_token = self.db.get_token_for_user("host")
@@ -403,6 +408,7 @@ class App:
     def shutdown(self):
         if not self.is_running:
             return
+        self.config["components"] = self.current_components
         self.bot_twitch_service = None
         self.host_twitch_service = None
         self.stop()

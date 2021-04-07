@@ -390,6 +390,7 @@ class MainWindow(QMainWindow):
     def __del__(self) -> None:
         if self.app is not None:
             self.app.shutdown()
+            self.app.config["components"] = self.component_list.get_component_order()
 
     #################################################################
     # Private

@@ -55,6 +55,9 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
 
     def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
         full_filename = self.filename.replace("{date}", datetime.now().strftime('%d-%m-%Y'))
+        for username in self.ignored_users:
+            if username.lower() == user.login:
+                return True
         if not full_filename.endswith(".txt"):
             full_filename += ".txt"
         with open(os.path.join(self.filedir, full_filename), "a") as f:

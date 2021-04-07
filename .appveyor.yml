@@ -8,15 +8,12 @@ image: Visual Studio 2019
 platform:
     - x64
 
-# Scripts that are called at very beginning, before repo cloning
-init:
+# Scripts that run after cloning repository
+install:
     - curl https://bootstrap.pypa.io/get-pip.py --output getpip.py
     - choco install python --version 3.9.2
     - C:\Python39-x64\python.exe --version
     - C:\Python39-x64\python.exe getpip.py
-
-# Scripts that run after cloning repository
-install:
     - C:\Python39-x64\python.exe -m pip install -r requirements.txt
     - C:\Python39-x64\python.exe -m pip install pyinstaller
 

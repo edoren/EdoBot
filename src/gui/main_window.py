@@ -168,7 +168,7 @@ class MainWindow(QMainWindow):
         self.read_settings()
 
     def about(self):
-        text = ("EdoBot is an Open Source tool to create Twitch components that interacts with the chat."
+        text = ("EdoBot is an open source tool to create Twitch components that interacts with the chat."
                 "<br><br>"
                 "Please go to <a href='https://github.com/edoren/EdoBot'>github.com/edoren/EdoBot</a> for more info."
                 "<br><br>"

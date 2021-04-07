@@ -9,14 +9,21 @@ import subprocess
 import sys
 from typing import List
 
+import scripts.file_version_info as file_version_info
+
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
 build_dir = os.path.join(source_dir, "build")
 
+os_name = platform.system().lower()
+
 ######################################################################
 
-APP_NAME = "edobot"
+APP_NAME = "EdoBot"
+APP_OWNER = "Edoren"
 APP_ICON = os.path.join(data_dir, "icon.ico")
+APP_DESCRIPTION = "Free and open source tool to create Twitch add chat interactions."
+APP_COPYRIGHT = "(C) Manuel Sabogal"
 
 ######################################################################
 
@@ -63,6 +70,11 @@ with open(version_info_file, "w") as f:
         version_str = "unknown"
     f.write(version_str)
 
+file_version_info_path = os.path.join(build_dir, "file_version_info.txt")
+file_version_info.generate(file_version_info_path, name=APP_NAME, owner=APP_OWNER, file_name=f"{APP_NAME.lower()}.exe",
+                           file_description=f"{APP_NAME} Application", version=version_str, description=APP_DESCRIPTION,
+                           copyright=APP_COPYRIGHT)
+
 logger.info("=================== Creating executable  ===================")
 
 os.chdir(build_dir)
@@ -86,8 +98,10 @@ for root, dire, files in os.walk(data_dir):
     relpath = os.path.relpath(root, data_dir)
     for fname in files:
         pyinstaller_args.append(f"--add-data={os.path.join(root, fname)}{os.pathsep}{os.path.join('data', relpath)}")
+if os_name == "windows":
+    pyinstaller_args.append(f"--version-file={file_version_info_path}")
 pyinstaller_args += [
-    f"--name={APP_NAME}",
+    f"--name={APP_NAME.lower()}",
     f"--icon={APP_ICON}",
     "--noconsole",
     "--windowed",
@@ -139,7 +153,6 @@ if len(requirements_lib_dirs) > 0:
 
 logger.info("===================== Creating package =====================")
 
-os_name = platform.system().lower()
 if os_name == "darwin":
     os_name == "macos"
 arch = platform.architecture()[0]

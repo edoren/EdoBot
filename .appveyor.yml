@@ -14,11 +14,9 @@ init:
     - choco install python --version 3.9.2
     - C:\Python39-x64\python.exe --version
     - C:\Python39-x64\python.exe getpip.py
-    - rmdir  C:\projects\edobot /S /Q
 
 # Scripts that run after cloning repository
 install:
-    - git submodule update --init --recursive
     - C:\Python39-x64\python.exe -m pip install -r requirements.txt
     - C:\Python39-x64\python.exe -m pip install pyinstaller
 

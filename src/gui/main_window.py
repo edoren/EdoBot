@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
 
         handlers: List[logging.Handler] = []
 
-        file_handler = logging.FileHandler(os.path.join(Constants.SAVE_DIRECTORY, "out.log"), "a")
+        file_handler = logging.FileHandler(os.path.join(Constants.SAVE_DIRECTORY, "out.log"), "a", "utf-8")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(TimeFormatter(
             "[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))

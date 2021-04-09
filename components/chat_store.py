@@ -60,7 +60,7 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
                 return True
         if not full_filename.endswith(".txt"):
             full_filename += ".txt"
-        with open(os.path.join(self.filedir, full_filename), "a") as f:
+        with open(os.path.join(self.filedir, full_filename), "a", encoding="utf-8") as f:
             f.write(f"[{datetime.now().strftime('%H:%M:%S')}] [{user.display_name}] {message}\n")
         return True
 

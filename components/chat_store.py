@@ -30,7 +30,7 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
 
     @staticmethod
     def get_description() -> str:
-        return "This component stores the chat in a specific folder"
+        return "Stores the chat in a specific folder"
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering

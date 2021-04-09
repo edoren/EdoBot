@@ -20,7 +20,7 @@ class EchoComponent(ChatComponent):  # TODO: Change to chat store
 
     @staticmethod
     def get_description() -> str:
-        return "This component just displays the chat in the logs"
+        return "Displays the chat in the logs"
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering

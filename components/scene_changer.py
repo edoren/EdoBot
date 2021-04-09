@@ -132,7 +132,7 @@ class SceneChangerComponent(ChatComponent):
 
     @staticmethod
     def get_description() -> str:
-        return "This component allows chat to change the OBS scenes"
+        return "Allows chat to change the OBS scenes"
 
     def __init__(self) -> None:
         super().__init__()

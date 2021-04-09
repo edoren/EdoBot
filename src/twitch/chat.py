@@ -35,6 +35,10 @@ class Chat(WebSocket):
                 self.send(f"NICK {self.nickname}")
                 self.send(f"JOIN #{self.channel_name}")
 
+    def disconnect(self) -> None:
+        super().disconnect()
+        self.subscribers.clear()
+
     def subscribe(self, subscriber: MessageCallable):
         self.subscribers.append(subscriber)
 

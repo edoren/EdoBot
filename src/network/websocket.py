@@ -56,7 +56,6 @@ class WebSocket(threading.Thread, abc.ABC):
     def stop(self) -> None:
         if self.is_alive():
             self.running = False
-            self.join()
         self.disconnect()
 
     def ping(self) -> None:
@@ -104,3 +103,7 @@ class WebSocket(threading.Thread, abc.ABC):
                         reconnect_time = 1
             except websocket.WebSocketTimeoutException:
                 continue
+
+    def __del__(self):
+        if self.is_alive():
+            self.join()

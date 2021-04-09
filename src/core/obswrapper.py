@@ -65,10 +65,10 @@ class OBSWrapper:
         self.is_connected = False
         if self.connector is not None:
             self.connector.stop()
-            self.connector.join()
         if self.client is not None:
             try:
                 self.client.disconnect()
+                self.client = None
             except Exception:
                 pass
 
@@ -106,3 +106,8 @@ class OBSWrapper:
             except Exception:
                 pass
         self.connect()  # Start retry loop
+
+    def __del__(self):
+        if self.connector is not None:
+            self.connector.join()
+            self.connector = None

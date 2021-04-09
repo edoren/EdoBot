@@ -95,7 +95,6 @@ class App:
         self.executor: Optional[ThreadPoolExecutor] = None
 
         self.token_web_server: Optional[TokenRedirectWebServer] = None
-        self.__start_token_web_server()
 
         # callbacks
         self.started: Optional[Callable[[], None]] = None
@@ -157,15 +156,15 @@ class App:
             user_types.add(twitch.UserType.SUBSCRIPTOR)
             user_types.add(twitch.UserType.VIP)
 
-        for user in self.mods:
+        for user in self.host_twitch_service.get_moderators():
             if user.user_login == sender:
                 user_types.add(twitch.UserType.MODERATOR)
 
-        for user in self.subs:
+        for user in self.host_twitch_service.get_subscribers():
             if user.user_login == sender:
                 user_types.add(twitch.UserType.SUBSCRIPTOR)
 
-        user = self.host_twitch_service.get_users([sender])[0]
+        user = self.host_twitch_service.get_user(sender)
 
         is_command = text.startswith("!")
         with self.components_lock:
@@ -188,8 +187,6 @@ class App:
             return
         # for component in self.components.values():
         #     component.process_event(topic, data["data"])
-        print(topic, data)
-        pass
 
     #################################################################
     # Public
@@ -321,6 +318,8 @@ class App:
                         self.host_connected(self.host_twitch_service.user)
                 except twitch.service.UnauthenticatedException:
                     self.db.remove_user("host")
+                except Exception as e:
+                    gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
             if bot_token is not None:
                 try:
                     self.bot_twitch_service = twitch.Service(bot_token)
@@ -328,6 +327,8 @@ class App:
                         self.bot_connected(self.bot_twitch_service.user)
                 except twitch.service.UnauthenticatedException:
                     self.db.remove_user("bot")
+                except Exception as e:
+                    gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
 
             # Waiting for tokens available
             gLogger.info("Waiting for tokens available to start Services")
@@ -349,9 +350,6 @@ class App:
                                                 self.host_twitch_service.user.login)
                 self.pubsub_service = twitch.PubSub(self.host_twitch_service.user.id,
                                                     self.host_twitch_service.token.access_token)
-
-                self.mods = self.host_twitch_service.get_moderators()
-                self.subs = self.host_twitch_service.get_subscribers()
 
                 with self.components_lock:
                     for instance in self.active_components.values():
@@ -392,10 +390,10 @@ class App:
                 gLogger.info("Stopping bot, please wait...")
                 if self.chat_service is not None:
                     self.chat_service.stop()
-                    self.chat_service = None
                 if self.pubsub_service is not None:
                     self.pubsub_service.stop()
-                    self.pubsub_service = None
+                self.chat_service = None
+                self.pubsub_service = None
                 if self.stopped:
                     self.stopped()
                 with self.components_lock:

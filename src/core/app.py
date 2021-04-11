@@ -144,7 +144,7 @@ class App:
         if self.host_twitch_service is not None and self.bot_twitch_service is not None:
             self.__stop_token_web_server()
 
-    def handle_message(self, sender: str, text: str) -> None:
+    def handle_message(self, sender: str, tags: twitch.PrivateMsgTags, text: str) -> None:
         if self.host_twitch_service is None or self.bot_twitch_service is None:
             return
 
@@ -153,18 +153,19 @@ class App:
         if self.host_twitch_service.user.login == sender:
             user_types.add(twitch.UserType.BROADCASTER)
             user_types.add(twitch.UserType.MODERATOR)
-            user_types.add(twitch.UserType.SUBSCRIPTOR)
             user_types.add(twitch.UserType.VIP)
 
-        for user in self.host_twitch_service.get_moderators():
-            if user.user_login == sender:
-                user_types.add(twitch.UserType.MODERATOR)
+        if tags.mod:
+            user_types.add(twitch.UserType.MODERATOR)
 
-        for user in self.host_twitch_service.get_subscribers():
-            if user.user_login == sender:
-                user_types.add(twitch.UserType.SUBSCRIPTOR)
+        if "vip" in tags.badges:
+            user_types.add(twitch.UserType.VIP)
+
+        if "subscriber" in tags.badges:
+            user_types.add(twitch.UserType.SUBSCRIPTOR)
 
         user = self.host_twitch_service.get_user(sender)
+        print(user.display_name, user_types)
 
         is_command = text.startswith("!")
         with self.components_lock:

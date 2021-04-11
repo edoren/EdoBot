@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
-    <height>222</height>
+    <width>640</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -124,9 +124,6 @@
           </item>
           <item row="0" column="1">
            <widget class="QCheckBox" name="vip_check_box">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="text">
              <string>VIP</string>
             </property>

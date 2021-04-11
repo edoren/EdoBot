@@ -52,6 +52,7 @@ class SceneChangerComponentConfigWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(my_widget)
         self.setLayout(layout)
+        self.setMinimumWidth(self.width())
 
     def update_list_items(self):
         transitions = self.data_parent.get_transitions()

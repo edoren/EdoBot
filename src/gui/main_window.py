@@ -11,7 +11,7 @@ import arrow
 from PySide2.QtCore import QSettings, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout,
-                               QMainWindow, QMessageBox, QScrollArea, QSizePolicy,
+                               QMainWindow, QMessageBox, QScrollArea, QSizePolicy, QStyle,
                                QTextBrowser, QWidget)
 
 import model
@@ -250,6 +250,7 @@ class MainWindow(QMainWindow):
         self.component_config_main_widget_layout.setContentsMargins(0, 0, 0, 0)
         self.component_config_main_widget.setLayout(self.component_config_main_widget_layout)
 
+        self.component_config_scroll_area.setContentsMargins(0, 0, 0, 0)
         self.component_config_scroll_area.setWidget(self.component_config_main_widget)
         dock.setWidget(self.component_config_scroll_area)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
@@ -294,12 +295,12 @@ class MainWindow(QMainWindow):
     def account_host_disconnect_pressed(self):
         if self.app is not None and self.app.host_twitch_service is not None:
             self.settings_widget.host_account_button.setDisabled(True)
-            self.app.reset_host_account()  # TODO: Stop BOT
+            self.app.reset_host_account()
 
     def account_bot_disconnect_pressed(self):
         if self.app is not None and self.app.bot_twitch_service is not None:
             self.settings_widget.bot_account_button.setDisabled(True)
-            self.app.reset_bot_account()  # TODO: Stop BOT
+            self.app.reset_bot_account()
 
     def open_settings(self):
         obs_config = self.app.get_obs_config()
@@ -334,8 +335,12 @@ class MainWindow(QMainWindow):
                     if self.active_component_config_widget != config_something:
                         self.active_component_config_widget.setParent(None)  # type: ignore
                         self.active_component_config_widget = None
+                config_something.resize(config_something.minimumWidth(), config_something.minimumHeight())
+                scroll_bar_width = self.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarExtent)
+                border_width = 1
                 self.component_config_main_widget_layout.addWidget(config_something)
-                self.component_config_scroll_area.setMinimumWidth(config_something.width())
+                self.component_config_scroll_area.setMinimumWidth(config_something.width() +
+                                                                  scroll_bar_width + border_width * 2)
                 self.active_component_config_widget = config_something
             if config_something is None:
                 if self.active_component_config_widget:

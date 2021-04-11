@@ -6,8 +6,7 @@ Free and open-source tool to add Twitch chat interactions. It suports features s
 - Storing the chat
 
 ## Install
-Download the latest release from here:  
-https://github.com/edoren/EdoBot/releases
+Download the latest version from [here](https://github.com/edoren/EdoBot/releases/latest)
 
 ## Run From Source
 If you want to run the program for source you will require:

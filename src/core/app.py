@@ -165,7 +165,6 @@ class App:
             user_types.add(twitch.UserType.SUBSCRIPTOR)
 
         user = self.host_twitch_service.get_user(sender)
-        print(user.display_name, user_types)
 
         is_command = text.startswith("!")
         with self.components_lock:

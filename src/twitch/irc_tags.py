@@ -4,14 +4,16 @@ from typing import Optional
 class PrivateMsgTags:
     def __init__(self, badge_info: str, badges: str, color: str, display_name: str,
                  emotes: str, flags: str,  id: str, mod: str, room_id: str, tmi_sent_ts: str,
-                 user_id: str, bits: Optional[str] = None, client_nonce: Optional[str] = None) -> None:
+                 user_id: str, bits: Optional[str] = None, client_nonce: Optional[str] = None,
+                 emote_only: Optional[str] = None, custom_reward_id: Optional[str] = None) -> None:
         self.sub_months = 0
         if badge_info:
-            self.sub_months = int(badge_info.lstrip("subscriber/"))
+            self.sub_months = int(badge_info.split("/")[-1])
         self.badges = {}
-        for badge_data in badges.split(","):
-            badge, value = badge_data.split("/")
-            self.badges[badge] = value
+        if badges:
+            for badge_data in badges.split(","):
+                badge, value = badge_data.split("/")
+                self.badges[badge] = value
         self.color = color
         self.display_name = display_name
         self.emotes = {}
@@ -31,3 +33,5 @@ class PrivateMsgTags:
         self.user_id = user_id
         self.bits = bits
         self.client_nonce = client_nonce
+        self.emote_only = emote_only
+        self.custom_reward_id = custom_reward_id

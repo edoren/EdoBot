@@ -6,9 +6,8 @@ import obswebsocket.requests as obs_requests
 from PySide2.QtCore import QCoreApplication, QFile
 from PySide2.QtGui import QShowEvent
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit,
-                               QListWidget, QListWidgetItem, QMenu, QPushButton, QSizePolicy, QVBoxLayout,
-                               QWidget)
+from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+                               QListWidgetItem, QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 from model import User
 from twitch import ChatComponent, UserType

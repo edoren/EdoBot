@@ -6,8 +6,8 @@ from typing import Optional
 
 import obswebsocket.events as obs_events
 import obswebsocket.requests  # type: ignore
-from obswebsocket.exceptions import ConnectionFailure
 from obswebsocket import obsws
+from obswebsocket.exceptions import ConnectionFailure
 
 __all__ = ["OBSWrapper"]
 

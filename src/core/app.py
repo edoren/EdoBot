@@ -12,8 +12,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from typing import (Any, Callable, List, Mapping, MutableMapping, Optional,
-                    Set, Type)
+from typing import Any, Callable, List, Mapping, MutableMapping, Optional, Set, Type
 
 import model
 import twitch

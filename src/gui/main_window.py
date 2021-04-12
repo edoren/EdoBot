@@ -13,16 +13,14 @@ from typing import Callable, List, Optional
 import arrow
 from PySide2.QtCore import QSettings, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
-from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout,
-                               QMainWindow, QMessageBox, QScrollArea,
+from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout, QMainWindow, QMessageBox, QScrollArea,
                                QSizePolicy, QStyle, QTextBrowser, QWidget)
 
 import model
 from core import App, Constants
 from twitch.component import ChatComponent
 
-from .widgets import (ActiveComponentsWidget, AllComponentsWidget,
-                      ComponentWidget, SettingsWidget)
+from .widgets import ActiveComponentsWidget, AllComponentsWidget, ComponentWidget, SettingsWidget
 
 gLogger = logging.getLogger(f"edobot.main")
 

@@ -5,8 +5,7 @@ import time
 from enum import Enum
 from typing import Callable, List, MutableMapping, Optional, Union
 
-from model.pubsub_events import (BitsBadgeNotificationMessage,
-                                 BitsEventMessage, ChannelPointsEventMessage,
+from model.pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
                                  ChannelSubscriptionsEventMessage)
 from network import WebSocket
 

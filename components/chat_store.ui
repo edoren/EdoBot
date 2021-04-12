@@ -70,6 +70,13 @@
         </item>
        </layout>
       </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="open_folder_button">
+        <property name="text">
+         <string>Open Folder</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

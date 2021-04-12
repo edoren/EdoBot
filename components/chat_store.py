@@ -3,7 +3,8 @@ import os.path
 from datetime import datetime
 from typing import Any, List, Mapping, Optional, Set, Union
 
-from PySide2.QtCore import QFile
+from PySide2.QtCore import QFile, QUrl
+from PySide2.QtGui import QDesktopServices
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QFileDialog, QWidget
 
@@ -77,6 +78,7 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
             self.filename_line_edit = getattr(self.widget, "filename_line_edit")
             self.filedir_line_edit = getattr(self.widget, "filedir_line_edit")
             self.select_folder_button = getattr(self.widget, "select_folder_button")
+            self.open_folder_button = getattr(self.widget, "open_folder_button")
             self.ignored_users_line_edit = getattr(self.widget, "ignored_users_line_edit")
 
             self.ignored_users_line_edit.setText(", ".join(self.ignored_users))
@@ -86,6 +88,7 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
             self.ignored_users_line_edit.editingFinished.connect(self.ignored_users_changed)
             self.filename_line_edit.editingFinished.connect(self.filename_changed)
             self.select_folder_button.clicked.connect(self.select_folder)
+            self.open_folder_button.clicked.connect(self.open_folder)
 
         return self.widget
 
@@ -100,6 +103,9 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
             self.filedir = os.path.normpath(filedir)
             self.config["filedir"] = self.filedir
             self.filedir_line_edit.setText(self.filedir)
+
+    def open_folder(self):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(self.filedir_line_edit.text()))
 
     def ignored_users_changed(self):
         self.ignored_users = self.ignored_users_line_edit.text().strip().replace(" ", "").split(",")

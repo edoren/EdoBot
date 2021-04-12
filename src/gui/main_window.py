@@ -2,17 +2,20 @@
 import logging
 import os
 import os.path
+import pathlib
 import sys
 import traceback
 import webbrowser
+import zipfile
+from datetime import datetime
 from typing import Callable, List, Optional
 
 import arrow
 from PySide2.QtCore import QSettings, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout,
-                               QMainWindow, QMessageBox, QScrollArea, QSizePolicy, QStyle,
-                               QTextBrowser, QWidget)
+                               QMainWindow, QMessageBox, QScrollArea,
+                               QSizePolicy, QStyle, QTextBrowser, QWidget)
 
 import model
 from core import App, Constants
@@ -122,8 +125,29 @@ class MainWindow(QMainWindow):
 
         handlers: List[logging.Handler] = []
 
-        file_handler = logging.FileHandler(os.path.join(Constants.SAVE_DIRECTORY, "out.log"), "a", "utf-8")
-        file_handler.setLevel(logging.DEBUG)
+        log_dir = os.path.join(Constants.SAVE_DIRECTORY, "logs")
+        log_filename = "edobot-latest.log"
+
+        # Create the log folder if it dooes not exists
+        if not os.path.isdir(log_dir):
+            os.makedirs(log_dir)
+
+        # Compress the old log file
+        log_file = os.path.join(log_dir, log_filename)
+        if os.path.isfile(log_file):
+            fname = pathlib.Path(log_file)
+            modified_time = datetime.fromtimestamp(fname.stat().st_mtime)
+            zip_file = os.path.join(log_dir, modified_time.strftime("edobot-%d-%m-%Y.zip"))
+            zipfile.ZipFile(zip_file, mode="a", compression=zipfile.ZIP_BZIP2,
+                            compresslevel=9).write(log_file, arcname=modified_time.strftime("%H-%M-%S-%f.log"))
+
+        if __debug__:
+            default_level = logging.DEBUG
+        else:
+            default_level = logging.INFO
+
+        file_handler = logging.FileHandler(log_file, "w", "utf-8")
+        file_handler.setLevel(default_level)
         file_handler.setFormatter(TimeFormatter(
             "[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))
         handlers.append(file_handler)
@@ -132,8 +156,7 @@ class MainWindow(QMainWindow):
         stream_handler.setLevel(logging.INFO)
         handlers.append(stream_handler)
 
-        logging.getLogger(f"obswebsocket").setLevel(logging.NOTSET)
-        logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+        logging.basicConfig(level=default_level, handlers=handlers)
 
         self.app: App = App()
         self.app.started = self.edobotStarted.emit  # type: ignore

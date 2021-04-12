@@ -47,8 +47,8 @@ class TokenRedirectWebServer(threading.Thread):
             json_body = json.loads(put_body)
             self.token_received(model.AccessToken(**json_body))
 
-        # def log_message(self, format, *args):
-        #     pass
+        def log_message(self, format, *args):
+            pass
 
     def __init__(self, token_listener: Callable[[model.AccessToken], None]) -> None:
         super().__init__(name="TokenRedirectWebServerThread")

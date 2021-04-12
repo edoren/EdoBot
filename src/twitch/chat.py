@@ -56,6 +56,8 @@ class Chat(WebSocket):
         lines = message.strip("\r\n").split("\r\n")
         for line in lines:
             if line.find("PRIVMSG") > 0:
+                gLogger.debug(line)
+
                 raw_message_list = line.rsplit("PRIVMSG", 1)
 
                 tags_raw, sender_raw = raw_message_list[0].strip(" ").rsplit(" ", 1)

@@ -349,7 +349,11 @@ class MainWindow(QMainWindow):
             component_instance = active_components[component_id]
             if not component_instance.has_started:
                 return
-            config_something = component_instance.get_config_something()
+            try:
+                config_something = component_instance.get_config_something()
+            except Exception as e:
+                gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
+                return
             if isinstance(config_something, QWidget):
                 if self.active_component_config_widget:
                     self.component_config_main_widget_layout.removeWidget(self.active_component_config_widget)

@@ -1,11 +1,12 @@
-from typing import Optional
+from typing import Any, Optional
 
 
 class PrivateMsgTags:
     def __init__(self, badge_info: str, badges: str, color: str, display_name: str,
                  emotes: str, flags: str,  id: str, mod: str, room_id: str, tmi_sent_ts: str,
                  user_id: str, bits: Optional[str] = None, client_nonce: Optional[str] = None,
-                 emote_only: Optional[str] = None, custom_reward_id: Optional[str] = None) -> None:
+                 emote_only: Optional[str] = None, custom_reward_id: Optional[str] = None,
+                 msg_id: Optional[str] = None, **kwargs: Any) -> None:
         self.sub_months = 0
         if badge_info:
             self.sub_months = int(badge_info.split("/")[-1])
@@ -35,3 +36,6 @@ class PrivateMsgTags:
         self.client_nonce = client_nonce
         self.emote_only = emote_only
         self.custom_reward_id = custom_reward_id
+        self.msg_id = msg_id
+        if __debug__ and kwargs:
+            print("Missing args: ", kwargs)

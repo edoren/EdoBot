@@ -71,7 +71,8 @@ class Config:
 
     def get(self, default: Any = None) -> Any:
         if len(self.path) > 0:
-            return Config.__read_config(self.file, self.path)
+            ret = Config.__read_config(self.file, self.path)
+            return default if ret is None else ret
         else:
             return default
 

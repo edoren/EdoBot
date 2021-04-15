@@ -6,6 +6,7 @@ from PySide2.QtWidgets import QWidget
 
 from core.config import Config
 from model import User
+from twitch.chat import Chat
 from twitch.service import Service as TwitchService
 
 from .user_type import UserType
@@ -19,9 +20,11 @@ class ChatComponent(ABC):
         super().__init__()
 
     @final
-    def config_component(self, config: Config, obs_client: obswebsocket.obsws, twitch: TwitchService) -> None:
+    def config_component(self, config: Config, obs_client: obswebsocket.obsws,
+                         chat: Chat, twitch: TwitchService) -> None:
         self.config = config
         self.obs_client = obs_client
+        self.chat = chat
         self.twitch = twitch
 
     @staticmethod
@@ -44,20 +47,18 @@ class ChatComponent(ABC):
         pass
 
     @abstractmethod
-    def start(self) -> None:
-        self.has_started = True
-
-    @abstractmethod
-    def stop(self) -> None:
-        self.has_started = False
-
-    @abstractmethod
     def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
         pass
 
     @abstractmethod
     def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
         pass
+
+    def start(self) -> None:
+        self.has_started = True
+
+    def stop(self) -> None:
+        self.has_started = False
 
     def is_obs_connected(self) -> bool:
         return (hasattr(self, "obs_client") and

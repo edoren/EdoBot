@@ -24,7 +24,9 @@ class Service:
 
         self.users_cache: MutableMapping[str, CacheRequest] = {}
 
-        self.user = self.get_user()
+        user = self.get_user()
+        if user is not None:
+            self.user: model.User = user
 
         self.mod_requestor = self.__get_cache_requestor("GET", "/moderation/moderators",
                                                         params={"broadcaster_id": self.user.id})
@@ -60,7 +62,7 @@ class Service:
         response = self.__call_endpoint(self.sub_requestor)
         return [model.Suscription(**x) for x in response["data"] or []]
 
-    def get_user(self, name: Optional[str] = None) -> model.User:
+    def get_user(self, name: Optional[str] = None) -> Optional[model.User]:
         if name is None:
             name = "$"
             requestor = self.users_cache.setdefault(name, self.__get_cache_requestor("GET", "/users"))
@@ -68,8 +70,9 @@ class Service:
             requestor = self.users_cache.setdefault(name, self.__get_cache_requestor("GET", "/users",
                                                                                      params={"login": name}))
         response = self.__call_endpoint(requestor)
-        user = [model.User(**x) for x in response["data"] or []][0]
-        if name == "$":
+        users = [model.User(**x) for x in response["data"] or []]
+        user = None if len(users) == 0 else users[0]
+        if user and name == "$":
             self.users_cache[user.login] = self.users_cache["$"]
         return user
 

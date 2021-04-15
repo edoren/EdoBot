@@ -282,9 +282,10 @@ class App:
                 self.config["components"] = self.current_components
             if self.component_added:
                 self.component_added(instance)
-            if self.has_started and self.host_twitch_service is not None:
+            if self.has_started and self.chat_service is not None and self.host_twitch_service is not None:
                 instance.config_component(config=self.__get_component_config(instance.get_id()),
                                           obs_client=self.obs_client.get_client(),
+                                          chat=self.chat_service,
                                           twitch=self.host_twitch_service)
                 succeded = self.__secure_component_method_call(instance, "start")
                 if not succeded:
@@ -354,6 +355,7 @@ class App:
                     for instance in self.active_components.values():
                         instance.config_component(config=self.__get_component_config(instance.get_id()),
                                                   obs_client=self.obs_client.get_client(),
+                                                  chat=self.chat_service,
                                                   twitch=self.host_twitch_service)
                         succeded = self.__secure_component_method_call(instance, "start")
                         if not succeded:
@@ -387,18 +389,18 @@ class App:
                 self.executor.shutdown(wait=True)
             if self.has_started:
                 gLogger.info("Stopping bot, please wait...")
-                if self.chat_service is not None:
-                    self.chat_service.stop()
-                if self.pubsub_service is not None:
-                    self.pubsub_service.stop()
-                self.chat_service = None
-                self.pubsub_service = None
-                if self.stopped:
-                    self.stopped()
                 with self.components_lock:
                     for component in self.active_components.values():
                         self.__secure_component_method_call(component, "stop")
                     self.active_components.clear()
+                if self.chat_service is not None:
+                    self.chat_service.stop()
+                if self.pubsub_service is not None:
+                    self.pubsub_service.stop()
+                if self.stopped:
+                    self.stopped()
+                self.chat_service = None
+                self.pubsub_service = None
                 gLogger.info("Bot stopped")
             self.has_started = False
 

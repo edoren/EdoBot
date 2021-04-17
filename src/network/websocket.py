@@ -1,7 +1,6 @@
 import abc
 import logging
 import re
-import socket
 import sys
 import threading
 import time

@@ -16,11 +16,12 @@ from typing import Any, Callable, List, Mapping, MutableMapping, Optional, Set, 
 
 import model
 import twitch
-from core.data_base import DataBase
-from core.obswrapper import OBSWrapper
 
+from .chat_component import ChatComponent
 from .config import Config
 from .constants import Constants
+from .data_base import DataBase
+from .obswrapper import OBSWrapper
 
 __all__ = ["App"]
 
@@ -81,9 +82,9 @@ class App:
 
         self.obs_client = OBSWrapper()
 
-        self.available_components: MutableMapping[str, Type[twitch.ChatComponent]] = {}
+        self.available_components: MutableMapping[str, Type[ChatComponent]] = {}
         self.failed_components: List[str] = []
-        self.active_components: MutableMapping[str, twitch.ChatComponent] = {}
+        self.active_components: MutableMapping[str, ChatComponent] = {}
         self.components_lock = threading.Lock()
         self.update_available_components()
 
@@ -98,8 +99,8 @@ class App:
         # callbacks
         self.started: Optional[Callable[[], None]] = None
         self.stopped: Optional[Callable[[], None]] = None
-        self.component_added: Optional[Callable[[twitch.ChatComponent], None]] = None
-        self.component_removed: Optional[Callable[[twitch.ChatComponent], None]] = None
+        self.component_added: Optional[Callable[[ChatComponent], None]] = None
+        self.component_removed: Optional[Callable[[ChatComponent], None]] = None
         self.host_connected: Optional[Callable[[model.User], None]] = None
         self.host_disconnected: Optional[Callable[[], None]] = None
         self.bot_connected: Optional[Callable[[model.User], None]] = None
@@ -147,21 +148,21 @@ class App:
         if self.host_twitch_service is None or self.bot_twitch_service is None:
             return
 
-        user_types: Set[twitch.UserType] = {twitch.UserType.CHATTER}
+        user_types: Set[model.UserType] = {model.UserType.CHATTER}
 
         if self.host_twitch_service.user.login == sender:
-            user_types.add(twitch.UserType.BROADCASTER)
-            user_types.add(twitch.UserType.MODERATOR)
-            user_types.add(twitch.UserType.VIP)
+            user_types.add(model.UserType.BROADCASTER)
+            user_types.add(model.UserType.MODERATOR)
+            user_types.add(model.UserType.VIP)
 
         if tags.mod:
-            user_types.add(twitch.UserType.MODERATOR)
+            user_types.add(model.UserType.MODERATOR)
 
         if "vip" in tags.badges:
-            user_types.add(twitch.UserType.VIP)
+            user_types.add(model.UserType.VIP)
 
         if "subscriber" in tags.badges:
-            user_types.add(twitch.UserType.SUBSCRIPTOR)
+            user_types.add(model.UserType.SUBSCRIPTOR)
 
         user = self.host_twitch_service.get_user(sender)
 
@@ -169,7 +170,7 @@ class App:
         with self.components_lock:
             for component in self.active_components.values():
                 comp_command = component.get_command()
-                if is_command:
+                if is_command and comp_command is not None:
                     command_pack = text.lstrip("!").split(" ", 1)
                     command = command_pack[0]
                     message = command_pack[1] if len(command_pack) > 1 else ""
@@ -177,15 +178,16 @@ class App:
                             (isinstance(comp_command, list) and command in comp_command)):
                         self.__secure_component_method_call(component, "process_message", message,
                                                             user, user_types)
-                elif comp_command is None:
+                else:
                     self.__secure_component_method_call(component, "process_message", text,
                                                         user, user_types)
 
-    def handle_event(self, topic: str, data: twitch.PubSub.EventTypes):
+    def handle_event(self, event_name: str, metadata: Any):
         if self.host_twitch_service is None or self.bot_twitch_service is None:
             return
-        # for component in self.components.values():
-        #     component.process_event(topic, data["data"])
+        with self.components_lock:
+            for component in self.active_components.values():
+                self.__secure_component_method_call(component, "process_event", event_name, metadata)
 
     #################################################################
     # Public
@@ -213,10 +215,10 @@ class App:
         if self.bot_disconnected:
             self.bot_disconnected()
 
-    def get_available_components(self) -> Mapping[str, Type[twitch.ChatComponent]]:
+    def get_available_components(self) -> Mapping[str, Type[ChatComponent]]:
         return self.available_components
 
-    def get_active_components(self) -> Mapping[str, twitch.ChatComponent]:
+    def get_active_components(self) -> Mapping[str, ChatComponent]:
         return self.active_components
 
     def set_obs_config(self, host: str, port: int, password: str):
@@ -246,7 +248,7 @@ class App:
                     sys.modules[module_name] = module
                     spec.loader.exec_module(module)  # type: ignore
                     for class_name, class_type in inspect.getmembers(module, inspect.isclass):
-                        if issubclass(class_type, twitch.ChatComponent) and class_type is not twitch.ChatComponent:
+                        if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
                             component_id = class_type.get_id()
                             if component_id in self.available_components:
                                 gLogger.error(f"Error loading component with id '{component_id}' for class name "
@@ -255,7 +257,7 @@ class App:
             elif os.path.isdir(file_path):
                 pass  # TODO: More complex modules
 
-    def add_component(self, component_id: str) -> Optional[twitch.ChatComponent]:
+    def add_component(self, component_id: str) -> Optional[ChatComponent]:
         if component_id in self.active_components:
             return
 
@@ -447,7 +449,7 @@ class App:
         return Config(component_config_file)
 
     @staticmethod
-    def __secure_component_method_call(component: twitch.ChatComponent,
+    def __secure_component_method_call(component: ChatComponent,
                                        method_name: str, *args: Any, **kwargs: Any) -> bool:
         try:
             method = getattr(component, method_name)

@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Optional
+from typing import Any, Optional
 
 __all__ = ["Suscription", "SuscriptionTier"]
 
@@ -11,28 +11,16 @@ class SuscriptionTier(IntEnum):
 
 
 class Suscription:
-    def __init__(self,
-                 broadcaster_id: str,
-                 broadcaster_login: str,
-                 broadcaster_name: str,
-                 is_gift: bool,
-                 tier: str,
-                 plan_name: str,
-                 user_id: str,
-                 user_login: str,
-                 user_name: str,
-                 gifter_id: Optional[str] = None,
-                 gifter_login: Optional[str] = None,
-                 gifter_name: Optional[str] = None) -> None:
-        self.broadcaster_id = broadcaster_id
-        self.broadcaster_login = broadcaster_login
-        self.broadcaster_name = broadcaster_name
-        self.is_gift = is_gift
-        self.tier = SuscriptionTier(int(tier))
-        self.plan_name = plan_name
-        self.user_id = user_id
-        self.user_login = user_login
-        self.user_name = user_name
-        self.gifter_id = gifter_id
-        self.gifter_login = gifter_login
-        self.gifter_name = gifter_name
+    def __init__(self, **kwargs: Any) -> None:
+        self.broadcaster_id: str = kwargs["broadcaster_id"]
+        self.broadcaster_login: str = kwargs["broadcaster_login"]
+        self.broadcaster_name: str = kwargs["broadcaster_name"]
+        self.is_gift: bool = kwargs["is_gift"]
+        self.tier: int = SuscriptionTier(int(kwargs["tier"]))
+        self.plan_name: str = kwargs["plan_name"]
+        self.user_id: str = kwargs["user_id"]
+        self.user_login: str = kwargs["user_login"]
+        self.user_name: str = kwargs["user_name"]
+        self.gifter_id: Optional[str] = kwargs.get("gifter_id", None)
+        self.gifter_login: Optional[str] = kwargs.get("gifter_login", None)
+        self.gifter_name: Optional[str] = kwargs.get("gifter_name", None)

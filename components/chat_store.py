@@ -1,15 +1,15 @@
 import logging
 import os.path
 from datetime import datetime
-from typing import Any, List, Mapping, Optional, Set, Union
+from typing import Any, List, Optional, Set, Union
 
 from PySide2.QtCore import QFile, QUrl
 from PySide2.QtGui import QDesktopServices
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QFileDialog, QWidget
 
-from model import User
-from twitch import ChatComponent, UserType
+from core import ChatComponent
+from model import User, UserType
 
 __all__ = ["ChatStoreComponent"]
 
@@ -54,19 +54,19 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
+    def process_message(self, message: str, user: User,
+                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
         full_filename = self.filename.replace("{date}", datetime.now().strftime('%d-%m-%Y'))
         for username in self.ignored_users:
             if username.lower() == user.login:
-                return True
+                return
         if not full_filename.endswith(".txt"):
             full_filename += ".txt"
         with open(os.path.join(self.filedir, full_filename), "a", encoding="utf-8") as f:
             f.write(f"[{datetime.now().strftime('%H:%M:%S')}] [{user.display_name}] {message}\n")
-        return True
 
-    def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
-        return True
+    def process_event(self, event_name: str, metadata: Any) -> None:
+        pass
 
     def get_config_something(self) -> Optional[QWidget]:
         if self.widget is None:

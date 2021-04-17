@@ -1,8 +1,9 @@
 import logging
-from typing import Any, List, Mapping, Optional, Set, Union
+from typing import Any, List, Optional, Set, Union
 
-from model import User
-from twitch import ChatComponent, UserType
+import twitch
+from core import ChatComponent
+from model import User, UserType
 
 __all__ = ["EchoComponent"]
 
@@ -33,12 +34,12 @@ class EchoComponent(ChatComponent):  # TODO: Change to chat store
         gLogger.info("Stopping Echo component")
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
+    def process_message(self, message: str, user: User,
+                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
         gLogger.info((f"[{user.display_name}] {message}"))
-        return True
 
-    def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
-        user = payload["redemption"]["user"]["display_name"]
-        reward_name = payload["redemption"]["reward"]["title"]
-        gLogger.info((f"[{user}] {event_name}: {reward_name}"))
-        return True
+    def process_event(self, event_name: str, metadata: Any) -> None:
+        if event_name == "REWARD_REDEEMED":
+            event_data: twitch.ChannelPointsEventMessage = metadata
+            gLogger.info((f"[{event_data.redemption.user.display_name}] {event_name}: "
+                          f"{event_data.redemption.reward.title}"))

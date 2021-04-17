@@ -17,8 +17,7 @@ from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout, 
                                QSizePolicy, QStyle, QTextBrowser, QWidget)
 
 import model
-from core import App, Constants
-from twitch.component import ChatComponent
+from core import App, ChatComponent, Constants
 
 from .widgets import ActiveComponentsWidget, AllComponentsWidget, ComponentWidget, SettingsWidget
 

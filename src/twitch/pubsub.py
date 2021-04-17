@@ -5,11 +5,14 @@ import time
 from enum import Enum
 from typing import Callable, List, MutableMapping, Optional, Union
 
-from model.pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
-                                 ChannelSubscriptionsEventMessage)
 from network import WebSocket
 
-__all__ = ["PubSub", "PubSubEvent"]
+from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
+                            ChannelSubscriptionsEventMessage)
+
+__all__ = ["PubSub", "PubSubEvent", "BitsBadgeNotificationMessage",
+           "BitsEventMessage", "ChannelPointsEventMessage",
+           "ChannelSubscriptionsEventMessage"]
 
 gLogger = logging.getLogger(f"edobot.{__name__}")
 
@@ -103,5 +106,5 @@ class PubSub(WebSocket):
                     if data_topic.startswith(PubSubEvent.CHANNEL_POINTS.value):
                         # data_message["type"] # reward-redeemed
                         parsed_message = ChannelPointsEventMessage(**data_message["data"])  # TODO: data maybe missing
-                        sub(data_topic, parsed_message)
+                        sub("REWARD_REDEEMED", parsed_message)
                     gLogger.debug(f"PUB_SUB {data_topic} - {json.dumps(data_message)}")

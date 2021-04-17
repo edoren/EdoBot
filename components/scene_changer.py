@@ -9,8 +9,8 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
                                QListWidgetItem, QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
-from model import User
-from twitch import ChatComponent, UserType
+from core import ChatComponent
+from model import User, UserType
 
 gLogger = logging.getLogger("edobot.components.scene_changer")
 
@@ -164,9 +164,10 @@ class SceneChangerComponent(ChatComponent):
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType]) -> bool:
+    def process_message(self, message: str, user: User,
+                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
         if not self.is_obs_connected():
-            return False
+            return
 
         if len(self.who_can.intersection(user_types)) != 0:
             scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
@@ -185,10 +186,8 @@ class SceneChangerComponent(ChatComponent):
                         gLogger.info(f"[{user.display_name}] Transitioning: {current_scene} -> {target_scene}")
                         self.obs_client.call(obs_requests.SetCurrentScene(target_scene))
 
-        return True
-
-    def process_event(self, event_name: str, payload: Mapping[str, Any]) -> bool:
-        return True
+    def process_event(self, event_name: str, metadata: Any) -> None:
+        pass
 
     def get_config_something(self) -> Optional[QWidget]:
         if self.config_widget is None:

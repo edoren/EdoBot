@@ -3,7 +3,7 @@ from typing import Optional
 
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
-from PySide2.QtWidgets import QListWidget, QListWidgetItem, QWidget
+from PySide2.QtWidgets import QAbstractItemView, QListWidget, QListWidgetItem, QWidget
 
 from .all_components_widget import AllComponentsWidget
 from .base_list_widget import BaseListWidget
@@ -22,6 +22,8 @@ class ActiveComponentsWidget(BaseListWidget):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setAlternatingRowColors(True)
         self.setAcceptDrops(True)
+        self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.verticalScrollBar().setSingleStep(8)
         self.currentItemChanged.connect(self.component_clicked)  # type: ignore
         # self.setStyleSheet("QListWidget::item { border-bottom: 1px solid black; }")
 

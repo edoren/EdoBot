@@ -112,7 +112,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
 
         self.component_list = ActiveComponentsWidget()
-        self.component_list.setMinimumSize(400, 200)
+        self.component_list.setMinimumSize(400, 50)
         self.setCentralWidget(self.component_list)
 
         self.create_actions()
@@ -231,10 +231,10 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Ready")
 
     def create_windows(self):
-        dock = QDockWidget("Log", self)
+        dock = QDockWidget("Logs", self)
         dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea |  # type: ignore
                              Qt.DockWidgetArea.BottomDockWidgetArea)
-        dock.setObjectName("Log Window")
+        dock.setObjectName("Logs Window")
         dock.setMinimumHeight(150)
         self.log_widget = LogWidget(dock)
         dock.setWidget(self.log_widget)

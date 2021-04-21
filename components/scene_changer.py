@@ -53,6 +53,13 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.setLayout(layout)
         self.setMinimumWidth(self.width())
 
+        self.command_line_edit.setText(self.data_parent.command)
+        self.mod_check_box.setChecked(UserType.MODERATOR in self.data_parent.who_can)
+        self.vip_check_box.setChecked(UserType.VIP in self.data_parent.who_can)
+        self.sub_check_box.setChecked(UserType.SUBSCRIPTOR in self.data_parent.who_can)
+        self.chatter_check_box.setChecked(UserType.CHATTER in self.data_parent.who_can)
+        self.update_list_items()
+
     def update_list_items(self):
         transitions = self.data_parent.get_transitions()
         self.scene_changes_widget.clear()
@@ -108,16 +115,10 @@ class SceneChangerComponentConfigWidget(QWidget):
 
     def showEvent(self, event: QShowEvent) -> None:
         scene_list = self.data_parent.get_obs_scenes()
-        self.command_line_edit.setText(self.data_parent.command)
-        self.mod_check_box.setChecked(UserType.MODERATOR in self.data_parent.who_can)
-        self.vip_check_box.setChecked(UserType.VIP in self.data_parent.who_can)
-        self.sub_check_box.setChecked(UserType.SUBSCRIPTOR in self.data_parent.who_can)
-        self.chatter_check_box.setChecked(UserType.CHATTER in self.data_parent.who_can)
         self.from_combo_box.clear()
         self.to_combo_box.clear()
         self.from_combo_box.addItems(scene_list)
         self.to_combo_box.addItems(scene_list)
-        self.update_list_items()
         event.accept()
 
 

@@ -170,14 +170,15 @@ class App:
         with self.components_lock:
             for component in self.active_components.values():
                 comp_command = component.get_command()
-                if is_command and comp_command is not None:
-                    command_pack = text.lstrip("!").split(" ", 1)
-                    command = command_pack[0]
-                    message = command_pack[1] if len(command_pack) > 1 else ""
-                    if ((isinstance(comp_command, str) and command == comp_command) or
-                            (isinstance(comp_command, list) and command in comp_command)):
-                        self.__secure_component_method_call(component, "process_message", message,
-                                                            user, user_types)
+                if comp_command is not None:
+                    if is_command:
+                        command_pack = text.lstrip("!").split(" ", 1)
+                        command = command_pack[0]
+                        message = command_pack[1] if len(command_pack) > 1 else ""
+                        if ((isinstance(comp_command, str) and command == comp_command) or
+                                (isinstance(comp_command, list) and command in comp_command)):
+                            self.__secure_component_method_call(component, "process_message", message,
+                                                                user, user_types)
                 else:
                     self.__secure_component_method_call(component, "process_message", text,
                                                         user, user_types)

@@ -72,9 +72,17 @@ class Config:
     def get(self, default: Any = None) -> Any:
         if len(self.path) > 0:
             ret = Config.__read_config(self.file, self.path)
-            return default if ret is None else ret
-        else:
-            return default
+            if ret is not None:
+                return ret
+        return default
+
+    def setdefault(self, default: Any = None) -> Any:
+        if len(self.path) > 0:
+            ret = Config.__read_config(self.file, self.path)
+            if ret is not None:
+                return ret
+        Config.__write_config(self.file, self.path, default)
+        return default
 
     def __invert__(self) -> Any:
         return self.get()

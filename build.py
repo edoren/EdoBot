@@ -72,7 +72,7 @@ with open(version_info_file, "w") as f:
 
 file_version_info_path = os.path.join(build_dir, "file_version_info.txt")
 file_version_info.generate(file_version_info_path, name=APP_NAME, owner=APP_OWNER, file_name=f"{APP_NAME.lower()}.exe",
-                           file_description=f"{APP_NAME} Application", version=version_str, description=APP_DESCRIPTION,
+                           file_description=APP_NAME, version=version_str, description=APP_DESCRIPTION,
                            copyright=APP_COPYRIGHT)
 
 logger.info("=================== Creating executable  ===================")

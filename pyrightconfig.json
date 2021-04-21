@@ -14,5 +14,6 @@
     "reportUnknownMemberType": "none",
     "reportUnknownParameterType": "none",
     "reportUnknownVariableType": "none",
+    "reportUnknownLambdaType": "none",
     "reportMissingTypeStubs": "none",
 }

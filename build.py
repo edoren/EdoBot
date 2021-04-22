@@ -80,7 +80,7 @@ logger.info("=================== Creating executable  ===================")
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
-hidden_imports: List[str] = ["PySide2.QtXml"]
+hidden_imports: List[str] = ["uuid", "PySide2.QtXml"]
 excluded_modules: List[str] = []
 if not optimized:
     pyinstaller_args.append("--debug=noarchive")

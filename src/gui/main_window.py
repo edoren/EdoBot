@@ -2,7 +2,6 @@
 import logging
 import os
 import os.path
-import pathlib
 import sys
 import traceback
 import webbrowser
@@ -122,6 +121,8 @@ class MainWindow(QMainWindow):
 
         handlers: List[logging.Handler] = []
 
+        self.open_time = datetime.now()
+
         log_dir = os.path.join(Constants.SAVE_DIRECTORY, "logs")
         log_filename = "edobot-latest.log"
 
@@ -129,21 +130,14 @@ class MainWindow(QMainWindow):
         if not os.path.isdir(log_dir):
             os.makedirs(log_dir)
 
-        # Compress the old log file
-        log_file = os.path.join(log_dir, log_filename)
-        if os.path.isfile(log_file):
-            fname = pathlib.Path(log_file)
-            modified_time = datetime.fromtimestamp(fname.stat().st_mtime)
-            zip_file = os.path.join(log_dir, modified_time.strftime("edobot-%d-%m-%Y.zip"))
-            zipfile.ZipFile(zip_file, mode="a", compression=zipfile.ZIP_BZIP2,
-                            compresslevel=9).write(log_file, arcname=modified_time.strftime("%H-%M-%S-%f.log"))
+        self.log_file_path = os.path.join(log_dir, log_filename)
 
         if __debug__:
             default_level = logging.DEBUG
         else:
             default_level = logging.INFO
 
-        file_handler = logging.FileHandler(log_file, "w", "utf-8")
+        file_handler = logging.FileHandler(self.log_file_path, "a", "utf-8")
         file_handler.setLevel(default_level)
         file_handler.setFormatter(TimeFormatter(
             "[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))
@@ -420,6 +414,13 @@ class MainWindow(QMainWindow):
         if self.app is not None:
             self.app.shutdown()
             self.app.config["components"] = self.component_list.get_component_order()
+        logging.shutdown()
+        log_dir = os.path.dirname(self.log_file_path)
+        zip_file_path = os.path.join(log_dir, self.open_time.strftime("edobot-%d-%m-%Y.zip"))
+        zip_file = zipfile.ZipFile(zip_file_path, mode="a", compression=zipfile.ZIP_BZIP2, compresslevel=9)
+        zip_file.write(self.log_file_path, arcname=self.open_time.strftime("%d-%m-%Y-%H-%M-%S.log"))
+        with open(self.log_file_path, "w"):
+            pass
 
     #################################################################
     # Private

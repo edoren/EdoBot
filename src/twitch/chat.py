@@ -50,7 +50,12 @@ class Chat(WebSocket):
         self.subscribers.append(subscriber)
 
     def send_message(self, message: str) -> None:
-        self.send(f"PRIVMSG #{self.channel_name} :{message}")
+        while self.running:
+            try:
+                self.send(f"PRIVMSG #{self.channel_name} :{message}")
+                break
+            except Exception as e:
+                gLogger.error(f"Error sending message: {e}")
 
     def handle_message(self, message: str):
         lines = message.strip("\r\n").split("\r\n")

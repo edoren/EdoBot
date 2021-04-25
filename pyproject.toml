@@ -1,5 +1,11 @@
-[tool.autopep8]
-max_line_length = 120
+[pep8]
+max-line-length = 120
+
+[tool.yapf]
+based_on_style = "pep8"
+column_limit = 120
+arithmetic_precedence_indication = true
+split_before_named_assigns= false
 
 [tool.isort]
 line_length = 120

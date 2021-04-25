@@ -17,7 +17,7 @@
     "python.linting.lintOnSave": true,
     "python.linting.pycodestyleEnabled": true,
     "python.linting.pylintEnabled": false,
-    "python.formatting.provider": "autopep8",
+    "python.formatting.provider": "yapf",
     "python.linting.pycodestyleArgs": [
         "--max-line-length=120"
     ],

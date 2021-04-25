@@ -88,8 +88,10 @@ class App:
         self.components_lock = threading.Lock()
         self.update_available_components()
 
-        self.host_scope = ["bits:read", "channel:moderate", "channel:read:redemptions",
-                           "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"]
+        self.host_scope = [
+            "bits:read", "channel:moderate", "channel:read:redemptions", "channel:read:subscriptions",
+            "moderation:read", "user:read:email", "whispers:read"
+        ]
         self.bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
 
         self.executor: Optional[ThreadPoolExecutor] = None
@@ -120,11 +122,8 @@ class App:
         self.current_components = [x for x in self.current_components if not (x in seen or seen.add(x))]
 
         obswebsocket_config = ~self.config["obswebsocket"]
-        self.obs_client.set_config(
-            obswebsocket_config["host"],
-            obswebsocket_config["port"],
-            obswebsocket_config["password"]
-        )
+        self.obs_client.set_config(obswebsocket_config["host"], obswebsocket_config["port"],
+                                   obswebsocket_config["password"])
         self.obs_client.connect()
 
     #################################################################
@@ -175,13 +174,11 @@ class App:
                         command_pack = text.lstrip("!").split(" ", 1)
                         command = command_pack[0]
                         message = command_pack[1] if len(command_pack) > 1 else ""
-                        if ((isinstance(comp_command, str) and command == comp_command) or
-                                (isinstance(comp_command, list) and command in comp_command)):
-                            self.__secure_component_method_call(component, "process_message", message,
-                                                                user, user_types)
+                        if ((isinstance(comp_command, str) and command == comp_command)
+                                or (isinstance(comp_command, list) and command in comp_command)):
+                            self.__secure_component_method_call(component, "process_message", message, user, user_types)
                 else:
-                    self.__secure_component_method_call(component, "process_message", text,
-                                                        user, user_types)
+                    self.__secure_component_method_call(component, "process_message", text, user, user_types)
 
     def handle_event(self, event_name: str, metadata: Any):
         if self.host_twitch_service is None or self.bot_twitch_service is None:
@@ -287,8 +284,7 @@ class App:
                 self.component_added(instance)
             if self.has_started and self.chat_service is not None and self.host_twitch_service is not None:
                 instance.config_component(config=self.__get_component_config(instance.get_id()),
-                                          obs_client=self.obs_client.get_client(),
-                                          chat=self.chat_service,
+                                          obs_client=self.obs_client.get_client(), chat=self.chat_service,
                                           twitch=self.host_twitch_service)
                 succeded = self.__secure_component_method_call(instance, "start")
                 if not succeded:
@@ -357,8 +353,7 @@ class App:
                 with self.components_lock:
                     for instance in self.active_components.values():
                         instance.config_component(config=self.__get_component_config(instance.get_id()),
-                                                  obs_client=self.obs_client.get_client(),
-                                                  chat=self.chat_service,
+                                                  obs_client=self.obs_client.get_client(), chat=self.chat_service,
                                                   twitch=self.host_twitch_service)
                         succeded = self.__secure_component_method_call(instance, "start")
                         if not succeded:
@@ -446,12 +441,11 @@ class App:
 
     @staticmethod
     def __get_component_config(component_id: str) -> Config:
-        component_config_file = os.path.join(Constants.CONFIG_DIRECTORY, "components",  f"{component_id}.json")
+        component_config_file = os.path.join(Constants.CONFIG_DIRECTORY, "components", f"{component_id}.json")
         return Config(component_config_file)
 
     @staticmethod
-    def __secure_component_method_call(component: ChatComponent,
-                                       method_name: str, *args: Any, **kwargs: Any) -> bool:
+    def __secure_component_method_call(component: ChatComponent, method_name: str, *args: Any, **kwargs: Any) -> bool:
         try:
             method = getattr(component, method_name)
             method(*args, **kwargs)

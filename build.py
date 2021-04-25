@@ -40,8 +40,8 @@ os.chdir(source_dir)
 python_exe = sys.executable
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-O", "--optimized", help="Optimize the compiled python code",
-                    required=False, type=int, default=0, choices=[0, 1, 2])
+parser.add_argument("-O", "--optimized", help="Optimize the compiled python code", required=False, type=int, default=0,
+                    choices=[0, 1, 2])
 parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
 args = parser.parse_args()
 
@@ -102,11 +102,7 @@ for root, dire, files in os.walk(data_dir):
 if os_name == "windows":
     pyinstaller_args.append(f"--version-file={file_version_info_path}")
 pyinstaller_args += [
-    f"--name={APP_NAME.lower()}",
-    f"--icon={APP_ICON}",
-    "--noconsole",
-    "--windowed",
-    "--noupx",
+    f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}", "--noconsole", "--windowed", "--noupx",
     os.path.join(source_dir, "src", "main.py")
 ]
 my_env = os.environ.copy()
@@ -121,9 +117,7 @@ components_dir = os.path.join(source_dir, "components")
 dist_dir = os.path.join(build_dir, "dist")
 if not args.onefile:
     dist_dir = os.path.join(dist_dir, APP_NAME)
-shutil.copytree(components_dir,
-                os.path.join(dist_dir, "components"), dirs_exist_ok=True,
-                copy_function=copy_function,
+shutil.copytree(components_dir, os.path.join(dist_dir, "components"), dirs_exist_ok=True, copy_function=copy_function,
                 ignore=shutil.ignore_patterns("__pycache__"))
 
 logger.info("============== Downloading required modules ================")
@@ -134,8 +128,8 @@ pip_install_dir = os.path.join(build_dir, "pip")
 if os.path.isdir(pip_install_dir):
     shutil.rmtree(pip_install_dir)
 for requirement in additional_requirements:
-    subprocess.run([python_exe, "-m", "pip", "install", "--ignore-installed",
-                    f"--prefix={pip_install_dir}", requirement])
+    subprocess.run(
+        [python_exe, "-m", "pip", "install", "--ignore-installed", f"--prefix={pip_install_dir}", requirement])
 
 logger.info("================ Copying required modules ==================")
 
@@ -145,10 +139,8 @@ if len(requirements_lib_dirs) > 0:
     requirements_lib_dir = requirements_lib_dirs[0]
     compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=args.optimized)
     module_dist_dir = os.path.join(dist_dir, "modules")
-    shutil.copytree(requirements_lib_dir, module_dist_dir,
-                    dirs_exist_ok=True, copy_function=copy_function,
-                    ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py",
-                                                  "*.dist-info", "*.egg-info"))
+    shutil.copytree(requirements_lib_dir, module_dist_dir, dirs_exist_ok=True, copy_function=copy_function,
+                    ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py", "*.dist-info", "*.egg-info"))
 
 logger.info("===================== Creating package =====================")
 

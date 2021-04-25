@@ -1,6 +1,5 @@
 python_std_lib_list = [
     # Text Processing Services
-
     "string",
     "re",
     "difflib",
@@ -11,12 +10,10 @@ python_std_lib_list = [
     "rlcompleter",
 
     # Binary Data Services
-
     "struct",
     "codecs",
 
     # Data Types
-
     "datetime",
     "zoneinfo",
     "calendar",
@@ -34,7 +31,6 @@ python_std_lib_list = [
     "graphlib",
 
     # Numeric and Mathematical Modules
-
     "numbers",
     "math",
     "cmath",
@@ -44,13 +40,11 @@ python_std_lib_list = [
     "statistics",
 
     # Functional Programming Modules
-
     "itertools",
     "functools",
     "operator",
 
     # File and Directory Access
-
     "pathlib",
     "os.path",
     "fileinput",
@@ -63,7 +57,6 @@ python_std_lib_list = [
     "shutil",
 
     # Data Persistence
-
     "pickle",
     "copyreg",
     "shelve",
@@ -72,7 +65,6 @@ python_std_lib_list = [
     "sqlite3",
 
     # Data Compression and Archiving
-
     "zlib",
     "gzip",
     "bz2",
@@ -81,7 +73,6 @@ python_std_lib_list = [
     "tarfile",
 
     # File Formats
-
     "csv",
     "configparser",
     "netrc",
@@ -89,13 +80,11 @@ python_std_lib_list = [
     "plistlib",
 
     # Cryptographic Services
-
     "hashlib",
     "hmac",
     "secrets",
 
     # Generic Operating System Services
-
     "os",
     "io",
     "time",
@@ -114,7 +103,6 @@ python_std_lib_list = [
     "ctypes",
 
     # Concurrent Execution
-
     "threading",
     "multiprocessing",
     "multiprocessing.shared_memory",
@@ -127,7 +115,6 @@ python_std_lib_list = [
     "_thread",
 
     # Networking and Interprocess Communication
-
     "asyncio",
     "socket",
     "ssl",
@@ -139,7 +126,6 @@ python_std_lib_list = [
     "mmap",
 
     # Internet Data Handling
-
     "email",
     "json",
     "mailcap",
@@ -152,7 +138,6 @@ python_std_lib_list = [
     "uu",
 
     # Structured Markup Processing Tools
-
     "html",
     "html.parser",
     "html.entities",
@@ -167,7 +152,6 @@ python_std_lib_list = [
     "xml.parsers.expat",
 
     # Internet Protocols and Support
-
     "webbrowser",
     "cgi",
     "cgitb",
@@ -198,7 +182,6 @@ python_std_lib_list = [
     "ipaddress",
 
     # Multimedia Services
-
     "audioop",
     "aifc",
     "sunau",
@@ -210,22 +193,18 @@ python_std_lib_list = [
     "ossaudiodev",
 
     # Internationalization
-
     "gettext",
     "locale",
 
     # Program Frameworks
-
     "turtle",
     "cmd",
     "shlex",
 
     # Development Tools
-
     "typing",
 
     # Debugging and Profiling
-
     "bdb",
     "faulthandler",
     "pdb",
@@ -236,14 +215,12 @@ python_std_lib_list = [
     "tracemalloc",
 
     # Software Packaging and Distribution
-
     "distutils",
     "ensurepip",
     "venv",
     "zipapp",
 
     # Python Runtime Services
-
     "sys",
     "sysconfig",
     "builtins",
@@ -260,17 +237,14 @@ python_std_lib_list = [
     "site",
 
     # Custom Python Interpreters
-
     "code",
     "codeop",
 
     # Importing Modules
-
     "importlib",
     "importlib.metadata",
 
     # Python Language Services
-
     "parser",
     "ast",
     "symtable",
@@ -286,18 +260,15 @@ python_std_lib_list = [
     "pickletools",
 
     # Miscellaneous Services
-
     "formatter",
 
     # MS Windows Specific Services
-
     "msilib",
     "msvcrt",
     "winreg",
     "winsound",
 
     # Unix Specific Services
-
     "posix",
     "pwd",
     "spwd",

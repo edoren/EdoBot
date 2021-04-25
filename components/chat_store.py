@@ -54,8 +54,8 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User,
-                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
+    def process_message(self, message: str, user: User, user_types: Set[UserType],
+                        metadata: Optional[Any] = None) -> None:
         full_filename = self.filename.replace("{date}", datetime.now().strftime('%d-%m-%Y'))
         for username in self.ignored_users:
             if username.lower() == user.login:

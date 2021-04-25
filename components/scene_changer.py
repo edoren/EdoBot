@@ -90,8 +90,9 @@ class SceneChangerComponentConfigWidget(QWidget):
     def open_context_menu(self, position):
         if self.scene_changes_widget.itemAt(position):
             menu = QMenu()
-            delete_action = QAction(QCoreApplication.translate("SceneChangerConfig", "Delete", None),  # type: ignore
-                                    self.scene_changes_widget)
+            delete_action = QAction(
+                QCoreApplication.translate("SceneChangerConfig", "Delete", None),  # type: ignore
+                self.scene_changes_widget)
             menu.addAction(delete_action)
             delete_action.triggered.connect(self.delete_item_selection)  # type: ignore
             menu.exec_(self.scene_changes_widget.mapToGlobal(position))
@@ -106,12 +107,8 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.data_parent.set_command(self.command_line_edit.text())
 
     def who_can_use_changed(self):
-        self.data_parent.update_who_can(
-            self.mod_check_box.isChecked(),
-            self.vip_check_box.isChecked(),
-            self.sub_check_box.isChecked(),
-            self.chatter_check_box.isChecked()
-        )
+        self.data_parent.update_who_can(self.mod_check_box.isChecked(), self.vip_check_box.isChecked(),
+                                        self.sub_check_box.isChecked(), self.chatter_check_box.isChecked())
 
     def showEvent(self, event: QShowEvent) -> None:
         scene_list = self.data_parent.get_obs_scenes()
@@ -161,8 +158,8 @@ class SceneChangerComponent(ChatComponent):
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User,
-                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
+    def process_message(self, message: str, user: User, user_types: Set[UserType],
+                        metadata: Optional[Any] = None) -> None:
         if not self.is_obs_connected():
             return
 

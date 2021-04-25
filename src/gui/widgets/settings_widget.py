@@ -39,7 +39,7 @@ class SettingsWidget(QWidget):
         self.port_line_edit: QLineEdit = getattr(my_widget, "port_line_edit")
         self.password_line_edit: QLineEdit = getattr(my_widget, "password_line_edit")
 
-        self.port_line_edit.setValidator(QIntValidator(0, 2**16-1, self))
+        self.port_line_edit.setValidator(QIntValidator(0, 2**16 - 1, self))
         self.host_account_info_label.setText(self.host_account_info_label.text() + ":")
         self.bot_account_info_label.setText(self.bot_account_info_label.text() + ":")
 
@@ -99,8 +99,7 @@ class SettingsWidget(QWidget):
     def showEvent(self, event: QShowEvent) -> None:
         r = self.parentWidget().geometry()
         self.setGeometry(r.left() + int((r.width() - self.width()) / 2),
-                         r.top() + int((r.height() - self.height()) / 2),
-                         self.width(), self.height())
+                         r.top() + int((r.height() - self.height()) / 2), self.width(), self.height())
         event.accept()
 
     def __get_translation(self, value: str) -> str:

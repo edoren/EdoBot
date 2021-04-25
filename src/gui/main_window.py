@@ -1,4 +1,3 @@
-
 import logging
 import os
 import os.path
@@ -104,8 +103,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope,
-                                  "Edoren", Constants.APP_NAME)
+        self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren",
+                                  Constants.APP_NAME)
 
         self.setWindowTitle(f"{Constants.APP_NAME} {Constants.APP_VERSION}")
         self.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
@@ -139,8 +138,8 @@ class MainWindow(QMainWindow):
 
         file_handler = logging.FileHandler(self.log_file_path, "a", "utf-8")
         file_handler.setLevel(default_level)
-        file_handler.setFormatter(TimeFormatter(
-            "[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))
+        file_handler.setFormatter(
+            TimeFormatter("[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))
         handlers.append(file_handler)
 
         stream_handler = CallbackHandler(self.log_widget.logRecordReceived.emit)  # type: ignore

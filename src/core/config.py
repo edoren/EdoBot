@@ -4,10 +4,7 @@ import os.path
 from typing import Any, List, MutableMapping, Union
 
 Path = List[Union[str, int]]
-ConfigType = Union[
-    MutableMapping[Union[str, int], Any],
-    List[Any]
-]
+ConfigType = Union[MutableMapping[Union[str, int], Any], List[Any]]
 
 __all__ = ["Config"]
 

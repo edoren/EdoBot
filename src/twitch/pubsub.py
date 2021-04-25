@@ -10,9 +10,10 @@ from network import WebSocket
 from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, BitsEventMessageMeta,
                             ChannelPointsEventMessage, ChannelPointsEventMessageMeta, ChannelSubscriptionsEventMessage)
 
-__all__ = ["PubSub", "PubSubEvent", "BitsBadgeNotificationMessage",
-           "BitsEventMessage", "ChannelPointsEventMessage",
-           "ChannelSubscriptionsEventMessage"]
+__all__ = [
+    "PubSub", "PubSubEvent", "BitsBadgeNotificationMessage", "BitsEventMessage", "ChannelPointsEventMessage",
+    "ChannelSubscriptionsEventMessage"
+]
 
 gLogger = logging.getLogger(f"edobot.{__name__}")
 
@@ -27,8 +28,7 @@ class PubSubEvent(Enum):
 
 
 class PubSub(WebSocket):
-    EventTypes = Union[BitsBadgeNotificationMessage,
-                       BitsEventMessage, ChannelPointsEventMessage,
+    EventTypes = Union[BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
                        ChannelSubscriptionsEventMessage]
     EventCallable = Callable[[str, EventTypes], None]
 

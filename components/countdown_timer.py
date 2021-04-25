@@ -57,7 +57,7 @@ class RewardTimer:
         return (self.id, self.name) == (other.id, other.name)
 
     def __ne__(self, other):
-        return not(self == other)
+        return not (self == other)
 
     def has_event(self, type: str, **kwargs: Any) -> bool:
         return self.get_event(type, **kwargs) is not None
@@ -135,9 +135,7 @@ class CountdownTimerWidget(QWidget):
         self.display_selection.addItem("Seconds", "seconds")
         self.display_selection.setCurrentIndex(self.display_selection.findData("minutes"))
 
-        self.available_events = {
-            "reward": "Channel Points"
-        }
+        self.available_events = {"reward": "Channel Points"}
 
         for key, name in self.available_events.items():
             item = QListWidgetItem(name)
@@ -156,16 +154,20 @@ class CountdownTimerWidget(QWidget):
         self.add_timer_button.clicked.connect(lambda _: self.add_timer_clicked())  # type: ignore
         self.remove_timer_button.clicked.connect(lambda _: self.remove_selected_timer())  # type: ignore
 
-        self.format_input.editingFinished.connect(lambda: self.update_timer_data("format",   # type: ignore
-                                                                                 self.format_input.text().strip()))
+        self.format_input.editingFinished.connect(  # type: ignore
+            lambda: self.update_timer_data("format",
+                                           self.format_input.text().strip()))
         self.source_name_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("source", self.source_name_input.text().strip()))
+            lambda: self.update_timer_data("source",
+                                           self.source_name_input.text().strip()))
         self.display_selection.activated.connect(  # type: ignore
             lambda index: self.update_timer_data("display", self.display_selection.itemData(index)))
         self.start_message_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("start_msg", self.start_message_input.text().strip()))
+            lambda: self.update_timer_data("start_msg",
+                                           self.start_message_input.text().strip()))
         self.finish_message_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("finish_msg", self.finish_message_input.text().strip()))
+            lambda: self.update_timer_data("finish_msg",
+                                           self.finish_message_input.text().strip()))
 
         self.add_event_button.clicked.connect(lambda _: self.add_timer_event_clicked())  # type: ignore
         self.active_events_list.itemChanged.connect(self.active_events_item_changed)  # type: ignore
@@ -314,9 +316,10 @@ class CountdownTimerWidget(QWidget):
                 name_input = QLineEdit(event.data.get("name", ""))
                 self.event_data_form.insertRow(0, "Reward Name", name_input)
                 name_input.editingFinished.connect(  # type: ignore
-                    lambda: self.update_active_event_data("name", name_input.text().strip(), True))
-                name_input.textChanged.connect(lambda text: self.update_active_event_data("description",  # type: ignore
-                                                                                          text.strip()))
+                    lambda: self.update_active_event_data("name",
+                                                          name_input.text().strip(), True))
+                name_input.textChanged.connect(  # type: ignore
+                    lambda text: self.update_active_event_data("description", text.strip()))
 
     def update_active_event_data(self, name: str, data: Any, is_custom=False):
         selected_item: QListWidgetItem = self.active_events_list.selectedItems()[0]
@@ -338,8 +341,9 @@ class CountdownTimerWidget(QWidget):
     def open_active_events_context_menu(self, position):
         if self.active_events_list.itemAt(position):
             menu = QMenu()
-            delete_action = QAction(QCoreApplication.translate("CountdownTimer", "Delete", None),  # type: ignore
-                                    self.active_events_list)
+            delete_action = QAction(
+                QCoreApplication.translate("CountdownTimer", "Delete", None),  # type: ignore
+                self.active_events_list)
             menu.addAction(delete_action)
             delete_action.triggered.connect(self.remove_timer_event_clicked)  # type: ignore
             menu.exec_(self.active_events_list.mapToGlobal(position))
@@ -388,9 +392,9 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
                             if timer.display == "hours":
                                 tmlist.append("{:02d}".format(int((tmleft / 3600000))) if tmleft >= 0 else "00")
                             if timer.display == "hours" or timer.display == "minutes":
-                                tmlist.append("{:02d}".format(int((tmleft / 60000) % 60)) if tmleft >= 0 else "00")
+                                tmlist.append("{:02d}".format(int((tmleft/60000) % 60)) if tmleft >= 0 else "00")
                             if timer.display == "hours" or timer.display == "minutes" or timer.display == "seconds":
-                                tmlist.append("{:02d}".format(int((tmleft / 1000) % 60)) if tmleft >= 0 else "00")
+                                tmlist.append("{:02d}".format(int((tmleft/1000) % 60)) if tmleft >= 0 else "00")
                             if tmleft < 0:
                                 if timer.finish_msg:
                                     self.chat.send_message(timer.finish_msg.replace("{name}", timer.name))
@@ -428,8 +432,8 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
         self.save_timers()
         super().stop()
 
-    def process_message(self, message: str, user: User,
-                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
+    def process_message(self, message: str, user: User, user_types: Set[UserType],
+                        metadata: Optional[Any] = None) -> None:
         pass
 
     def start_counter(self, timer: RewardTimer, event: RewardTimer.Event):

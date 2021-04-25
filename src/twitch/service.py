@@ -67,8 +67,8 @@ class Service:
             name = "$"
             requestor = self.users_cache.setdefault(name, self.__get_cache_requestor("GET", "/users"))
         else:
-            requestor = self.users_cache.setdefault(name, self.__get_cache_requestor("GET", "/users",
-                                                                                     params={"login": name}))
+            requestor = self.users_cache.setdefault(name,
+                                                    self.__get_cache_requestor("GET", "/users", params={"login": name}))
         response = self.__call_endpoint(requestor)
         users = [model.User(**x) for x in response["data"] or []]
         user = None if len(users) == 0 else users[0]
@@ -77,10 +77,11 @@ class Service:
         return user
 
     def __get_cache_requestor(self, method, path, params=None):
-        return CacheRequest(method, "https://api.twitch.tv/helix" + path, params=params, headers={
-            "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
-            "Client-Id": Constants.CLIENT_ID
-        })
+        return CacheRequest(
+            method, "https://api.twitch.tv/helix" + path, params=params, headers={
+                "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
+                "Client-Id": Constants.CLIENT_ID
+            })
 
     def __del__(self):
         self.__active = False

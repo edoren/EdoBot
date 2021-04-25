@@ -19,8 +19,8 @@ class ChatComponent(ABC):
         super().__init__()
 
     @final
-    def config_component(self, config: Config, obs_client: obswebsocket.obsws,
-                         chat: Chat, twitch: TwitchService) -> None:
+    def config_component(self, config: Config, obs_client: obswebsocket.obsws, chat: Chat,
+                         twitch: TwitchService) -> None:
         self.config = config
         self.obs_client = obs_client
         self.chat = chat
@@ -46,8 +46,8 @@ class ChatComponent(ABC):
         pass
 
     @abstractmethod
-    def process_message(self, message: str, user: User,
-                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
+    def process_message(self, message: str, user: User, user_types: Set[UserType],
+                        metadata: Optional[Any] = None) -> None:
         pass
 
     @abstractmethod
@@ -61,10 +61,8 @@ class ChatComponent(ABC):
         self.has_started = False
 
     def is_obs_connected(self) -> bool:
-        return (hasattr(self, "obs_client") and
-                self.obs_client is not None and
-                self.obs_client.thread_recv is not None and
-                self.obs_client.thread_recv.running)
+        return (hasattr(self, "obs_client") and self.obs_client is not None and self.obs_client.thread_recv is not None
+                and self.obs_client.thread_recv.running)
 
     def get_config_something(self) -> Union[QWidget, dict[str, Any], None]:
         return None

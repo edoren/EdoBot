@@ -1,6 +1,5 @@
 __all__ = ["User"]
 
-
 from typing import Any, Optional
 
 

@@ -49,7 +49,6 @@ VSVersionInfo(
 )
 '''
 
-
 VS_FF_DEBUG = 0x00000001
 VS_FF_INFOINFERRED = 0x00000010
 VS_FF_PATCHED = 0x00000004
@@ -58,9 +57,8 @@ VS_FF_PRIVATEBUILD = 0x00000008
 VS_FF_SPECIALBUILD = 0x00000020
 
 
-def generate(output_path: str, name: str, owner: str, version: str,
-             description: str = "", copyright: str = "", file_name: str = "",
-             file_description: str = ""):
+def generate(output_path: str, name: str, owner: str, version: str, description: str = "", copyright: str = "",
+             file_name: str = "", file_description: str = ""):
     values: dict[str, str] = {
         "PRODUCT_NAME": name,
         "PRODUCT_OWNER": owner,

@@ -34,8 +34,8 @@ class EchoComponent(ChatComponent):  # TODO: Change to chat store
         gLogger.info("Stopping Echo component")
         super().stop()
 
-    def process_message(self, message: str, user: User,
-                        user_types: Set[UserType], metadata: Optional[Any] = None) -> None:
+    def process_message(self, message: str, user: User, user_types: Set[UserType],
+                        metadata: Optional[Any] = None) -> None:
         gLogger.info((f"[{user.display_name}] {message}"))
 
     def process_event(self, event_name: str, metadata: Any) -> None:

@@ -8,9 +8,8 @@ from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 import obswebsocket.requests as obs_requests
 from PySide2.QtCore import QCoreApplication, QFile, Qt
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QFormLayout, QGroupBox, QLabel, QLineEdit, QListWidget,
-                               QListWidgetItem, QMenu, QMessageBox, QPushButton, QSpinBox, QTabWidget, QVBoxLayout,
-                               QWidget)
+from PySide2.QtWidgets import (QAction, QComboBox, QFormLayout, QGroupBox, QLineEdit, QListWidget, QListWidgetItem,
+                               QMenu, QMessageBox, QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 import twitch
 from core import ChatComponent
@@ -43,13 +42,12 @@ class RewardTimer:
         self.id: str = kwargs.get("id", uuid.uuid4().hex)
         self.name: str = name
         self.enabled: bool = kwargs.get("enabled", True)
-        self.anounce_on_chat: bool = kwargs.get("anounce_on_chat", True)
         self.display: str = kwargs.get("display", "minutes")
         self.format: str = kwargs.get("format", "{name}: {time}")
         self.display: str = kwargs.get("display", "minutes")
         self.source: str = kwargs.get("source", "")
-        self.start_msg: str = kwargs.get("start_msg", "Starting the '{name}' timer")
-        self.finish_msg: str = kwargs.get("finish_msg", "The timer '{name}' finished")
+        self.start_msg: str = kwargs.get("start_msg", "")
+        self.finish_msg: str = kwargs.get("finish_msg", "")
         self.events: List[RewardTimer.Event] = [RewardTimer.Event(**x) for x in kwargs.get("events", [])]
 
     def __hash__(self):
@@ -84,7 +82,6 @@ class RewardTimer:
             "id": self.id,
             "name": self.name,
             "enabled": self.enabled,
-            "anounce_on_chat": self.anounce_on_chat,
             "display": self.display,
             "format": self.format,
             "source": self.source,
@@ -113,8 +110,6 @@ class CountdownTimerWidget(QWidget):
         self.timer_config: QGroupBox = getattr(my_widget, "timer_config")
         self.tab_widget: QTabWidget = getattr(my_widget, "tab_widget")
 
-        self.enable_timer_cb: QCheckBox = getattr(my_widget, "enable_timer_cb")
-        self.anounce_on_chat_cb: QCheckBox = getattr(my_widget, "anounce_on_chat_cb")
         self.format_input: QLineEdit = getattr(my_widget, "format_input")
         self.source_name_input: QLineEdit = getattr(my_widget, "source_name_input")
         self.display_selection: QComboBox = getattr(my_widget, "display_selection")
@@ -127,6 +122,7 @@ class CountdownTimerWidget(QWidget):
 
         self.event_config: QGroupBox = getattr(my_widget, "event_config")
         self.event_duration_input: QSpinBox = getattr(my_widget, "event_duration_input")
+        self.event_duration_format: QComboBox = getattr(my_widget, "event_duration_format")
         self.event_data_form: QFormLayout = getattr(my_widget, "event_data_form")
 
         # Default Configs
@@ -149,20 +145,17 @@ class CountdownTimerWidget(QWidget):
             self.available_events_list.addItem(item)
         self.available_events_list.setCurrentRow(0)
 
-        self.event_config.setEnabled(False)
-        self.event_data_form_start_pos = self.event_data_form.rowCount()
+        self.event_config.setVisible(False)
+        self.event_duration_format.setVisible(False)
+        self.event_data_form_initial_num = self.event_data_form.rowCount()
 
         # Slot connections
 
-        self.timers_list.itemChanged.connect(self.timer_name_changed)  # type: ignore
+        self.timers_list.itemChanged.connect(self.timer_item_changed)  # type: ignore
         self.timers_list.currentItemChanged.connect(self.timer_selection_changed)  # type: ignore
         self.add_timer_button.clicked.connect(lambda _: self.add_timer_clicked())  # type: ignore
         self.remove_timer_button.clicked.connect(lambda _: self.remove_selected_timer())  # type: ignore
 
-        self.enable_timer_cb.clicked.connect(lambda _: self.update_timer_data("enabled",   # type: ignore
-                                                                              self.enable_timer_cb.isChecked()))
-        self.anounce_on_chat_cb.clicked.connect(lambda _: self.update_timer_data("anounce_on_chat",   # type: ignore
-                                                                                 self.anounce_on_chat_cb.isChecked()))
         self.format_input.editingFinished.connect(lambda: self.update_timer_data("format",   # type: ignore
                                                                                  self.format_input.text().strip()))
         self.source_name_input.editingFinished.connect(  # type: ignore
@@ -175,14 +168,17 @@ class CountdownTimerWidget(QWidget):
             lambda: self.update_timer_data("finish_msg", self.finish_message_input.text().strip()))
 
         self.add_event_button.clicked.connect(lambda _: self.add_timer_event_clicked())  # type: ignore
+        self.active_events_list.itemChanged.connect(self.active_events_item_changed)  # type: ignore
         self.active_events_list.currentItemChanged.connect(self.active_events_selection_changed)  # type: ignore
         self.active_events_list.customContextMenuRequested.connect(self.open_active_events_context_menu)  # type: ignore
         self.event_duration_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_active_event_data("duration", self.event_duration_input.value()))
+            self.event_duration_changed)
 
         layout = QVBoxLayout()
         layout.addWidget(my_widget)
         self.setLayout(layout)
+        self.setMinimumWidth(my_widget.width())
+        self.setMinimumHeight(my_widget.height())
 
         for timer in self.data_parent.get_timers():
             self.add_timer(timer)
@@ -201,7 +197,8 @@ class CountdownTimerWidget(QWidget):
     def add_timer(self, timer: RewardTimer) -> QListWidgetItem:
         item = QListWidgetItem()
         item.setText(timer.name)
-        item.setFlags(item.flags() | Qt.ItemIsEditable)  # type: ignore
+        item.setFlags(item.flags() | Qt.ItemIsEditable | Qt.ItemIsUserCheckable)  # type: ignore
+        item.setCheckState(Qt.CheckState.Checked if timer.enabled else Qt.CheckState.Unchecked)
         item.setData(Qt.UserRole, timer)  # type: ignore
         self.timers_list.addItem(item)
         return item
@@ -226,8 +223,6 @@ class CountdownTimerWidget(QWidget):
             self.timer_config.setEnabled(True)
             self.remove_timer_button.setEnabled(True)
             timer: RewardTimer = current.data(Qt.UserRole)  # type: ignore
-            self.enable_timer_cb.setChecked(timer.enabled)
-            self.anounce_on_chat_cb.setChecked(timer.anounce_on_chat)
             self.format_input.setText(timer.format)
             self.format_input.setText(timer.format)
             self.source_name_input.setText(timer.source)
@@ -237,15 +232,32 @@ class CountdownTimerWidget(QWidget):
             self.active_events_list.clear()
             for event in timer.events:
                 self.add_timer_event(event)
+            self.event_config.setVisible(False)
+            self.active_events_list.setCurrentRow(0)
 
-    def timer_name_changed(self, item: QListWidgetItem):
-        if not item.text():
-            QMessageBox.critical(self, "Error creating item", "New timer should not be empty")
-            self.timers_list.takeItem(self.timers_list.row(item))
-            return
+    def timer_item_changed(self, item: QListWidgetItem):
+        timer_has_changes = False
         timer: RewardTimer = item.data(Qt.UserRole)  # type: ignore
-        timer.name = item.text()
-        self.data_parent.save_timers()
+
+        enabled = (item.checkState() == Qt.CheckState.Checked)
+        if timer.enabled != enabled:
+            timer.enabled = enabled
+            timer_has_changes = True
+
+        name = item.text().replace("\n", " ").replace("\t", " ").strip()
+        if timer.name != name:
+            if name != item.text():
+                item.setText(name)
+                return
+            if not item.text():
+                QMessageBox.critical(self, "Error creating item", "New timer should not be empty")
+                self.timers_list.takeItem(self.timers_list.row(item))
+                return
+            timer.name = item.text()
+            timer_has_changes = True
+
+        if timer_has_changes:
+            self.data_parent.save_timers()
 
     # Event slots
 
@@ -257,9 +269,12 @@ class CountdownTimerWidget(QWidget):
         new_event = self.data_parent.add_timer_event(type_, timer.id)
         if new_event:
             self.add_timer_event(new_event)
+            self.active_events_list.setCurrentRow(self.active_events_list.model().rowCount() - 1)
 
     def add_timer_event(self, event: RewardTimer.Event):
         item = QListWidgetItem()
+        item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # type: ignore
+        item.setCheckState(Qt.Checked if event.enabled else Qt.Unchecked)  # type: ignore
         type_name = self.available_events.get(event.type, "Unknown")
         if event.description:
             event_name = f"{type_name}: {event.description} - {event.duration} seconds"
@@ -277,23 +292,27 @@ class CountdownTimerWidget(QWidget):
         self.data_parent.remove_timer_event(timer.id, event.id)  # type: ignore
         self.active_events_list.takeItem(self.active_events_list.row(selected_event))
 
+    def active_events_item_changed(self, item):
+        event: RewardTimer.Event = item.data(Qt.UserRole)  # type: ignore
+        enabled = (item.checkState() == Qt.CheckState.Checked)
+        if event.enabled != enabled:
+            event.enabled = enabled
+            self.data_parent.save_timers()
+
     def active_events_selection_changed(self, current, previous):
-        for row in range(self.event_data_form_start_pos, self.event_data_form.rowCount()):
+        for row in range(0, self.event_data_form.rowCount() - self.event_data_form_initial_num):
             self.event_data_form.removeRow(row)
 
         if current is None:
-            self.event_config.setEnabled(False)
+            self.event_config.setVisible(False)
         else:
-            self.event_config.setEnabled(True)
+            self.event_config.setVisible(True)
             event: RewardTimer.Event = current.data(Qt.UserRole)  # type: ignore
             self.event_duration_input.setValue(event.duration)
 
-            pos = self.event_data_form_start_pos
             if event.type == "reward":
-                label = QLabel("Reward Name")
                 name_input = QLineEdit(event.data.get("name", ""))
-                self.event_data_form.setWidget(pos, QFormLayout.ItemRole.LabelRole, label)
-                self.event_data_form.setWidget(pos, QFormLayout.ItemRole.FieldRole, name_input)
+                self.event_data_form.insertRow(0, "Reward Name", name_input)
                 name_input.editingFinished.connect(  # type: ignore
                     lambda: self.update_active_event_data("name", name_input.text().strip(), True))
                 name_input.textChanged.connect(lambda text: self.update_active_event_data("description",  # type: ignore
@@ -312,6 +331,9 @@ class CountdownTimerWidget(QWidget):
                 selected_item.setText(f"{event_name}: {event.description} - {event.duration} seconds")
             else:
                 selected_item.setText(f"{event_name} - {event.duration} seconds")
+
+    def event_duration_changed(self):
+        self.update_active_event_data("duration", self.event_duration_input.value())
 
     def open_active_events_context_menu(self, position):
         if self.active_events_list.itemAt(position):
@@ -334,11 +356,10 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
 
     @staticmethod
     def get_description() -> str:
-        return "Displays the chat in the logs"
+        return "Add a countdown that interacts with Channel Points, Subs or Bits"
 
     def __init__(self) -> None:
         super().__init__()
-        self.widget: Optional[CountdownTimerWidget] = None
         self.counter_thread_lock = threading.Lock()  # TODO: add timer and event locks
         self.active_sources: MutableMapping[str, MutableMapping[RewardTimer, int]] = {}
         self.counter_thread: Optional[threading.Thread] = None
@@ -371,7 +392,7 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
                             if timer.display == "hours" or timer.display == "minutes" or timer.display == "seconds":
                                 tmlist.append("{:02d}".format(int((tmleft / 1000) % 60)) if tmleft >= 0 else "00")
                             if tmleft < 0:
-                                if timer.anounce_on_chat and timer.finish_msg:
+                                if timer.finish_msg:
                                     self.chat.send_message(timer.finish_msg.replace("{name}", timer.name))
                                 timers_to_delete.append(timer)
                             time_str = ":".join(tmlist)
@@ -420,7 +441,7 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
             else:
                 source_timers = self.active_sources.setdefault(source_name, {})
                 source_timers[timer] = round((time.time() + duration) * 1000)
-                if timer.anounce_on_chat and timer.start_msg:
+                if timer.start_msg:
                     self.chat.send_message(timer.start_msg.replace("{name}", timer.name))
 
     def process_event(self, event_name: str, metadata: Any) -> None:
@@ -432,13 +453,11 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
             for timer in self.__timers:
                 if timer.enabled:
                     event = timer.get_event("reward", name=reward_name)
-                    if event is not None:
+                    if event is not None and event.enabled:
                         self.start_counter(timer, event)
 
     def get_config_something(self) -> Optional[QWidget]:
-        if self.widget is None:
-            self.widget = CountdownTimerWidget(self)
-        return self.widget
+        return CountdownTimerWidget(self)
 
     def get_timers(self) -> List[RewardTimer]:
         return self.__timers

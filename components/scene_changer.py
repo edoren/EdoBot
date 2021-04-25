@@ -135,10 +135,6 @@ class SceneChangerComponent(ChatComponent):
     def get_description() -> str:
         return "Allows chat to change the OBS scenes"
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.config_widget = None
-
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command
 
@@ -191,9 +187,7 @@ class SceneChangerComponent(ChatComponent):
         pass
 
     def get_config_something(self) -> Optional[QWidget]:
-        if self.config_widget is None:
-            self.config_widget = SceneChangerComponentConfigWidget(self)
-        return self.config_widget
+        return SceneChangerComponentConfigWidget(self)
 
     def add_transition(self, from_scene: str, to_scene: str):
         if from_scene not in self.transitions:

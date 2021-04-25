@@ -69,26 +69,25 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
         pass
 
     def get_config_something(self) -> Optional[QWidget]:
-        if self.widget is None:
-            file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_store.ui"))
-            file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
-            self.widget = QUiLoader().load(file)
-            file.close()
+        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_store.ui"))
+        file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
+        self.widget = QUiLoader().load(file)
+        file.close()
 
-            self.filename_line_edit = getattr(self.widget, "filename_line_edit")
-            self.filedir_line_edit = getattr(self.widget, "filedir_line_edit")
-            self.select_folder_button = getattr(self.widget, "select_folder_button")
-            self.open_folder_button = getattr(self.widget, "open_folder_button")
-            self.ignored_users_line_edit = getattr(self.widget, "ignored_users_line_edit")
+        self.filename_line_edit = getattr(self.widget, "filename_line_edit")
+        self.filedir_line_edit = getattr(self.widget, "filedir_line_edit")
+        self.select_folder_button = getattr(self.widget, "select_folder_button")
+        self.open_folder_button = getattr(self.widget, "open_folder_button")
+        self.ignored_users_line_edit = getattr(self.widget, "ignored_users_line_edit")
 
-            self.ignored_users_line_edit.setText(", ".join(self.ignored_users))
-            self.filename_line_edit.setText(self.filename)
-            self.filedir_line_edit.setText(self.filedir)
+        self.ignored_users_line_edit.setText(", ".join(self.ignored_users))
+        self.filename_line_edit.setText(self.filename)
+        self.filedir_line_edit.setText(self.filedir)
 
-            self.ignored_users_line_edit.editingFinished.connect(self.ignored_users_changed)
-            self.filename_line_edit.editingFinished.connect(self.filename_changed)
-            self.select_folder_button.clicked.connect(self.select_folder)
-            self.open_folder_button.clicked.connect(self.open_folder)
+        self.ignored_users_line_edit.editingFinished.connect(self.ignored_users_changed)
+        self.filename_line_edit.editingFinished.connect(self.filename_changed)
+        self.select_folder_button.clicked.connect(self.select_folder)
+        self.open_folder_button.clicked.connect(self.open_folder)
 
         return self.widget
 

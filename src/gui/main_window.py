@@ -12,8 +12,8 @@ from typing import Callable, List, Optional
 import arrow
 from PySide2.QtCore import QSettings, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
-from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QHBoxLayout, QMainWindow, QMessageBox, QScrollArea,
-                               QSizePolicy, QStyle, QTextBrowser, QWidget)
+from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow,
+                               QMessageBox, QSizePolicy, QTextBrowser, QWidget)
 
 import model
 from core import App, ChatComponent, Constants
@@ -251,22 +251,20 @@ class MainWindow(QMainWindow):
         dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)  # type: ignore
         dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea)  # type: ignore
         dock.setMinimumHeight(150)
+        dock.setMaximumHeight(150)
 
-        self.component_config_scroll_area = QScrollArea(dock)
-        self.component_config_scroll_area.setWidgetResizable(True)
-
-        self.component_config_main_widget = QWidget(dock)
+        self.component_config_main_widget = QFrame(dock)
+        self.component_config_main_widget.setFrameShape(QFrame.Shape.StyledPanel)
+        self.component_config_main_widget.setFrameShadow(QFrame.Shadow.Sunken)
         self.component_config_main_widget.setObjectName("CompConfObj")
-        self.component_config_main_widget.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding,
-                                                                    QSizePolicy.Policy.Expanding))
 
-        self.component_config_main_widget_layout = QHBoxLayout()
-        self.component_config_main_widget_layout.setContentsMargins(0, 0, 0, 0)
-        self.component_config_main_widget.setLayout(self.component_config_main_widget_layout)
+        component_config_main_widget_layout = QHBoxLayout()
+        component_config_main_widget_layout.setContentsMargins(0, 0, 0, 0)
+        component_config_main_widget_layout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.component_config_main_widget.setLayout(component_config_main_widget_layout)
+        self.component_dock_widget = dock
 
-        self.component_config_scroll_area.setContentsMargins(0, 0, 0, 0)
-        self.component_config_scroll_area.setWidget(self.component_config_main_widget)
-        dock.setWidget(self.component_config_scroll_area)
+        dock.setWidget(self.component_config_main_widget)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
 
         self.active_component_config_widget: Optional[QWidget] = None
@@ -347,25 +345,32 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
                 return
+            layout = self.component_config_main_widget.layout()
+            self.component_dock_widget.setMinimumSize(0, 150)  # Reset dock minimum size
             if isinstance(config_something, QWidget):
-                if self.active_component_config_widget:
-                    self.component_config_main_widget_layout.removeWidget(self.active_component_config_widget)
+                if self.active_component_config_widget is not None:
                     if self.active_component_config_widget != config_something:
+                        layout.removeWidget(self.active_component_config_widget)
                         self.active_component_config_widget.setParent(None)  # type: ignore
+                        self.active_component_config_widget.deleteLater()
                         self.active_component_config_widget = None
-                config_something.resize(config_something.minimumWidth(), config_something.minimumHeight())
-                scroll_bar_width = self.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarExtent)
-                border_width = 1
-                self.component_config_main_widget_layout.addWidget(config_something)
-                self.component_config_scroll_area.setMinimumWidth(config_something.width() +
-                                                                  scroll_bar_width + border_width * 2)
+                        self.component_config_main_widget.adjustSize()
+                        self.component_dock_widget.adjustSize()
+                    else:
+                        return
+                self.component_dock_widget.setMaximumHeight(16777215)
                 self.active_component_config_widget = config_something
+                config_something.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+                config_something.adjustSize()
+                layout.addWidget(self.active_component_config_widget)
             if config_something is None:
                 if self.active_component_config_widget:
-                    self.component_config_main_widget_layout.removeWidget(self.active_component_config_widget)
+                    layout.removeWidget(self.active_component_config_widget)
                     self.active_component_config_widget.setParent(None)  # type: ignore
-                    self.component_config_scroll_area.setMinimumWidth(0)
+                    self.active_component_config_widget.deleteLater()
                     self.active_component_config_widget = None
+                    self.component_dock_widget.setMinimumHeight(150)
+                    self.component_dock_widget.setMaximumHeight(150)
 
     #################################################################
     # EdoBot Listeners
@@ -377,8 +382,9 @@ class MainWindow(QMainWindow):
 
     def edobot_stopped(self):
         if self.active_component_config_widget:
-            self.component_config_main_widget_layout.removeWidget(self.active_component_config_widget)
+            self.component_config_main_widget.layout().removeWidget(self.active_component_config_widget)
             self.active_component_config_widget.setParent(None)  # type: ignore
+            self.active_component_config_widget.deleteLater()
             self.active_component_config_widget = None
 
     def add_component_widget(self, component: ChatComponent):

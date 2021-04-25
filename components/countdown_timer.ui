@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>726</width>
-    <height>579</height>
+    <width>650</width>
+    <height>311</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -83,10 +83,13 @@
       <string>Timer Config</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QTabWidget" name="tab_widget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="general_tab">
          <attribute name="title">
@@ -111,16 +114,9 @@
           <item>
            <widget class="QGroupBox" name="groupBox_3">
             <property name="title">
-             <string>Main</string>
+             <string>General</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
-             <item>
-              <widget class="QCheckBox" name="enable_timer_cb">
-               <property name="text">
-                <string>Enabled</string>
-               </property>
-              </widget>
-             </item>
              <item>
               <layout class="QFormLayout" name="formLayout">
                <item row="1" column="1">
@@ -170,13 +166,6 @@
               </layout>
              </item>
              <item>
-              <widget class="QCheckBox" name="anounce_on_chat_cb">
-               <property name="text">
-                <string>Anounce On Chat</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <layout class="QFormLayout" name="formLayout_2">
                <item row="0" column="0">
                 <widget class="QLabel" name="start_message_label">
@@ -209,13 +198,6 @@
               </layout>
              </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
            </widget>
           </item>
           <item>
@@ -337,19 +319,6 @@
             </layout>
            </widget>
           </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="events_tab">
@@ -470,20 +439,46 @@
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QSpinBox" name="event_duration_input">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="suffix">
-                    <string> seconds</string>
-                   </property>
-                   <property name="maximum">
-                    <number>3600000</number>
-                   </property>
-                  </widget>
+                  <layout class="QHBoxLayout" name="horizontalLayout_4">
+                   <item>
+                    <widget class="QSpinBox" name="event_duration_input">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                     <property name="maximum">
+                      <number>3600000</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="event_duration_format">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>Seconds</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Minutes</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Hours</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </item>
@@ -495,6 +490,19 @@
          </layout>
         </widget>
        </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>

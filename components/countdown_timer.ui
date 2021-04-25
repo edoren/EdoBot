@@ -461,21 +461,6 @@
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
-                     <item>
-                      <property name="text">
-                       <string>Seconds</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Minutes</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Hours</string>
-                      </property>
-                     </item>
                     </widget>
                    </item>
                   </layout>

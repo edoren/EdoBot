@@ -3,7 +3,7 @@ import os.path
 import threading
 import time
 import uuid
-from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
+from typing import Any, List, Mapping, MutableMapping, Optional, Set, Tuple, Union
 
 import obswebsocket.requests as obs_requests
 from PySide2.QtCore import QCoreApplication, QFile, Qt
@@ -20,12 +20,12 @@ gLogger = logging.getLogger("edobot.components.counter")
 
 class RewardTimer:
     class Event:
-        def __init__(self, type: str, **kwargs: Any):
+        def __init__(self, **kwargs: Any):
+            self.type: str = kwargs["type"]
             self.id: str = kwargs.get("id", uuid.uuid4().hex)
-            self.type: str = type
             self.enabled: bool = kwargs.get("enabled", True)
             self.duration: int = kwargs.get("duration", 30)
-            self.description: str = kwargs.get("description", "")
+            self.duration_format: str = kwargs.get("duration_format", "seconds")
             self.data: MutableMapping[str, Any] = kwargs.get("data", {})
 
         def serialize(self) -> Mapping[str, Any]:
@@ -34,9 +34,19 @@ class RewardTimer:
                 "type": self.type,
                 "enabled": self.enabled,
                 "duration": self.duration,
-                "description": self.description,
+                "duration_format": self.duration_format,
                 "data": self.data
             }
+
+        def get_duration_ms(self) -> int:
+            if self.duration_format == "hours":
+                return self.duration * 3600000
+            elif self.duration_format == "minutes":
+                return self.duration * 60000
+            elif self.duration_format == "seconds":
+                return self.duration * 1000
+            else:
+                return 0
 
     def __init__(self, name: str, **kwargs: Any):
         self.id: str = kwargs.get("id", uuid.uuid4().hex)
@@ -53,10 +63,10 @@ class RewardTimer:
     def __hash__(self):
         return hash((self.id, self.name))
 
-    def __eq__(self, other):
+    def __eq__(self, other: "RewardTimer"):
         return (self.id, self.name) == (other.id, other.name)
 
-    def __ne__(self, other):
+    def __ne__(self, other: "RewardTimer"):
         return not (self == other)
 
     def has_event(self, type: str, **kwargs: Any) -> bool:
@@ -133,6 +143,7 @@ class CountdownTimerWidget(QWidget):
         self.display_selection.addItem("Hours", "hours")
         self.display_selection.addItem("Minutes", "minutes")
         self.display_selection.addItem("Seconds", "seconds")
+        self.display_selection.addItem("Automatic", "automatic")
         self.display_selection.setCurrentIndex(self.display_selection.findData("minutes"))
 
         self.available_events = {"reward": "Channel Points"}
@@ -144,8 +155,11 @@ class CountdownTimerWidget(QWidget):
         self.available_events_list.setCurrentRow(0)
 
         self.event_config.setVisible(False)
-        self.event_duration_format.setVisible(False)
         self.event_data_form_initial_num = self.event_data_form.rowCount()
+        self.event_duration_format.addItem("Hours", "hours")
+        self.event_duration_format.addItem("Minutes", "minutes")
+        self.event_duration_format.addItem("Seconds", "seconds")
+        self.event_duration_format.setCurrentIndex(self.event_duration_format.findData("seconds"))
 
         # Slot connections
 
@@ -174,7 +188,9 @@ class CountdownTimerWidget(QWidget):
         self.active_events_list.currentItemChanged.connect(self.active_events_selection_changed)  # type: ignore
         self.active_events_list.customContextMenuRequested.connect(self.open_active_events_context_menu)  # type: ignore
         self.event_duration_input.editingFinished.connect(  # type: ignore
-            self.event_duration_changed)
+            lambda: self.update_active_event_data("duration", self.event_duration_input.value()))
+        self.event_duration_format.activated.connect(  # type: ignore
+            lambda index: self.update_active_event_data("duration_format", self.event_duration_format.itemData(index)))
 
         layout = QVBoxLayout()
         layout.addWidget(my_widget)
@@ -277,12 +293,7 @@ class CountdownTimerWidget(QWidget):
         item = QListWidgetItem()
         item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # type: ignore
         item.setCheckState(Qt.Checked if event.enabled else Qt.Unchecked)  # type: ignore
-        type_name = self.available_events.get(event.type, "Unknown")
-        if event.description:
-            event_name = f"{type_name}: {event.description} - {event.duration} seconds"
-        else:
-            event_name = f"{type_name} - {event.duration} seconds"
-        item.setText(event_name)
+        item.setText(self.__get_event_title(event))
         item.setData(Qt.UserRole, event)  # type: ignore
         self.active_events_list.addItem(item)
 
@@ -311,15 +322,13 @@ class CountdownTimerWidget(QWidget):
             self.event_config.setVisible(True)
             event: RewardTimer.Event = current.data(Qt.UserRole)  # type: ignore
             self.event_duration_input.setValue(event.duration)
-
+            self.event_duration_format.setCurrentIndex(self.event_duration_format.findData(event.duration_format))
             if event.type == "reward":
                 name_input = QLineEdit(event.data.get("name", ""))
                 self.event_data_form.insertRow(0, "Reward Name", name_input)
                 name_input.editingFinished.connect(  # type: ignore
                     lambda: self.update_active_event_data("name",
                                                           name_input.text().strip(), True))
-                name_input.textChanged.connect(  # type: ignore
-                    lambda text: self.update_active_event_data("description", text.strip()))
 
     def update_active_event_data(self, name: str, data: Any, is_custom=False):
         selected_item: QListWidgetItem = self.active_events_list.selectedItems()[0]
@@ -328,15 +337,8 @@ class CountdownTimerWidget(QWidget):
             event.data[name] = data
         else:
             setattr(event, name, data)
-            self.data_parent.save_timers()
-            event_name = self.available_events[event.type]
-            if event.description:
-                selected_item.setText(f"{event_name}: {event.description} - {event.duration} seconds")
-            else:
-                selected_item.setText(f"{event_name} - {event.duration} seconds")
-
-    def event_duration_changed(self):
-        self.update_active_event_data("duration", self.event_duration_input.value())
+        self.data_parent.save_timers()
+        selected_item.setText(self.__get_event_title(event))
 
     def open_active_events_context_menu(self, position):
         if self.active_events_list.itemAt(position):
@@ -347,6 +349,16 @@ class CountdownTimerWidget(QWidget):
             menu.addAction(delete_action)
             delete_action.triggered.connect(self.remove_timer_event_clicked)  # type: ignore
             menu.exec_(self.active_events_list.mapToGlobal(position))
+
+    # Utils
+
+    def __get_event_title(self, event: RewardTimer.Event) -> str:
+        type_name = self.available_events.get(event.type, "Unknown")
+        event_title = f"{type_name}:"
+        for key in event.data:
+            event_title += f" {event.data[key]} -"
+        event_title += f" {event.duration} {event.duration_format}"
+        return event_title
 
 
 class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
@@ -365,7 +377,7 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
     def __init__(self) -> None:
         super().__init__()
         self.counter_thread_lock = threading.Lock()  # TODO: add timer and event locks
-        self.active_sources: MutableMapping[str, MutableMapping[RewardTimer, int]] = {}
+        self.active_sources: MutableMapping[str, MutableMapping[str, Tuple[RewardTimer, int]]] = {}
         self.counter_thread: Optional[threading.Thread] = None
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
@@ -376,7 +388,7 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
 
         def counter_task():
             sources_to_hide: List[str] = []
-            timers_to_delete: List[RewardTimer] = []
+            timers_to_delete: List[str] = []
             while self.running:
                 if not self.active_sources:
                     time.sleep(1)
@@ -386,27 +398,20 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
                     for source_name, timers in self.active_sources.items():
                         source_text = ""
                         separator = "\n"
-                        for timer, finish_time in timers.items():
+                        for timer_id, val in timers.items():
+                            timer, finish_time = val
                             tmleft = finish_time - current_time
-                            tmlist = []
-                            if timer.display == "hours":
-                                tmlist.append("{:02d}".format(int((tmleft / 3600000))) if tmleft >= 0 else "00")
-                            if timer.display == "hours" or timer.display == "minutes":
-                                tmlist.append("{:02d}".format(int((tmleft/60000) % 60)) if tmleft >= 0 else "00")
-                            if timer.display == "hours" or timer.display == "minutes" or timer.display == "seconds":
-                                tmlist.append("{:02d}".format(int((tmleft/1000) % 60)) if tmleft >= 0 else "00")
+                            time_str = self.format_time(tmleft, timer.display)
                             if tmleft < 0:
                                 if timer.finish_msg:
                                     self.chat.send_message(timer.finish_msg.replace("{name}", timer.name))
-                                timers_to_delete.append(timer)
-                            time_str = ":".join(tmlist)
+                                timers_to_delete.append(timer_id)
                             source_text += timer.format.replace("{name}", timer.name).replace("{time}", time_str)
                             source_text += separator
                         source_text = source_text.strip(separator)
                         self.obs_client.call(obs_requests.SetTextGDIPlusProperties(source_name, text=source_text))
                         if timers_to_delete:
                             for timer in timers_to_delete:
-                                # if timer in timers:
                                 del timers[timer]
                             timers_to_delete.clear()
                         if not timers:
@@ -439,14 +444,42 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
     def start_counter(self, timer: RewardTimer, event: RewardTimer.Event):
         with self.counter_thread_lock:
             source_name = timer.source
-            duration = event.duration
-            if source_name in self.active_sources and timer in self.active_sources[source_name]:
-                self.active_sources[source_name][timer] += (duration * 1000)
+            duration_ms = event.get_duration_ms()
+            if source_name in self.active_sources and timer.id in self.active_sources[source_name]:
+                timer, finish_time = self.active_sources[source_name][timer.id]
+                self.active_sources[source_name][timer.id] = (timer, finish_time + duration_ms)
             else:
+                current_time = round(time.time() * 1000)
+                finish_time = current_time + duration_ms
                 source_timers = self.active_sources.setdefault(source_name, {})
-                source_timers[timer] = round((time.time() + duration) * 1000)
+                source_timers[timer.id] = (timer, finish_time)
                 if timer.start_msg:
                     self.chat.send_message(timer.start_msg.replace("{name}", timer.name))
+
+    def format_time(self, time_ms: int, display_format: str) -> str:
+        if display_format == "hours":
+            if time_ms >= 0:
+                return "{:02d}:{:02d}:{:02d}".format(int((time_ms / 3600000)), int((time_ms/60000) % 60),
+                                                     int((time_ms/1000) % 60))
+            else:
+                return "00:00:00"
+        elif display_format == "minutes":
+            if time_ms >= 0:
+                return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms/1000) % 60))
+            else:
+                return "00:00"
+        elif display_format == "seconds":
+            if time_ms >= 0:
+                return "{:02d}".format(int((time_ms / 1000)))
+            else:
+                return "00"
+        else:  # automatic
+            if time_ms > 3600000:
+                return self.format_time(time_ms, "hours")
+            elif time_ms > 60000:
+                return self.format_time(time_ms, "minutes")
+            else:
+                return self.format_time(time_ms, "seconds")
 
     def process_event(self, event_name: str, metadata: Any) -> None:
         if not self.is_obs_connected():
@@ -488,7 +521,7 @@ class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
                 event_data = None
                 if type_ == "reward":
                     event_data = {"name": ""}
-                event = RewardTimer.Event(type_, data=event_data)
+                event = RewardTimer.Event(type=type_, data=event_data)
                 timer.events.append(event)
                 self.save_timers()
                 return event

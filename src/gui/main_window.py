@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Callable, List, Optional
 
 import arrow
-from PySide2.QtCore import QSettings, Qt, Signal
+from PySide2.QtCore import QSettings, QSize, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow,
                                QMessageBox, QSizePolicy, QTextBrowser, QWidget)
@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
         self.restoreGeometry(self.settings.value("geometry"))  # type: ignore
         self.restoreState(self.settings.value("windowState"))  # type: ignore
         self.move(self.settings.value("pos", self.pos()))  # type: ignore
-        self.resize(self.settings.value("size", self.size()))  # type: ignore
+        self.resize(self.settings.value("size", QSize(1024, 768)))  # type: ignore
         if self.settings.value("maximized", self.isMaximized(), bool):
             self.showMaximized()
 

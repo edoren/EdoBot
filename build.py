@@ -1,3 +1,4 @@
+import argparse
 import compileall
 import glob
 import logging
@@ -10,6 +11,7 @@ import sys
 from typing import List
 
 import scripts.file_version_info as file_version_info
+import scripts.constants as constants  # type: ignore
 
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
@@ -37,17 +39,16 @@ os.chdir(source_dir)
 
 python_exe = sys.executable
 
-onefile = True
-optimized = 2
+parser = argparse.ArgumentParser()
+parser.add_argument("-O", "--optimized", help="Optimize the compiled python code",
+                    required=False, type=int, default=0, choices=[0, 1, 2])
+parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
+args = parser.parse_args()
 
-# onefile has issues on Mac, maybe on linux too?
-if platform.system() == "Darwin":
-    onefile = False
-
-if optimized == 0:
+if args.optimized:
     optimized_prefix = ""
 else:
-    optimized_prefix = f".opt-{optimized}"
+    optimized_prefix = f".opt-{args.optimized}"
 
 py_cache_prefix = f".{sys.implementation.cache_tag}{optimized_prefix}.pyc"
 
@@ -80,13 +81,13 @@ logger.info("=================== Creating executable  ===================")
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
-hidden_imports: List[str] = ["uuid", "PySide2.QtXml"]
+hidden_imports: List[str] = constants.python_std_lib_list + ["PySide2.QtXml"]
 excluded_modules: List[str] = []
-if not optimized:
+if not args.optimized:
     pyinstaller_args.append("--debug=noarchive")
     hidden_imports.append("xmlrpc.server")
     hidden_imports.append("site")
-if onefile:
+if args.onefile:
     pyinstaller_args.append("--onefile")
 else:
     pyinstaller_args.append("--onedir")
@@ -109,7 +110,7 @@ pyinstaller_args += [
     os.path.join(source_dir, "src", "main.py")
 ]
 my_env = os.environ.copy()
-my_env["PYTHONOPTIMIZE"] = str(optimized)
+my_env["PYTHONOPTIMIZE"] = str(args.optimized)
 result = subprocess.run(pyinstaller_exec + pyinstaller_args, env=my_env)
 if result.returncode != 0:
     sys.exit(result.returncode)
@@ -118,14 +119,12 @@ logger.info("=================== Copying data         ===================")
 
 components_dir = os.path.join(source_dir, "components")
 dist_dir = os.path.join(build_dir, "dist")
-if not onefile:
+if not args.onefile:
     dist_dir = os.path.join(dist_dir, APP_NAME)
 shutil.copytree(components_dir,
                 os.path.join(dist_dir, "components"), dirs_exist_ok=True,
                 copy_function=copy_function,
                 ignore=shutil.ignore_patterns("__pycache__"))
-if not onefile:
-    pass
 
 logger.info("============== Downloading required modules ================")
 
@@ -144,7 +143,7 @@ requirements_glob_pattern = os.path.join(pip_install_dir, "**", "site-packages")
 requirements_lib_dirs = glob.glob(requirements_glob_pattern, recursive=True)
 if len(requirements_lib_dirs) > 0:
     requirements_lib_dir = requirements_lib_dirs[0]
-    compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=optimized)
+    compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=args.optimized)
     module_dist_dir = os.path.join(dist_dir, "modules")
     shutil.copytree(requirements_lib_dir, module_dist_dir,
                     dirs_exist_ok=True, copy_function=copy_function,
@@ -154,7 +153,7 @@ if len(requirements_lib_dirs) > 0:
 logger.info("===================== Creating package =====================")
 
 if os_name == "darwin":
-    os_name == "macos"
+    os_name = "macos"
 arch = platform.architecture()[0]
 
 zip_file_name = f"{APP_NAME}-{version_str}-{os_name}-{arch}"

@@ -7,8 +7,8 @@ from typing import Callable, List, MutableMapping, Optional, Union
 
 from network import WebSocket
 
-from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
-                            ChannelSubscriptionsEventMessage)
+from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, BitsEventMessageMeta,
+                            ChannelPointsEventMessage, ChannelPointsEventMessageMeta, ChannelSubscriptionsEventMessage)
 
 __all__ = ["PubSub", "PubSubEvent", "BitsBadgeNotificationMessage",
            "BitsEventMessage", "ChannelPointsEventMessage",
@@ -18,16 +18,12 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class PubSubEvent(Enum):
-    BITS = "channel-bits-events-v2"
-    BITS_BADGE_NOTIFICATION = "channel-bits-badge-unlocks"
-    CHANNEL_POINTS = "channel-points-channel-v1"
-    CHANNEL_SUBSCRIPTIONS = "channel-subscribe-events-v1"
+    BITS_EVENT = "channel-bits-events-v2"
+    BITS_BADGE_EVENT = "channel-bits-badge-unlocks"
+    CHANNEL_POINTS_EVENT = "channel-points-channel-v1"
+    SUBSCRIPTION_EVENT = "channel-subscribe-events-v1"
     # CHAT = "chat_moderator_actions.<user ID>.<channel ID>"
     # WHISPERS = "whispers.<user ID>"
-
-
-class ChannelPointsEvent:
-    pass
 
 
 class PubSub(WebSocket):
@@ -57,10 +53,10 @@ class PubSub(WebSocket):
             super().connect()
             if self.connected:
                 self.ping()
-                self.listen(PubSubEvent.CHANNEL_POINTS)
-                self.listen(PubSubEvent.CHANNEL_SUBSCRIPTIONS)
-                self.listen(PubSubEvent.BITS)
-                self.listen(PubSubEvent.BITS_BADGE_NOTIFICATION)
+                self.listen(PubSubEvent.CHANNEL_POINTS_EVENT)
+                self.listen(PubSubEvent.SUBSCRIPTION_EVENT)
+                self.listen(PubSubEvent.BITS_EVENT)
+                self.listen(PubSubEvent.BITS_BADGE_EVENT)
 
     def subscribe(self, subscriber: EventCallable):
         self.subscribers.append(subscriber)
@@ -103,8 +99,14 @@ class PubSub(WebSocket):
                 for sub in self.subscribers:
                     data_topic = data["topic"]
                     data_message = json.loads(data["message"])
-                    if data_topic.startswith(PubSubEvent.CHANNEL_POINTS.value):
-                        # data_message["type"] # reward-redeemed
-                        parsed_message = ChannelPointsEventMessage(**data_message["data"])  # TODO: data maybe missing
-                        sub("REWARD_REDEEMED", parsed_message)
+                    if data_topic.startswith(PubSubEvent.CHANNEL_POINTS_EVENT.value):
+                        parsed_message = ChannelPointsEventMessageMeta(**data_message)
+                        sub("REWARD_REDEEMED", parsed_message.data)
+                    elif data_topic.startswith(PubSubEvent.BITS_EVENT.value):
+                        parsed_message = BitsEventMessageMeta(**data_message)
+                        sub("BITS", parsed_message.data)
+                    elif data_topic.startswith(PubSubEvent.SUBSCRIPTION_EVENT.value):
+                        pass
+                    elif data_topic.startswith(PubSubEvent.BITS_BADGE_EVENT.value):
+                        pass
                     gLogger.debug(f"PUB_SUB {data_topic} - {json.dumps(data_message)}")

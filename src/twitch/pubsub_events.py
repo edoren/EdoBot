@@ -12,22 +12,18 @@ class BitsEventMessage:
             Number of Bits used.
         channel_id (str):
             ID of the channel in which Bits were used.
+        channel_name (str):
+            Name of the channel in which Bits were used.
         chat_message (str):
             Chat message sent with the cheer.
         context (str):
             Event type associated with this use of Bits.
         is_anonymous (bool):
             Whether or not the event was anonymous.
-        message_id (str):
-            Message ID.
-        message_type (str):
-            The type of object contained in the data field.
         time (datetime.datetime):
             Time when the Bits were used.
         total_bits_used (int):
             All time total number of Bits used in the channel by a specified user.
-        version (str):
-            Message version
         badge_entitlement (Optional[Mapping[str, Any]]):
             Information about a user’s new badge level, if the cheer was not anonymous and the user reached a new badge
             level with this cheer. Otherwise, null.
@@ -36,34 +32,38 @@ class BitsEventMessage:
         user_name (Optional[str]):
             Login name of the person who used the Bits - if the cheer was not anonymous. None if anonymous
     """
+    def __init__(self, **kwargs: Any) -> None:
+        self.bits_used: int = kwargs["bits_used"]
+        self.channel_id: str = kwargs["channel_id"]
+        self.channel_name: Optional[str] = kwargs.get("channel_name", None)  # Optional?
+        self.chat_message: str = kwargs["chat_message"]
+        self.context: str = kwargs["context"]
+        self.is_anonymous: bool = kwargs["is_anonymous"]
+        self.time: str = kwargs["time"]
+        self.total_bits_used: int = kwargs["total_bits_used"]
+        self.badge_entitlement: Optional[Mapping[str, Any]] = kwargs.get("badge_entitlement", None)
+        self.user_id: Optional[str] = kwargs.get("user_id", None)
+        self.user_name: Optional[str] = kwargs.get("user_name", None)
 
-    def __init__(self,
-                 bits_used: int,
-                 channel_id: str,
-                 chat_message: str,
-                 context: str,
-                 is_anonymous: bool,
-                 message_id: str,
-                 message_type: str,
-                 time: str,
-                 total_bits_used: int,
-                 version: str,
-                 badge_entitlement: Optional[Mapping[str, Any]] = None,
-                 user_id: Optional[str] = None,
-                 user_name: Optional[str] = None) -> None:
-        self.badge_entitlement = badge_entitlement
-        self.bits_used = bits_used
-        self.channel_id = channel_id
-        self.chat_message = chat_message
-        self.context = context
-        self.is_anonymous = is_anonymous
-        self.message_id = message_id
-        self.message_type = message_type
-        self.time = dateutil.parser.isoparse(time)
-        self.total_bits_used = total_bits_used
-        self.user_id = user_id
-        self.user_name = user_name
-        self.version = version
+
+class BitsEventMessageMeta:
+    """[summary]
+
+    Attributes:
+        version (str):
+            Message version
+        message_id (str):
+            Message ID.
+        message_type (str):
+            The type of object contained in the data field.
+        data (BitsEventMessage):
+            The data containing the
+    """
+    def __init__(self, **kwargs: Any):
+        self.version: str = kwargs["version"]
+        self.message_type: str = kwargs["message_type"]
+        self.message_id: str = kwargs["message_id"]
+        self.data: BitsEventMessage = BitsEventMessage(**kwargs["data"])
 
 
 class BitsBadgeNotificationMessage:
@@ -284,3 +284,9 @@ class ChannelPointsEventMessage:
     def __init__(self, **kwargs: Any) -> None:
         self.timestamp: datetime.datetime = dateutil.parser.isoparse(kwargs["timestamp"])
         self.redemption = ChannelPointsEventMessage.Redemption(**kwargs["redemption"])
+
+
+class ChannelPointsEventMessageMeta:
+    def __init__(self, **kwargs: Any) -> None:
+        self.type: str = kwargs["type"]
+        self.data = ChannelPointsEventMessage(**kwargs["data"])

@@ -44,6 +44,9 @@ class WebSocket(threading.Thread, abc.ABC):
             self.connected = True
         except websocket.WebSocketException:
             self.connected = False
+        except Exception as e:
+            gLogger.error(f"Unknown error: {e}")
+            self.connected = False
 
     def disconnect(self) -> None:
         try:

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>350</width>
-    <height>218</height>
+    <height>297</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -156,6 +156,32 @@
          </widget>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="styleSheet">
+      <string notr="true">QGroupBox { font-weight: bold; }</string>
+     </property>
+     <property name="title">
+      <string>System</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="system_startup_check_box">
+        <property name="text">
+         <string>Open on system startup</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="system_tray_check_box">
+        <property name="text">
+         <string>Close to system tray</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

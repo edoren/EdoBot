@@ -1,10 +1,10 @@
 import os.path
 from typing import Optional
 
-from PySide2.QtCore import QCoreApplication, QFile, Qt, Signal
+from PySide2.QtCore import QCoreApplication, QFile, QSettings, Qt, Signal
 from PySide2.QtGui import QIntValidator, QShowEvent
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from PySide2.QtWidgets import QCheckBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 from core.constants import Constants
 
@@ -14,10 +14,13 @@ class SettingsWidget(QWidget):
     accountBotConnectPressed = Signal()
     accountHostDisconnectPressed = Signal()
     accountBotDisconnectPressed = Signal()
+    systemTrayEnabled = Signal(bool)
     obsWebsocketSettingsChanged = Signal(dict)
 
-    def __init__(self, parent: QWidget) -> None:
+    def __init__(self, parent: QWidget, app_settings: QSettings) -> None:
         super().__init__(parent=parent)
+
+        self.app_settings = app_settings
 
         self.setWindowTitle(self.__get_translation("Settings"))
         self.overrideWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.CustomizeWindowHint |  # type: ignore
@@ -38,15 +41,21 @@ class SettingsWidget(QWidget):
         self.host_line_edit: QLineEdit = getattr(my_widget, "host_line_edit")
         self.port_line_edit: QLineEdit = getattr(my_widget, "port_line_edit")
         self.password_line_edit: QLineEdit = getattr(my_widget, "password_line_edit")
+        self.system_startup_check_box: QCheckBox = getattr(my_widget, "system_startup_check_box")
+        self.system_tray_check_box: QCheckBox = getattr(my_widget, "system_tray_check_box")
 
+        # Set config and default values
         self.port_line_edit.setValidator(QIntValidator(0, 2**16 - 1, self))
         self.host_account_info_label.setText(self.host_account_info_label.text() + ":")
         self.bot_account_info_label.setText(self.bot_account_info_label.text() + ":")
+        self.system_tray_check_box.setChecked(self.app_settings.value("system_tray", True, bool))  # type: ignore
 
         # Connect signals
         self.host_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.port_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.password_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
+        self.system_tray_check_box.stateChanged.connect(  # type: ignore
+            lambda state: self.system_tray_enabled_changed(state == Qt.CheckState.Checked))
         self.set_host_account(None)
         self.set_bot_account(None)
 
@@ -95,6 +104,10 @@ class SettingsWidget(QWidget):
             self.bot_account_button.setText(self.__get_translation("Connect"))
             self.bot_account_button.clicked.connect(self.accountBotConnectPressed.emit)  # type: ignore
         self.bot_account_button.setDisabled(False)
+
+    def system_tray_enabled_changed(self, enabled: bool):
+        self.app_settings.setValue("system_tray", enabled)
+        self.systemTrayEnabled.emit(enabled)  # type: ignore
 
     def showEvent(self, event: QShowEvent) -> None:
         r = self.parentWidget().geometry()

@@ -11,8 +11,8 @@ from typing import Callable, List, Optional
 import arrow
 from PySide2.QtCore import QSettings, QSize, Qt, Signal
 from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
-from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow,
-                               QMessageBox, QSizePolicy, QTextBrowser, QWidget)
+from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
+                               QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
 
 import model
 from core import App, ChatComponent, Constants
@@ -106,8 +106,12 @@ class MainWindow(QMainWindow):
         self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren",
                                   Constants.APP_NAME)
 
+        self.app_icon = QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico"))
+
         self.setWindowTitle(f"{Constants.APP_NAME} {Constants.APP_VERSION}")
-        self.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
+        self.setWindowIcon(self.app_icon)
+
+        self.active_component_config_widget: Optional[QWidget] = None
 
         self.component_list = ActiveComponentsWidget()
         self.component_list.setMinimumSize(400, 50)
@@ -115,8 +119,10 @@ class MainWindow(QMainWindow):
 
         self.create_actions()
         self.create_menus()
+        self.create_system_tray()
         self.create_status_bar()
-        self.create_windows()
+        self.create_dock_windows()
+        self.create_settings_window()
 
         handlers: List[logging.Handler] = []
 
@@ -178,7 +184,7 @@ class MainWindow(QMainWindow):
             self.avaiable_comps_widget.add_component(comp_type.get_id(), comp_type.get_name(),
                                                      comp_type.get_description())
 
-        self.read_settings()
+        self.restore_window_settings()
 
     def about(self):
         text = ("EdoBot is an open source tool to create Twitch components that interacts with the chat."
@@ -193,10 +199,10 @@ class MainWindow(QMainWindow):
         self.settings_action.setStatusTip("Application settings")
         self.settings_action.triggered.connect(self.open_settings)  # type: ignore
 
-        self.quit_action = QAction("&Quit", self)
-        self.quit_action.setShortcut(QKeySequence.Quit)
-        self.quit_action.setStatusTip("Quit the application")
-        self.quit_action.triggered.connect(self.close)  # type: ignore
+        self.close_action = QAction("&Close", self)
+        self.close_action.setShortcut(QKeySequence.Quit)
+        self.close_action.setStatusTip("Close the application")
+        self.close_action.triggered.connect(self.close)  # type: ignore
 
         self.about_action = QAction("&About", self)
         self.about_action.setStatusTip("Show the application's About box")
@@ -210,7 +216,7 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu("&File")
         self.file_menu.addAction(self.settings_action)
         self.file_menu.addSeparator()
-        self.file_menu.addAction(self.quit_action)
+        self.file_menu.addAction(self.close_action)
 
         self.view_menu = self.menuBar().addMenu("&View")
 
@@ -220,10 +226,32 @@ class MainWindow(QMainWindow):
         self.help_menu.addAction(self.about_action)
         self.help_menu.addAction(self.about_qt_action)
 
+    def create_system_tray(self):
+        # Creating the options
+        menu = QMenu()
+        quit_action = QAction("Quit", self)
+        quit_action.setStatusTip("Quit the application")
+        quit_action.triggered.connect(self.system_tray_quit)  # type: ignore
+        open_action = QAction("Open", self)
+        open_action.setStatusTip("Open the application")
+        open_action.triggered.connect(self.system_tray_open)  # type: ignore
+        menu.addAction(open_action)
+        menu.addSeparator()
+        menu.addAction(quit_action)
+
+        self.system_tray = QSystemTrayIcon(self)
+        self.system_tray.setIcon(self.app_icon)
+        self.system_tray.setToolTip(Constants.APP_NAME)
+        self.system_tray.setContextMenu(menu)
+        # self.system_tray.setVisible(True)
+        self.system_tray.show()
+
+        self.system_tray.activated.connect(self.system_tray_activated)  # type: ignore
+
     def create_status_bar(self):
         self.statusBar().showMessage("Ready")
 
-    def create_windows(self):
+    def create_dock_windows(self):
         dock = QDockWidget("Logs", self)
         dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea |  # type: ignore
                              Qt.DockWidgetArea.BottomDockWidgetArea)
@@ -266,21 +294,22 @@ class MainWindow(QMainWindow):
         dock.setWidget(self.component_config_main_widget)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
 
-        self.active_component_config_widget: Optional[QWidget] = None
+        self.setCorner(Qt.Corner.BottomRightCorner, Qt.DockWidgetArea.RightDockWidgetArea)
+        self.setCorner(Qt.Corner.BottomLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
 
-        self.settings_widget = SettingsWidget(self)
+    def create_settings_window(self):
+        self.settings_widget = SettingsWidget(self, self.settings)
         self.settings_widget.obsWebsocketSettingsChanged.connect(self.obs_websocket_settings_changed)  # type: ignore
         self.settings_widget.accountHostConnectPressed.connect(self.account_host_connect_pressed)  # type: ignore
         self.settings_widget.accountBotConnectPressed.connect(self.account_bot_connect_pressed)  # type: ignore
         self.settings_widget.accountHostDisconnectPressed.connect(self.account_host_disconnect_pressed)  # type: ignore
         self.settings_widget.accountBotDisconnectPressed.connect(self.account_bot_disconnect_pressed)  # type: ignore
+        self.settings_widget.systemTrayEnabled.connect(self.system_tray_enabled)  # type: ignore
+        self.system_tray_enabled(self.settings_widget.system_tray_check_box.isChecked())
 
-        self.setCorner(Qt.Corner.BottomRightCorner, Qt.DockWidgetArea.RightDockWidgetArea)
-        self.setCorner(Qt.Corner.BottomLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
-
-    def read_settings(self):
+    def restore_window_settings(self):
         self.restoreGeometry(self.settings.value("geometry"))  # type: ignore
-        self.restoreState(self.settings.value("windowState"))  # type: ignore
+        self.restoreState(self.settings.value("window_state"))  # type: ignore
         self.move(self.settings.value("pos", self.pos()))  # type: ignore
         self.resize(self.settings.value("size", QSize(1024, 768)))  # type: ignore
         if self.settings.value("maximized", self.isMaximized(), bool):
@@ -371,6 +400,25 @@ class MainWindow(QMainWindow):
                     self.component_dock_widget.setMinimumHeight(150)
                     self.component_dock_widget.setMaximumHeight(150)
 
+    def system_tray_enabled(self, enabled: bool):
+        QApplication.instance().setQuitOnLastWindowClosed(not enabled)  # type: ignore
+
+    def system_tray_activated(self, reason: QSystemTrayIcon.ActivationReason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.system_tray_open()
+
+    def system_tray_open(self):
+        if not self.isVisible():
+            self.show()
+        if not self.isActiveWindow():
+            self.activateWindow()
+            self.raise_()
+
+    def system_tray_quit(self):
+        self.hide()
+        self.system_tray.hide()
+        QApplication.instance().quit()
+
     #################################################################
     # EdoBot Listeners
     #################################################################
@@ -408,7 +456,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.settings.setValue("geometry", self.saveGeometry())
-        self.settings.setValue("windowState", self.saveState())
+        self.settings.setValue("window_state", self.saveState())
         self.settings.setValue("maximized", self.isMaximized())
         if not self.isMaximized():
             self.settings.setValue("pos", self.pos())

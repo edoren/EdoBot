@@ -161,7 +161,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="system_group_box">
      <property name="styleSheet">
       <string notr="true">QGroupBox { font-weight: bold; }</string>
      </property>

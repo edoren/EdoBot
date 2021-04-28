@@ -48,7 +48,8 @@ class SettingsWidget(QWidget):
         self.port_line_edit.setValidator(QIntValidator(0, 2**16 - 1, self))
         self.host_account_info_label.setText(self.host_account_info_label.text() + ":")
         self.bot_account_info_label.setText(self.bot_account_info_label.text() + ":")
-        self.system_tray_check_box.setChecked(self.app_settings.value("system_tray", True, bool))  # type: ignore
+        self.system_startup_check_box.setVisible(False)
+        self.system_tray_check_box.setChecked(self.is_system_tray_enabled())  # type: ignore
 
         # Connect signals
         self.host_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
@@ -104,6 +105,9 @@ class SettingsWidget(QWidget):
             self.bot_account_button.setText(self.__get_translation("Connect"))
             self.bot_account_button.clicked.connect(self.accountBotConnectPressed.emit)  # type: ignore
         self.bot_account_button.setDisabled(False)
+
+    def is_system_tray_enabled(self):
+        return self.app_settings.value("system_tray", True, bool)
 
     def system_tray_enabled_changed(self, enabled: bool):
         self.app_settings.setValue("system_tray", enabled)

@@ -17,6 +17,7 @@ from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBox
 import model
 from core import App, ChatComponent, Constants
 
+from .unique_application import UniqueApplication
 from .widgets import ActiveComponentsWidget, AllComponentsWidget, ComponentWidget, SettingsWidget
 
 gLogger = logging.getLogger(f"edobot.main")
@@ -106,10 +107,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren",
                                   Constants.APP_NAME)
 
-        self.app_icon = QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico"))
-
         self.setWindowTitle(f"{Constants.APP_NAME} {Constants.APP_VERSION}")
-        self.setWindowIcon(self.app_icon)
 
         self.active_component_config_widget: Optional[QWidget] = None
 
@@ -240,10 +238,9 @@ class MainWindow(QMainWindow):
         menu.addAction(quit_action)
 
         self.system_tray = QSystemTrayIcon(self)
-        self.system_tray.setIcon(self.app_icon)
+        self.system_tray.setIcon(self.windowIcon())
         self.system_tray.setToolTip(Constants.APP_NAME)
         self.system_tray.setContextMenu(menu)
-        # self.system_tray.setVisible(True)
         self.system_tray.show()
 
         self.system_tray.activated.connect(self.system_tray_activated)  # type: ignore
@@ -408,11 +405,10 @@ class MainWindow(QMainWindow):
             self.system_tray_open()
 
     def system_tray_open(self):
-        if not self.isVisible():
-            self.show()
-        if not self.isActiveWindow():
-            self.activateWindow()
-            self.raise_()
+        self.show()
+        self.showNormal()
+        self.raise_()
+        self.activateWindow()
 
     def system_tray_quit(self):
         self.hide()
@@ -500,18 +496,25 @@ def main():
     if not os.path.isdir(Constants.SAVE_DIRECTORY):
         os.makedirs(Constants.SAVE_DIRECTORY)
 
-    if __debug__:
-        print(f"Debug info: [PID: {os.getpid()}]")
-
     try:
-        app = QApplication(sys.argv)
-        main_win = MainWindow()
-        main_win.show()
-        main_win.activateWindow()
-        ret = app.exec_()
-        main_win = None
-        app = None
-        sys.exit(ret)
+        app = UniqueApplication(sys.argv)
+        app.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
+
+        if app.is_unique():
+            if __debug__:
+                print(f"Debug info: [PID: {os.getpid()}]")
+
+            app.start_listener()
+
+            main_win = MainWindow()
+            app.anotherInstance.connect(main_win.system_tray_open)  # type: ignore
+            main_win.show()
+            main_win.activateWindow()
+            ret = app.exec_()
+            main_win = None
+            app = None
+
+            sys.exit(ret)
     except Exception as e:
         traceback_str = ''.join(traceback.format_tb(e.__traceback__))
         gLogger.critical(f"Critical error: {e}\n{traceback_str}")

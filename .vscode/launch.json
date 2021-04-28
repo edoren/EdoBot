@@ -17,6 +17,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/build.py",
+            "args": ["--onefile"],
             "console": "integratedTerminal"
         },
         {

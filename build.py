@@ -10,8 +10,8 @@ import subprocess
 import sys
 from typing import List
 
-import scripts.file_version_info as file_version_info
 import scripts.constants as constants  # type: ignore
+from scripts.file_generator import generate_file_version_info, generate_nsis_file  # type: ignore
 
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
@@ -23,6 +23,7 @@ os_name = platform.system().lower()
 
 APP_NAME = "EdoBot"
 APP_OWNER = "Edoren"
+APP_EXECUTABLE = f"{APP_NAME.lower()}"
 APP_ICON = os.path.join(data_dir, "icon.ico")
 APP_DESCRIPTION = "Free and open source tool to create Twitch add chat interactions."
 APP_COPYRIGHT = "(C) Manuel Sabogal"
@@ -72,7 +73,7 @@ with open(version_info_file, "w") as f:
     f.write(version_str)
 
 file_version_info_path = os.path.join(build_dir, "file_version_info.txt")
-file_version_info.generate(file_version_info_path, name=APP_NAME, owner=APP_OWNER, file_name=f"{APP_NAME.lower()}.exe",
+generate_file_version_info(file_version_info_path, name=APP_NAME, owner=APP_OWNER, file_name=f"{APP_EXECUTABLE}.exe",
                            file_description=APP_NAME, version=version_str, description=APP_DESCRIPTION,
                            copyright=APP_COPYRIGHT)
 
@@ -142,7 +143,7 @@ if len(requirements_lib_dirs) > 0:
     shutil.copytree(requirements_lib_dir, module_dist_dir, dirs_exist_ok=True, copy_function=copy_function,
                     ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py", "*.dist-info", "*.egg-info"))
 
-logger.info("===================== Creating package =====================")
+logger.info("================= Creating zip package =====================")
 
 if os_name == "darwin":
     os_name = "macos"
@@ -150,3 +151,16 @@ arch = platform.architecture()[0]
 
 zip_file_name = f"{APP_NAME}-{version_str}-{os_name}-{arch}"
 shutil.make_archive(zip_file_name, 'zip', dist_dir, logger=logger)
+
+if os_name == "windows" and args.onefile:
+    logger.info("================== Creating installer =====================")
+
+    nsis_script_file = os.path.join(build_dir, "edobot.nsi")
+    estimated_size = sum(os.path.getsize(f) for f in os.listdir(dist_dir) if os.path.isfile(f))
+    generate_nsis_file(nsis_script_file, APP_NAME, APP_OWNER, APP_EXECUTABLE, version_str, zip_file_name, dist_dir)
+
+    makensisw_exe = "C:\\Program Files (x86)\\NSIS\\makensis.exe"
+    if os.path.isfile(makensisw_exe):
+        subprocess.run([makensisw_exe, nsis_script_file])
+    else:
+        logger.error("NSIS not found make sure to install it")

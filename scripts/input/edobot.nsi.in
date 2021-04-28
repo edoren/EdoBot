@@ -1,0 +1,183 @@
+#--------------------------------
+# Enable unicode
+Unicode True
+
+#--------------------------------
+# Definitions
+
+!define "APP_NAME" "%APP_NAME%"
+!define "APP_OWNER" "%APP_OWNER%"
+!define "APP_EXECUTABLE" "%APP_EXECUTABLE%.exe"
+!define "APP_VERSION" "%APP_VERSION%"
+
+!define "OUTPUT_INSTALLER_NAME" "%OUTPUT_INSTALLER_NAME%"
+!define "DIST_FOLDER" "%DIST_FOLDER%"
+
+!define "UNINSTALL_FILENAME" "uninstall.exe"
+
+#--------------------------------
+# Interface Settings
+
+!define MUI_ABORTWARNING
+
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "${APP_NAME}"
+
+!define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXECUTABLE}"
+
+!define MUI_FINISHPAGE_SHOWREADME ""
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION createDesktopShortcut
+
+!define INSTDIR_REG_KEY "Software\${APP_OWNER}\${APP_NAME}"
+!define INSTDIR_REG_VALUENAME "InstallDir"
+!define UNINSTALL_REG_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall"
+
+#--------------------------------
+# Includes
+
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_INSTALLMODE_INSTDIR "${APP_NAME}"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "${INSTDIR_REG_KEY}"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "${INSTDIR_REG_VALUENAME}"
+!define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_INSTALLMODE_FUNCTION "onMultiUserModeChanged"
+!define MULTIUSER_INSTALLMODE_UNFUNCTION "un.onMultiUserModeChanged"
+!define MULTIUSER_USE_PROGRAMFILES64
+!define MULTIUSER_MUI
+
+!include "MultiUser.nsh"
+!include "FileFunc.nsh"
+!include "MUI2.nsh"  # Modern UI
+
+#--------------------------------
+# General
+
+# Name and file
+Name "${APP_NAME}"
+OutFile "${OUTPUT_INSTALLER_NAME}.exe"
+
+# Request application privileges for Windows Vista
+RequestExecutionLevel user
+
+#--------------------------------
+# Variables
+
+Var StartMenuFolder
+Var AddRemoveProgramsRegKey
+
+#--------------------------------
+# Pages
+
+!insertmacro MUI_PAGE_WELCOME
+# !insertmacro MUI_PAGE_LICENSE "${NSISDIR}\Docs\Modern UI\License.txt"
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_STARTMENU "${APP_NAME}" $StartMenuFolder
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
+#--------------------------------
+# Init functions
+
+Function .onInit
+    !insertmacro MULTIUSER_INIT
+FunctionEnd
+
+Function un.onInit
+    !insertmacro MULTIUSER_UNINIT
+FunctionEnd
+
+#--------------------------------
+# Functions
+
+Function "createDesktopShortcut"
+    CreateShortcut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXECUTABLE}"
+FunctionEnd
+
+!macro onMultiUserModeChanged UN
+Function "${UN}onMultiUserModeChanged"
+    ${If} $MultiUser.InstallMode == "AllUsers"
+        StrCpy $AddRemoveProgramsRegKey "${UNINSTALL_REG_KEY}\${APP_NAME}"
+    ${Else}
+        StrCpy $AddRemoveProgramsRegKey "${UNINSTALL_REG_KEY}\${APP_NAME}-User"
+    ${EndIf}
+    # MessageBox MB_OK $AddRemoveProgramsRegKey
+FunctionEnd
+!macroend
+!insertmacro onMultiUserModeChanged ""
+!insertmacro onMultiUserModeChanged "un."
+
+#--------------------------------
+# Languages
+
+!insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "Spanish"
+
+#--------------------------------
+# Installer Section
+
+Section "Install"
+
+    # Set the installation directory as the destination for the following actions
+    SetOutPath $INSTDIR
+    File "${DIST_FOLDER}\${APP_EXECUTABLE}"
+
+    SetOutPath "$INSTDIR\components"
+    File /r "${DIST_FOLDER}\components\*.*"
+
+    # Create the uninstaller
+    WriteUninstaller "$INSTDIR\${UNINSTALL_FILENAME}"
+
+    # Store installation folder key
+    WriteRegStr SHCTX "${INSTDIR_REG_KEY}" "${INSTDIR_REG_VALUENAME}" $INSTDIR
+
+    # Add uninstall information to Add/Remove Programs
+    ${If} $MultiUser.InstallMode == "AllUsers"
+        WriteRegStr SHCTX $AddRemoveProgramsRegKey "DisplayName" "${APP_NAME}"
+    ${Else}
+        WriteRegStr SHCTX $AddRemoveProgramsRegKey "DisplayName" "${APP_NAME} (current user)"
+    ${EndIf}
+    WriteRegStr SHCTX $AddRemoveProgramsRegKey "DisplayIcon" "$INSTDIR\${APP_EXECUTABLE}"
+    WriteRegStr SHCTX $AddRemoveProgramsRegKey "Publisher" "${APP_OWNER}"
+    WriteRegStr SHCTX $AddRemoveProgramsRegKey "InstallLocation" "$INSTDIR"
+    WriteRegStr SHCTX $AddRemoveProgramsRegKey "DisplayVersion" "${APP_VERSION}"
+    ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+    IntFmt $0 "0x%08X" $0
+    WriteRegDWORD SHCTX $AddRemoveProgramsRegKey "EstimatedSize" "$0"
+    WriteRegStr SHCTX $AddRemoveProgramsRegKey "UninstallString" "$\"$INSTDIR\${UNINSTALL_FILENAME}$\" /$MultiUser.InstallMode"
+    WriteRegStr SHCTX $AddRemoveProgramsRegKey "QuietUninstallString" "$\"$INSTDIR\${UNINSTALL_FILENAME}$\" /$MultiUser.InstallMode /S"
+
+    # Create start menu shortcuts
+    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\${APP_NAME}.lnk" "$INSTDIR\${APP_EXECUTABLE}"
+
+SectionEnd
+
+#--------------------------------
+# Uninstaller Section
+
+Section "Uninstall"
+
+    RMDir /r "$INSTDIR\components\*"
+    Delete "$INSTDIR\${APP_EXECUTABLE}"
+
+    Delete "$INSTDIR\${UNINSTALL_FILENAME}"
+
+    RMDir "$INSTDIR"
+
+    # Remove installation folder key
+    DeleteRegValue SHCTX "${INSTDIR_REG_KEY}" "${INSTDIR_REG_VALUENAME}"
+
+    # Remove uninstall information from Add/Remove Programs
+    DeleteRegKey SHCTX $AddRemoveProgramsRegKey
+
+    # Remove start menu shortcuts
+    !insertmacro MUI_STARTMENU_GETFOLDER "${APP_NAME}" $StartMenuFolder
+    RMDir /r "$SMPROGRAMS\$StartMenuFolder"
+
+SectionEnd

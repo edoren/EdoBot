@@ -22,8 +22,11 @@ build_script:
 
 artifacts:
     - path: build\*.zip
-      name: Build Files
+      name: ZipFile
       type: zip
+    - path: build\*.exe
+      name: Installer
+      type: exe
 
 deploy:
     tag: $(APPVEYOR_REPO_TAG_NAME)
@@ -34,7 +37,7 @@ deploy:
         https://ci.appveyor.com/project/edoren/edobot/builds/$(APPVEYOR_BUILD_ID)
     auth_token:
         secure: nCEK3ggRnABshEsWDPG17mDPKAnQPiQGd3KImvAqeK7m3ohhOzszXhbejJb1292W
-    artifact: /.*\.zip/
+    artifact: /.*\.(zip|exe)/
     force_update: true
     on:
         # https://www.appveyor.com/docs/deployment/#deploy-on-tag-github-and-gitlab-only

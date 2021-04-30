@@ -82,7 +82,7 @@ logger.info("=================== Creating executable  ===================")
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
-hidden_imports: List[str] = constants.python_std_lib_list + ["PySide2.QtXml"]
+hidden_imports: List[str] = constants.python_std_lib_list + ["PySide2.QtXml", "qtawesome"]
 excluded_modules: List[str] = []
 if not args.optimized:
     pyinstaller_args.append("--debug=noarchive")

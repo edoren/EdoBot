@@ -3,6 +3,7 @@ import os.path
 from typing import Any, List, Mapping, Optional, Set, Union
 
 import obswebsocket.requests as obs_requests
+import qtawesome as qta
 from PySide2.QtCore import QCoreApplication, QFile
 from PySide2.QtGui import QShowEvent
 from PySide2.QtUiTools import QUiLoader
@@ -121,16 +122,10 @@ class SceneChangerComponentConfigWidget(QWidget):
 
 class SceneChangerComponent(ChatComponent):
     @staticmethod
-    def get_id() -> str:
-        return "scene_changer"
-
-    @staticmethod
-    def get_name() -> str:
-        return "Scene Changer"
-
-    @staticmethod
-    def get_description() -> str:
-        return "Allows chat to change the OBS scenes"
+    def get_metadata() -> ChatComponent.Metadata:
+        return ChatComponent.Metadata(id="scene_changer", name="Scene Changer",
+                                      description="Allows chat to change the OBS scenes",
+                                      icon=qta.icon("fa5s.exchange-alt"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command

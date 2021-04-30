@@ -88,8 +88,11 @@ class LogWidget(QTextBrowser):
             level_color = "black"
         msg += f" <b><font color='{level_color}'>{record.levelname}</font></b>"
         msg += f" <i>{record.name}</i>"
-        msg += f" - {record.msg}"
+        messages = record.msg.split("\n")
+        msg += f" - {messages[0]}"
         self.append(msg)
+        for msg in messages[1:]:
+            self.append(msg)
 
 
 class MainWindow(QMainWindow):
@@ -179,8 +182,8 @@ class MainWindow(QMainWindow):
             self.add_component_widget(comp_instance)
 
         for comp_type in self.app.get_available_components().values():
-            self.avaiable_comps_widget.add_component(comp_type.get_id(), comp_type.get_name(),
-                                                     comp_type.get_description())
+            comp_metadata = comp_type.get_metadata()
+            self.avaiable_comps_widget.add_component(comp_metadata)
 
         self.restore_window_settings()
 
@@ -431,7 +434,8 @@ class MainWindow(QMainWindow):
             self.active_component_config_widget = None
 
     def add_component_widget(self, component: ChatComponent):
-        widget = ComponentWidget(component.get_id(), component.get_name(), component.get_description())
+        comp_metadata = component.get_metadata()
+        widget = ComponentWidget(comp_metadata)
         self.component_list.add_component(widget)
 
     def host_connected(self, user: model.User):
@@ -460,7 +464,7 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def __del__(self) -> None:
-        if self.app is not None:
+        if getattr(self, "app", None) is not None:
             self.app.shutdown()
             self.app.config["components"] = self.component_list.get_component_order()
         logging.shutdown()

@@ -1,19 +1,27 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Set, Union, final
+from PySide2.QtGui import QIcon
 
 import obswebsocket
 from PySide2.QtWidgets import QWidget
 
+import qtawesome as qta
+from core.config import Config
 from model import User, UserType
 from twitch.chat import Chat  # TODO: Replace with ChatWrapper
 from twitch.service import Service as TwitchService
-
-from .config import Config
 
 __all__ = ["ChatComponent"]
 
 
 class ChatComponent(ABC):
+    class Metadata:
+        def __init__(self, id: str, name: str, description: str, icon: Optional[QIcon] = None):
+            self.id = id
+            self.name = name
+            self.description = description
+            self.icon: QIcon = qta.icon("fa5.question-circle") if icon is None else icon
+
     def __init__(self) -> None:
         self.has_started = False
         super().__init__()
@@ -28,22 +36,12 @@ class ChatComponent(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_id() -> str:
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def get_name() -> str:
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def get_description() -> str:
-        pass
+    def get_metadata() -> "ChatComponent.Metadata":
+        raise NotImplementedError("Please implement this method")
 
     @abstractmethod
     def get_command(self) -> Optional[Union[str, List[str]]]:
-        pass
+        raise NotImplementedError("Please implement this method")
 
     @abstractmethod
     def process_message(self, message: str, user: User, user_types: Set[UserType],

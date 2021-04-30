@@ -3,6 +3,7 @@ import os.path
 from datetime import datetime
 from typing import Any, List, Optional, Set, Union
 
+import qtawesome as qta
 from PySide2.QtCore import QFile, QUrl
 from PySide2.QtGui import QDesktopServices
 from PySide2.QtUiTools import QUiLoader
@@ -22,16 +23,10 @@ class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
         self.widget: Optional[QWidget] = None
 
     @staticmethod
-    def get_id() -> str:
-        return "chat_store"
-
-    @staticmethod
-    def get_name() -> str:
-        return "Chat Store"
-
-    @staticmethod
-    def get_description() -> str:
-        return "Stores the chat in a specific folder"
+    def get_metadata() -> ChatComponent.Metadata:
+        return ChatComponent.Metadata(id="chat_store", name="Chat Store",
+                                      description="Stores the chat in a specific folder",
+                                      icon=qta.icon("fa5s.database"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering

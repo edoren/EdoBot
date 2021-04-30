@@ -4,6 +4,8 @@ from typing import Optional
 from PySide2.QtCore import QByteArray, QMimeData, Qt
 from PySide2.QtWidgets import QLabel, QListWidget, QListWidgetItem, QWidget
 
+from core.chat_component import ChatComponent
+
 from .base_list_widget import BaseListWidget
 
 
@@ -33,13 +35,14 @@ class AllComponentsWidget(BaseListWidget):
         del painter
         del pixmap
 
-    def add_component(self, id: str, name: str, description: str):
-        widget = QLabel(name)
+    def add_component(self, meta: ChatComponent.Metadata):
+        widget = QLabel(meta.name)
         widget.setStyleSheet("QLabel { padding: 0 5px 0 5px; }")
         widget.setFixedHeight(20)
-        widget.setToolTip(description)
+        widget.setToolTip(meta.description)
         item = QListWidgetItem()
-        item.setData(Qt.ItemDataRole.UserRole, {"id": id})  # type: ignore
+        item.setData(Qt.ItemDataRole.UserRole, {"id": meta.id})  # type: ignore
         item.setSizeHint(widget.sizeHint())
+        item.setIcon(meta.icon)
         self.addItem(item)
         self.setItemWidget(item, widget)

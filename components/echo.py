@@ -10,18 +10,10 @@ __all__ = ["EchoComponent"]
 gLogger = logging.getLogger("edobot.components.echo")
 
 
-class EchoComponent(ChatComponent):  # TODO: Change to chat store
+class EchoComponent(ChatComponent):
     @staticmethod
-    def get_id() -> str:
-        return "echo"
-
-    @staticmethod
-    def get_name() -> str:
-        return "Echo"
-
-    @staticmethod
-    def get_description() -> str:
-        return "Displays the chat in the logs"
+    def get_metadata() -> ChatComponent.Metadata:
+        return ChatComponent.Metadata(id="echo", name="Echo", description="Displays the chat in the logs", icon=None)
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering

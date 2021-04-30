@@ -246,12 +246,17 @@ class App:
                     sys.modules[module_name] = module
                     spec.loader.exec_module(module)  # type: ignore
                     for class_name, class_type in inspect.getmembers(module, inspect.isclass):
-                        if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
-                            component_id = class_type.get_id()
-                            if component_id in self.available_components:
-                                gLogger.error(f"Error loading component with id '{component_id}' for class name "
-                                              f"'{class_name}': another component has the same id")
-                            self.available_components[component_id] = class_type
+                        try:
+                            if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
+                                component_id = class_type.get_metadata().id
+                                if component_id in self.available_components:
+                                    gLogger.error(f"Error loading component with id '{component_id}' for class name "
+                                                  f"'{class_name}': another component has the same id")
+                                self.available_components[component_id] = class_type
+                        except NotImplementedError:
+                            class_abstract_methods = [a for a in class_type.__abstractmethods__]  # type: ignore
+                            gLogger.error(f"Error in file '{file_path}' class '{class_name}' does not "
+                                          f"implement all abstract methods: {class_abstract_methods}")
             elif os.path.isdir(file_path):
                 pass  # TODO: More complex modules
 
@@ -268,13 +273,17 @@ class App:
             gLogger.error(f"Error loading component with id '{component_id}' not found")
             return
 
-        component_name = class_type.get_name()
+        component_name = class_type.get_metadata().name
         gLogger.info(f"Adding component '{component_name}' with class name '{class_type.__name__}'.")
         if component_id in self.active_components:
             gLogger.error(f"Component with name '{component_name}' already exists. Adding failed.")
             return
 
-        instance = class_type()  # type: ignore
+        try:
+            instance = class_type()  # type: ignore
+        except (NotImplementedError, TypeError) as e:
+            gLogger.error(f"Error loading component with id '{component_id}': {e}")
+            return
         with self.components_lock:
             self.active_components[component_id] = instance
             if component_id not in self.current_components:
@@ -283,7 +292,7 @@ class App:
             if self.component_added:
                 self.component_added(instance)
             if self.has_started and self.chat_service is not None and self.host_twitch_service is not None:
-                instance.config_component(config=self.__get_component_config(instance.get_id()),
+                instance.config_component(config=self.__get_component_config(instance.get_metadata().id),
                                           obs_client=self.obs_client.get_client(), chat=self.chat_service,
                                           twitch=self.host_twitch_service)
                 succeded = self.__secure_component_method_call(instance, "start")
@@ -295,7 +304,7 @@ class App:
         with self.components_lock:
             component = self.active_components[component_id]
             self.__secure_component_method_call(component, "stop")
-            gLogger.info(f"Removing component '{component.get_name()}' with class name "
+            gLogger.info(f"Removing component '{component.get_metadata().name}' with class name "
                          f"'{component.__class__.__name__}'.")
             self.current_components.remove(component_id)
             self.config["components"] = self.current_components
@@ -352,7 +361,7 @@ class App:
 
                 with self.components_lock:
                     for instance in self.active_components.values():
-                        instance.config_component(config=self.__get_component_config(instance.get_id()),
+                        instance.config_component(config=self.__get_component_config(instance.get_metadata().id),
                                                   obs_client=self.obs_client.get_client(), chat=self.chat_service,
                                                   twitch=self.host_twitch_service)
                         succeded = self.__secure_component_method_call(instance, "start")
@@ -452,5 +461,5 @@ class App:
             return True
         except Exception as e:
             traceback_str = ''.join(traceback.format_tb(e.__traceback__))
-            gLogger.error(f"Error in component '{component.get_name()}': {e}\n{traceback_str}")
+            gLogger.error(f"Error in component '{component.get_metadata().name}': {e}\n{traceback_str}")
         return False

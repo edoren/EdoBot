@@ -6,6 +6,7 @@ import uuid
 from typing import Any, List, Mapping, MutableMapping, Optional, Set, Tuple, Union
 
 import obswebsocket.requests as obs_requests
+import qtawesome as qta
 from PySide2.QtCore import QCoreApplication, QFile, Qt, Signal
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QComboBox, QFormLayout, QGroupBox, QLineEdit, QListWidget, QListWidgetItem,
@@ -388,18 +389,12 @@ class CountdownTimerWidget(QWidget):
         return event_title
 
 
-class CountdownTimerComponent(ChatComponent):  # TODO: Change to chat store
+class CountdownTimerComponent(ChatComponent):
     @staticmethod
-    def get_id() -> str:
-        return "countdown_timer"
-
-    @staticmethod
-    def get_name() -> str:
-        return "Countdown Timer"
-
-    @staticmethod
-    def get_description() -> str:
-        return "Add a countdown that interacts with Channel Points, Subs or Bits"
+    def get_metadata() -> ChatComponent.Metadata:
+        return ChatComponent.Metadata(id="countdown_timer", name="Countdown Timer",
+                                      description="Add a countdown that interacts with Channel Points, Subs or Bits",
+                                      icon=qta.icon("fa5.clock"))
 
     def __init__(self) -> None:
         super().__init__()

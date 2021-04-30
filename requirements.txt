@@ -3,3 +3,4 @@ tinydb==4.4.0
 obs-websocket-py==0.5.3
 arrow==1.0.3
 pyside2==5.15.2
+qtawesome==1.0.2

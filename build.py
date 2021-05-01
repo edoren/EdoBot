@@ -79,6 +79,10 @@ generate_file_version_info(file_version_info_path, name=APP_NAME, owner=APP_OWNE
 
 logger.info("=================== Creating executable  ===================")
 
+dist_dir = os.path.join(build_dir, "dist")
+if os.path.exists(dist_dir):
+    shutil.rmtree(dist_dir)
+
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
@@ -115,7 +119,6 @@ if result.returncode != 0:
 logger.info("=================== Copying data         ===================")
 
 components_dir = os.path.join(source_dir, "components")
-dist_dir = os.path.join(build_dir, "dist")
 if not args.onefile:
     dist_dir = os.path.join(dist_dir, APP_NAME)
 shutil.copytree(components_dir, os.path.join(dist_dir, "components"), dirs_exist_ok=True, copy_function=copy_function,
@@ -152,7 +155,7 @@ arch = platform.architecture()[0]
 zip_file_name = f"{APP_NAME}-{version_str}-{os_name}-{arch}"
 shutil.make_archive(zip_file_name, 'zip', dist_dir, logger=logger)
 
-if os_name == "windows" and args.onefile:
+if os_name == "windows":
     logger.info("================== Creating installer =====================")
 
     nsis_script_file = os.path.join(build_dir, "edobot.nsi")

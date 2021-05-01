@@ -123,12 +123,14 @@ FunctionEnd
 
 Section "Install"
 
+    AllowSkipFiles off
+
+    # Remove first all the $INSTDIR contents
+    RMDir /r "$INSTDIR\*"
+
     # Set the installation directory as the destination for the following actions
     SetOutPath $INSTDIR
-    File "${DIST_FOLDER}\${APP_EXECUTABLE}"
-
-    SetOutPath "$INSTDIR\components"
-    File /r "${DIST_FOLDER}\components\*.*"
+    File /r "${DIST_FOLDER}\*"
 
     # Create the uninstaller
     WriteUninstaller "$INSTDIR\${UNINSTALL_FILENAME}"
@@ -163,12 +165,9 @@ SectionEnd
 
 Section "Uninstall"
 
-    RMDir /r "$INSTDIR\components\*"
-    Delete "$INSTDIR\${APP_EXECUTABLE}"
+    AllowSkipFiles off
 
-    Delete "$INSTDIR\${UNINSTALL_FILENAME}"
-
-    RMDir "$INSTDIR"
+    RMDir /r "$INSTDIR\*"
 
     # Remove installation folder key
     DeleteRegValue SHCTX "${INSTDIR_REG_KEY}" "${INSTDIR_REG_VALUENAME}"

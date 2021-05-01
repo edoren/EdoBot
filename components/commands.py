@@ -4,12 +4,12 @@ import time
 from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QFile, QRegExp, Qt
+from PySide2.QtCore import QFile, QRegExp, QSize, Qt
 from PySide2.QtGui import QRegExpValidator
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHeaderView, QLineEdit, QMessageBox,
-                               QPlainTextEdit, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem, QVBoxLayout,
-                               QWidget)
+from PySide2.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QHeaderView, QLineEdit,
+                               QMessageBox, QPlainTextEdit, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem,
+                               QToolButton, QVBoxLayout, QWidget)
 
 from core import ChatComponent
 from model import User, UserType
@@ -163,14 +163,28 @@ class CommandsTableWidget(QWidget):
         access_level_item = QTableWidgetItem(self.access_levels[access_level_key])
         access_level_item.setData(Qt.UserRole, access_level_key)  # type: ignore
         self.table_widget.setItem(row, 5, access_level_item)  # Access Level
-        delete_button = QPushButton()
-        delete_button.setText("Delete")
+        delete_button_widget = QWidget()
+        delete_button = QToolButton()
+        delete_button.setIcon(qta.icon("fa5s.trash"))
+        delete_button.setIconSize(QSize(20, 20))
+        delete_button.setMinimumSize(36, 36)
         delete_button.clicked.connect(lambda _: self.delete_button_clicked(command))  # type: ignore
-        self.table_widget.setCellWidget(row, 6, delete_button)  # Delete
-        edit_button = QPushButton()
-        edit_button.setText("Edit")
+        delete_button_layout = QHBoxLayout(delete_button_widget)
+        delete_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # type: ignore
+        delete_button_layout.setContentsMargins(0, 5, 5, 5)
+        delete_button_layout.addWidget(delete_button)
+        self.table_widget.setCellWidget(row, 6, delete_button_widget)  # Delete
+        edit_button_widget = QWidget()
+        edit_button = QToolButton()
+        edit_button.setIcon(qta.icon("fa5s.edit"))
+        edit_button.setIconSize(QSize(20, 20))
+        edit_button.setMinimumSize(36, 36)
         edit_button.clicked.connect(lambda _: self.edit_button_clicked(command))  # type: ignore
-        self.table_widget.setCellWidget(row, 7, edit_button)  # Edit
+        edit_button_layout = QHBoxLayout(edit_button_widget)
+        edit_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # type: ignore
+        edit_button_layout.setContentsMargins(5, 5, 0, 5)
+        edit_button_layout.addWidget(edit_button)
+        self.table_widget.setCellWidget(row, 7, edit_button_widget)  # Edit
         self.table_widget.setSortingEnabled(True)
 
     def find_command_row(self, command: str) -> Optional[int]:

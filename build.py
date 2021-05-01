@@ -44,12 +44,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-O", "--optimized", help="Optimize the compiled python code", required=False, type=int, default=0,
                     choices=[0, 1, 2])
 parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
+parser.add_argument("--console", help="Create a console application", action="store_true")
 args = parser.parse_args()
 
 if args.optimized:
-    optimized_prefix = ""
-else:
     optimized_prefix = f".opt-{args.optimized}"
+else:
+    optimized_prefix = ""
 
 py_cache_prefix = f".{sys.implementation.cache_tag}{optimized_prefix}.pyc"
 
@@ -79,7 +80,10 @@ generate_file_version_info(file_version_info_path, name=APP_NAME, owner=APP_OWNE
 
 logger.info("=================== Creating executable  ===================")
 
+internal_build_dir = os.path.join(build_dir, "build")
 dist_dir = os.path.join(build_dir, "dist")
+if os.path.exists(internal_build_dir):
+    shutil.rmtree(internal_build_dir)
 if os.path.exists(dist_dir):
     shutil.rmtree(dist_dir)
 
@@ -106,12 +110,17 @@ for root, dire, files in os.walk(data_dir):
         pyinstaller_args.append(f"--add-data={os.path.join(root, fname)}{os.pathsep}{os.path.join('data', relpath)}")
 if os_name == "windows":
     pyinstaller_args.append(f"--version-file={file_version_info_path}")
+if args.console:
+    pyinstaller_args.append("--console")
+else:
+    pyinstaller_args.append("--windowed")
 pyinstaller_args += [
-    f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}", "--noconsole", "--windowed", "--noupx",
+    f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}", "--noupx",
     os.path.join(source_dir, "src", "main.py")
 ]
 my_env = os.environ.copy()
-my_env["PYTHONOPTIMIZE"] = str(args.optimized)
+if args.optimized:
+    my_env["PYTHONOPTIMIZE"] = str(args.optimized)
 result = subprocess.run(pyinstaller_exec + pyinstaller_args, env=my_env)
 if result.returncode != 0:
     sys.exit(result.returncode)

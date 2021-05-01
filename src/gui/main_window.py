@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import os.path
@@ -104,7 +105,7 @@ class MainWindow(QMainWindow):
     botDisconnected = Signal()
     componentAdded = Signal(ChatComponent)
 
-    def __init__(self):
+    def __init__(self, args: argparse.Namespace):
         super().__init__()
 
         self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren",
@@ -186,6 +187,10 @@ class MainWindow(QMainWindow):
             self.avaiable_comps_widget.add_component(comp_metadata)
 
         self.restore_window_settings()
+
+        if not (self.settings_widget.is_system_tray_enabled() and args.background):
+            self.show()
+            self.activateWindow()
 
     def about(self):
         text = ("EdoBot is an open source tool to create Twitch components that interacts with the chat."
@@ -497,6 +502,10 @@ class TimeFormatter(logging.Formatter):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--background", help="Open app in background", action="store_true")
+    args = parser.parse_args()
+
     if not os.path.isdir(Constants.SAVE_DIRECTORY):
         os.makedirs(Constants.SAVE_DIRECTORY)
 
@@ -510,10 +519,8 @@ def main():
 
             app.start_listener()
 
-            main_win = MainWindow()
+            main_win = MainWindow(args)
             app.anotherInstance.connect(main_win.system_tray_open)  # type: ignore
-            main_win.show()
-            main_win.activateWindow()
             ret = app.exec_()
             main_win = None
             app = None

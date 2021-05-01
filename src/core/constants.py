@@ -8,7 +8,8 @@ __all__ = ["Constants"]
 
 _app_name = "EdoBot"
 
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+_is_frozen = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+if _is_frozen:
     _exe_dir = os.path.dirname(sys.executable)
     _data_dir = os.path.join(sys._MEIPASS, "data")  # type: ignore
     sys.path.append(os.path.join(_exe_dir, "modules"))
@@ -37,6 +38,7 @@ else:
 
 
 class Constants:
+    IS_FROZEN: Final[bool] = _is_frozen
     APP_NAME: Final[str] = _app_name
     APP_VERSION: Final[str] = _app_version
     CLIENT_ID: Final[str] = "w2bmwjuyuxyz7hmz5tjpjorlerkn9u"

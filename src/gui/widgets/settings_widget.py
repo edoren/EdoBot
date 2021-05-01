@@ -1,4 +1,5 @@
 import os.path
+import winreg
 from typing import Optional
 
 from PySide2.QtCore import QCoreApplication, QFile, QSettings, Qt, Signal
@@ -48,13 +49,19 @@ class SettingsWidget(QWidget):
         self.port_line_edit.setValidator(QIntValidator(0, 2**16 - 1, self))
         self.host_account_info_label.setText(self.host_account_info_label.text() + ":")
         self.bot_account_info_label.setText(self.bot_account_info_label.text() + ":")
-        self.system_startup_check_box.setVisible(False)
+        self.system_startup_check_box.setChecked(self.is_open_on_startup_enabled())  # type: ignore
         self.system_tray_check_box.setChecked(self.is_system_tray_enabled())  # type: ignore
+
+        # Debug overrides
+        if not Constants.IS_FROZEN:
+            self.system_startup_check_box.setEnabled(False)
 
         # Connect signals
         self.host_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.port_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.password_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
+        self.system_startup_check_box.stateChanged.connect(  # type: ignore
+            lambda state: self.open_on_startup_enabled_changed(state == Qt.CheckState.Checked))
         self.system_tray_check_box.stateChanged.connect(  # type: ignore
             lambda state: self.system_tray_enabled_changed(state == Qt.CheckState.Checked))
         self.set_host_account(None)
@@ -106,12 +113,39 @@ class SettingsWidget(QWidget):
             self.bot_account_button.clicked.connect(self.accountBotConnectPressed.emit)  # type: ignore
         self.bot_account_button.setDisabled(False)
 
-    def is_system_tray_enabled(self):
-        return self.app_settings.value("system_tray", True, bool)
+    def is_system_tray_enabled(self) -> bool:
+        return self.app_settings.value("system_tray", True, bool)  # type: ignore
+
+    def is_open_on_startup_enabled(self) -> bool:
+        if not Constants.IS_FROZEN:
+            return False
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0,
+                                winreg.KEY_READ) as registry_key:
+                # TODO: Check same executable
+                value, regtype = winreg.QueryValueEx(registry_key, "EdoBot")  # type: ignore
+            return True
+        except WindowsError:
+            return False
 
     def system_tray_enabled_changed(self, enabled: bool):
         self.app_settings.setValue("system_tray", enabled)
         self.systemTrayEnabled.emit(enabled)  # type: ignore
+
+    def open_on_startup_enabled_changed(self, enabled: bool):
+        if not Constants.IS_FROZEN:
+            return
+        try:
+            reg_path = R"Software\Microsoft\Windows\CurrentVersion\Run"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_WRITE) as registry_key:
+                if enabled:
+                    run_in_bg_cmd = f"\"{os.path.join(Constants.EXECUTABLE_DIRECTORY, 'edobot.exe')}\" --background"
+                    winreg.SetValueEx(registry_key, "EdoBot", 0, winreg.REG_SZ, run_in_bg_cmd)
+                else:
+                    winreg.DeleteValue(registry_key, "EdoBot")
+        except WindowsError:
+            pass
 
     def showEvent(self, event: QShowEvent) -> None:
         r = self.parentWidget().geometry()

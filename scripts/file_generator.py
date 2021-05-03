@@ -62,7 +62,7 @@ def generate_file_version_info(output_path: str, name: str, owner: str, version:
 
 
 def generate_nsis_file(output_path: str, app_name: str, app_owner: str, app_executable: str, app_version: str,
-                       installer_name: str, dist_folder: str):
+                       installer_name: str, output_folder: str, dist_folder: str):
     current_dir = os.path.dirname(__file__)
     nsis_script_template_file = os.path.join(current_dir, "input", "edobot.nsi.in")
     with open(nsis_script_template_file, "r") as f:
@@ -73,7 +73,8 @@ def generate_nsis_file(output_path: str, app_name: str, app_owner: str, app_exec
         "APP_OWNER": app_owner,
         "APP_EXECUTABLE": app_executable,
         "APP_VERSION": app_version,
-        "OUTPUT_INSTALLER_NAME": installer_name,
+        "INSTALLER_NAME": installer_name,
+        "OUTPUT_FOLDER": output_folder,
         "DIST_FOLDER": dist_folder
     }
 

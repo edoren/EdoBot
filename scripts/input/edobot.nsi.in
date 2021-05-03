@@ -10,7 +10,8 @@ Unicode True
 !define "APP_EXECUTABLE" "%APP_EXECUTABLE%.exe"
 !define "APP_VERSION" "%APP_VERSION%"
 
-!define "OUTPUT_INSTALLER_NAME" "%OUTPUT_INSTALLER_NAME%"
+!define "INSTALLER_NAME" "%INSTALLER_NAME%"
+!define "OUTPUT_FOLDER" "%OUTPUT_FOLDER%"
 !define "DIST_FOLDER" "%DIST_FOLDER%"
 
 !define "UNINSTALL_FILENAME" "uninstall.exe"
@@ -54,7 +55,7 @@ Unicode True
 
 # Name and file
 Name "${APP_NAME}"
-OutFile "${OUTPUT_INSTALLER_NAME}.exe"
+OutFile "${OUTPUT_FOLDER}\${INSTALLER_NAME}.exe"
 
 # Request application privileges for Windows Vista
 RequestExecutionLevel user

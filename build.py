@@ -157,19 +157,25 @@ if len(requirements_lib_dirs) > 0:
 
 logger.info("================= Creating zip package =====================")
 
+bin_dir = os.path.join(build_dir, "bin")
+
+if os.path.exists(bin_dir):
+    shutil.rmtree(bin_dir)
+os.makedirs(bin_dir)
+os.chdir(bin_dir)
+
 if os_name == "darwin":
     os_name = "macos"
 arch = platform.architecture()[0]
 
-zip_file_name = f"{APP_NAME}-{version_str}-{os_name}-{arch}"
-shutil.make_archive(zip_file_name, 'zip', dist_dir, logger=logger)
+file_name = f"{APP_NAME}-{version_str}-{os_name}-{arch}"
+shutil.make_archive(file_name, 'zip', dist_dir, logger=logger)
 
 if os_name == "windows":
     logger.info("================== Creating installer =====================")
 
     nsis_script_file = os.path.join(build_dir, "edobot.nsi")
-    estimated_size = sum(os.path.getsize(f) for f in os.listdir(dist_dir) if os.path.isfile(f))
-    generate_nsis_file(nsis_script_file, APP_NAME, APP_OWNER, APP_EXECUTABLE, version_str, zip_file_name, dist_dir)
+    generate_nsis_file(nsis_script_file, APP_NAME, APP_OWNER, APP_EXECUTABLE, version_str, file_name, bin_dir, dist_dir)
 
     makensisw_exe = "C:\\Program Files (x86)\\NSIS\\makensis.exe"
     if os.path.isfile(makensisw_exe):

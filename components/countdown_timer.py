@@ -249,9 +249,12 @@ class CountdownTimerWidget(QWidget):
     def remove_selected_timer(self):
         selected_item: QListWidgetItem = self.timers_list.selectedItems()[0]
         timer: RewardTimer = selected_item.data(Qt.UserRole)  # type: ignore
-        self.data_parent.remove_timer(timer.id)
-        self.tab_widget.setCurrentIndex(0)
-        self.timers_list.takeItem(self.timers_list.row(selected_item))
+        ret = QMessageBox.question(self, "Remove timer?", f"Do you want to remove the <b>{timer.name}</b> timer?",
+                                   QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+        if ret == QMessageBox.StandardButton.Yes:
+            self.data_parent.remove_timer(timer.id)
+            self.tab_widget.setCurrentIndex(0)
+            self.timers_list.takeItem(self.timers_list.row(selected_item))
 
     def update_timer_data(self, name: str, data: Any):
         timer = self.__get_current_selected_timer()
@@ -398,7 +401,8 @@ class CountdownTimerComponent(ChatComponent):
 
     def __init__(self) -> None:
         super().__init__()
-        self.counter_thread_lock = threading.Lock()  # TODO: add timer and event locks
+        self.timer_thread_lock = threading.Lock()  # TODO: add timer and event locks
+        self.active_sources_thread_lock = threading.Lock()  # TODO: add timer and event locks
         self.active_sources: MutableMapping[str, MutableMapping[str, Tuple[RewardTimer, int]]] = {}
         self.counter_thread: Optional[threading.Thread] = None
 
@@ -416,7 +420,7 @@ class CountdownTimerComponent(ChatComponent):
                     time.sleep(1)
                     continue
                 current_time = round(time.time() * 1000)
-                with self.counter_thread_lock:
+                with self.active_sources_thread_lock:
                     for source_name, timers in self.active_sources.items():
                         source_text = ""
                         separator = "\n"
@@ -441,7 +445,7 @@ class CountdownTimerComponent(ChatComponent):
                             sources_to_hide.append(source_name)
                 if sources_to_hide:
                     for source_name in sources_to_hide:
-                        with self.counter_thread_lock:
+                        with self.active_sources_thread_lock:
                             del self.active_sources[source_name]
                         self.obs_client.call(obs_requests.SetTextGDIPlusProperties(source_name, text=""))
                     sources_to_hide.clear()
@@ -470,7 +474,7 @@ class CountdownTimerComponent(ChatComponent):
     def add_time_to_timer(self, timer: RewardTimer, duration_ms: int):
         if not self.is_obs_connected():
             return
-        with self.counter_thread_lock:
+        with self.active_sources_thread_lock:
             source_name = timer.source
             if source_name in self.active_sources and timer.id in self.active_sources[source_name]:
                 timer, finish_time = self.active_sources[source_name][timer.id]
@@ -488,7 +492,7 @@ class CountdownTimerComponent(ChatComponent):
             return
         if duration_ms < 0:
             duration_ms = 0
-        with self.counter_thread_lock:
+        with self.active_sources_thread_lock:
             current_time = round(time.time() * 1000)
             source_timers = self.active_sources.setdefault(timer.source, {})
             if not source_timers and timer.start_msg and duration_ms != 0:
@@ -515,11 +519,12 @@ class CountdownTimerComponent(ChatComponent):
         if event_name == "REWARD_REDEEMED":
             event_data: twitch.ChannelPointsEventMessage = metadata
             reward_name = event_data.redemption.reward.title
-            for timer in self.__timers:
-                if timer.enabled:
-                    event = timer.get_event("reward", name=reward_name)
-                    if event is not None and event.enabled:
-                        self.start_timer_for_event(timer, event)
+            with self.timer_thread_lock:
+                for timer in self.__timers:
+                    if timer.enabled:
+                        event = timer.get_event("reward", name=reward_name)
+                        if event is not None and event.enabled:
+                            self.start_timer_for_event(timer, event)
 
     def get_config_something(self) -> Optional[QWidget]:
         widget = CountdownTimerWidget(self)
@@ -529,47 +534,58 @@ class CountdownTimerComponent(ChatComponent):
         return widget
 
     def get_timers(self) -> List[RewardTimer]:
-        return self.__timers
+        with self.timer_thread_lock:
+            return self.__timers.copy()
 
     def add_timer(self, name: str) -> RewardTimer:
         timer = RewardTimer(name)
-        self.__timers.append(timer)
-        self.save_timers()
+        with self.timer_thread_lock:
+            self.__timers.append(timer)
+            self.save_timers_no_lock()
         return timer
 
     def remove_timer(self, timer_id: str):
         index = None
-        for i in range(len(self.__timers)):
-            if self.__timers[i].id == timer_id:
-                index = i
-                break
-        if index is not None:
-            del self.__timers[index]
-            self.save_timers()
+        with self.timer_thread_lock:
+            for i in range(len(self.__timers)):
+                if self.__timers[i].id == timer_id:
+                    index = i
+                    break
+            if index is not None:
+                timer = self.__timers[index]
+                self.set_timer_time(timer, 0)
+                del self.__timers[index]
+                self.save_timers_no_lock()
 
     def add_timer_event(self, type_: str, timer_id: str) -> Optional[RewardTimer.Event]:
-        for timer in self.__timers:
-            if timer.id == timer_id:
-                event_data = None
-                if type_ == "reward":
-                    event_data = {"name": ""}
-                event = RewardTimer.Event(type=type_, data=event_data)
-                timer.events.append(event)
-                self.save_timers()
-                return event
+        with self.timer_thread_lock:
+            for timer in self.__timers:
+                if timer.id == timer_id:
+                    event_data = None
+                    if type_ == "reward":
+                        event_data = {"name": ""}
+                    event = RewardTimer.Event(type=type_, data=event_data)
+                    timer.events.append(event)
+                    self.save_timers_no_lock()
+                    return event
 
     def remove_timer_event(self, timer_id: str, event_id: str):
-        for timer in self.__timers:
-            if timer.id == timer_id:
-                index = None
-                for i in range(len(timer.events)):
-                    if timer.events[i].id == event_id:
-                        index = i
+        with self.timer_thread_lock:
+            for timer in self.__timers:
+                if timer.id == timer_id:
+                    index = None
+                    for i in range(len(timer.events)):
+                        if timer.events[i].id == event_id:
+                            index = i
+                            break
+                    if index is not None:
+                        del timer.events[index]
+                        self.save_timers_no_lock()
                         break
-                if index is not None:
-                    del timer.events[index]
-                    self.save_timers()
-                    break
 
     def save_timers(self):
+        with self.timer_thread_lock:
+            self.save_timers_no_lock()
+
+    def save_timers_no_lock(self):
         self.config["timers"] = [x.serialize() for x in self.__timers]

@@ -13,9 +13,21 @@ from typing import List
 import scripts.constants as constants  # type: ignore
 from scripts.file_generator import generate_file_version_info, generate_nsis_file  # type: ignore
 
+######################################################################
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-O", "--optimized", help="Optimize the compiled python code", required=False, type=int, default=0,
+                    choices=[0, 1, 2])
+parser.add_argument("--output_dir", help="The folder to output the build", type=str, default="build")
+parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
+parser.add_argument("--console", help="Create a console application", action="store_true")
+args = parser.parse_args()
+
+######################################################################
+
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
-build_dir = os.path.join(source_dir, "build")
+build_dir = os.path.normpath(os.path.join(source_dir, args.output_dir))
 
 os_name = platform.system().lower()
 
@@ -39,13 +51,6 @@ if not os.path.exists(build_dir):
 os.chdir(source_dir)
 
 python_exe = sys.executable
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-O", "--optimized", help="Optimize the compiled python code", required=False, type=int, default=0,
-                    choices=[0, 1, 2])
-parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
-parser.add_argument("--console", help="Create a console application", action="store_true")
-args = parser.parse_args()
 
 if args.optimized:
     optimized_prefix = f".opt-{args.optimized}"
@@ -87,11 +92,14 @@ if os.path.exists(internal_build_dir):
 if os.path.exists(dist_dir):
     shutil.rmtree(dist_dir)
 
+if not args.onefile:
+    dist_dir = os.path.join(dist_dir, APP_NAME.lower())
+
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
 hidden_imports: List[str] = constants.python_std_lib_list + ["PySide2.QtXml", "qtawesome"]
-excluded_modules: List[str] = []
+excluded_modules: List[str] = ["tkinter"]
 if not args.optimized:
     pyinstaller_args.append("--debug=noarchive")
     hidden_imports.append("xmlrpc.server")
@@ -128,8 +136,6 @@ if result.returncode != 0:
 logger.info("=================== Copying data         ===================")
 
 components_dir = os.path.join(source_dir, "components")
-if not args.onefile:
-    dist_dir = os.path.join(dist_dir, APP_NAME)
 shutil.copytree(components_dir, os.path.join(dist_dir, "components"), dirs_exist_ok=True, copy_function=copy_function,
                 ignore=shutil.ignore_patterns("__pycache__"))
 

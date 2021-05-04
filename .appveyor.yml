@@ -18,15 +18,16 @@ install:
     - C:\Python39-x64\python.exe -m pip install pyinstaller
 
 build_script:
-    - C:\Python39-x64\python.exe build.py -O2 --onefile
+    - C:\Python39-x64\python.exe build.py -O2
+    - C:\Python39-x64\python.exe build.py -O2 --onefile --output_dir build_onefile
 
 artifacts:
-    - path: build\bin\*.zip
-      name: ZipFile
-      type: zip
     - path: build\bin\*.exe
       name: Installer
       type: exe
+    - path: build_onefile\bin\*.zip
+      name: ZipFile
+      type: zip
 
 deploy:
     tag: $(APPVEYOR_REPO_TAG_NAME)

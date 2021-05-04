@@ -168,12 +168,12 @@ Section "Uninstall"
 
     AllowSkipFiles off
 
-    RMDir /r "$INSTDIR\*"
+    RMDir /r "$INSTDIR"
 
     # Remove installation folder key
     DeleteRegValue SHCTX "${INSTDIR_REG_KEY}" "${INSTDIR_REG_VALUENAME}"
 
-    # Remove uninstall information from Add/Remove Programs
+    # Remove install information from Add/Remove Programs
     DeleteRegKey SHCTX $AddRemoveProgramsRegKey
 
     # Remove start menu shortcuts

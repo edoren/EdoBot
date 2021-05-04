@@ -8,6 +8,25 @@ from core.chat_component import ChatComponent
 
 from .base_list_widget import BaseListWidget
 
+__all__ = ["AllComponentsWidget"]
+
+
+class AllComponentsWidgetItem(QListWidgetItem):
+    def __init__(self, meta: ChatComponent.Metadata):
+        super().__init__()
+        self.widget = QLabel(meta.name)
+        self.widget.setStyleSheet("QLabel { padding: 0 5px 0 5px; }")
+        self.widget.setFixedHeight(20)
+        self.widget.setToolTip(meta.description)
+        self.setData(Qt.ItemDataRole.UserRole, {"id": meta.id, "name": meta.name})  # type: ignore
+        self.setSizeHint(self.widget.sizeHint())
+        self.setIcon(meta.icon)
+
+    def __lt__(self, other: "AllComponentsWidgetItem"):
+        data = self.data(Qt.ItemDataRole.UserRole)  # type: ignore
+        other_data = other.data(Qt.ItemDataRole.UserRole)  # type: ignore
+        return data["name"] < other_data["name"]
+
 
 class AllComponentsWidget(BaseListWidget):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
@@ -15,6 +34,7 @@ class AllComponentsWidget(BaseListWidget):
         self.setDragDropMode(QListWidget.DragDropMode.DragOnly)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setSortingEnabled(True)
         self.setStyleSheet("QListWidget::item { background: transparent; }\n"
                            "QListWidget::item:hover { background: rgba(0,0,0,0.2); }")
         # self.setStyleSheet("QListWidget::item:hover,\n"
@@ -36,13 +56,6 @@ class AllComponentsWidget(BaseListWidget):
         del pixmap
 
     def add_component(self, meta: ChatComponent.Metadata):
-        widget = QLabel(meta.name)
-        widget.setStyleSheet("QLabel { padding: 0 5px 0 5px; }")
-        widget.setFixedHeight(20)
-        widget.setToolTip(meta.description)
-        item = QListWidgetItem()
-        item.setData(Qt.ItemDataRole.UserRole, {"id": meta.id})  # type: ignore
-        item.setSizeHint(widget.sizeHint())
-        item.setIcon(meta.icon)
+        item = AllComponentsWidgetItem(meta)
         self.addItem(item)
-        self.setItemWidget(item, widget)
+        self.setItemWidget(item, item.widget)

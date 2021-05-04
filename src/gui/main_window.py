@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Callable, List, Optional
 
 import arrow
-from PySide2.QtCore import QSettings, QSize, Qt, Signal
-from PySide2.QtGui import QCloseEvent, QFont, QIcon, QKeySequence, QResizeEvent
+from PySide2.QtCore import QSettings, QSize, Qt, QUrl, Signal
+from PySide2.QtGui import QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
                                QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
 
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
         self.active_component_config_widget: Optional[QWidget] = None
 
         self.component_list = ActiveComponentsWidget()
-        self.component_list.setMinimumSize(400, 50)
+        self.component_list.setMinimumSize(400, 200)
         self.setCentralWidget(self.component_list)
 
         self.create_actions()
@@ -202,8 +202,13 @@ class MainWindow(QMainWindow):
 
     def create_actions(self):
         self.settings_action = QAction("&Settings", self)
+        self.settings_action.setShortcut(QKeySequence.Preferences)
         self.settings_action.setStatusTip("Application settings")
         self.settings_action.triggered.connect(self.open_settings)  # type: ignore
+
+        self.open_user_folder_action = QAction("Open User Folder", self)
+        self.open_user_folder_action.setStatusTip("Open the user folder")
+        self.open_user_folder_action.triggered.connect(self.open_user_folder)  # type: ignore
 
         self.close_action = QAction("&Close", self)
         self.close_action.setShortcut(QKeySequence.Quit)
@@ -221,6 +226,8 @@ class MainWindow(QMainWindow):
     def create_menus(self):
         self.file_menu = self.menuBar().addMenu("&File")
         self.file_menu.addAction(self.settings_action)
+        self.file_menu.addSeparator()
+        self.file_menu.addAction(self.open_user_folder_action)
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.close_action)
 
@@ -354,6 +361,9 @@ class MainWindow(QMainWindow):
         self.settings_widget.password_line_edit.setText(obs_config["password"])
         self.settings_widget.show()
         self.settings_widget.activateWindow()
+
+    def open_user_folder(self):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(Constants.SAVE_DIRECTORY))
 
     def add_component(self, component_id: str) -> None:
         if self.app is None:

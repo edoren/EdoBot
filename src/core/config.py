@@ -1,6 +1,8 @@
 import json
+import logging
 import os
 import os.path
+import traceback
 from typing import Any, List, MutableMapping, Union
 
 Path = List[Union[str, int]]
@@ -8,23 +10,28 @@ ConfigType = Union[MutableMapping[Union[str, int], Any], List[Any]]
 
 __all__ = ["Config"]
 
+gLogger = logging.getLogger(f"edobot.{__name__}")
+
 
 class Config:
     @staticmethod
-    def __create_if_not_exist(file: str) -> None:
-        if not os.path.exists(file):
-            file_dir = os.path.dirname(file)
+    def __create_if_not_exist(file_path: str) -> None:
+        if not os.path.exists(file_path):
+            file_dir = os.path.dirname(file_path)
             if not os.path.isdir(file_dir):
                 os.makedirs(file_dir)
-            with open(file, 'w') as f:
+            with open(file_path, 'w') as f:
+                f.write("{}")
+        elif os.stat(file_path).st_size == 0:
+            with open(file_path, 'w') as f:
                 f.write("{}")
 
     @staticmethod
     def __write_config(file: str, path: Path, data: Any) -> bool:
         Config.__create_if_not_exist(file)
         with open(file, "r") as f:
-            config: ConfigType = json.load(f)
-        initial_config = config
+            initial_file_contents = f.read()
+        config: ConfigType = json.loads(initial_file_contents)
         for key in path[:-1]:
             if isinstance(config, dict):
                 if key not in config:
@@ -41,8 +48,14 @@ class Config:
             config[last_key] = data
         else:
             return False
-        with open(file, "w") as f:
-            json.dump(initial_config, f, indent=4)
+        try:
+            with open(file, "w") as f:
+                json.dump(config, f, indent=4)
+        except Exception as e:
+            traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+            gLogger.critical(f"Critical error: {e}\n{traceback_str}")
+            with open(file, "w") as f:
+                f.write(initial_file_contents)
         return True
 
     @staticmethod

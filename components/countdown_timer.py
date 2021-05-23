@@ -5,7 +5,6 @@ import time
 import uuid
 from typing import Any, List, Mapping, MutableMapping, Optional, Set, Tuple, Union
 
-import obswebsocket.requests as obs_requests
 import qtawesome as qta
 from PySide2.QtCore import QCoreApplication, QFile, Qt, Signal
 from PySide2.QtUiTools import QUiLoader
@@ -436,7 +435,7 @@ class CountdownTimerComponent(ChatComponent):
                             source_text += timer.format.replace("{name}", timer.name).replace("{time}", time_str)
                             source_text += separator
                         source_text = source_text.strip(separator)
-                        self.obs_client.call(obs_requests.SetTextGDIPlusProperties(source_name, text=source_text))
+                        self.obs.set_text_gdi_plus_properties(source_name, text=source_text)
                         if timers_to_delete:
                             for timer in timers_to_delete:
                                 del timers[timer]
@@ -447,7 +446,7 @@ class CountdownTimerComponent(ChatComponent):
                     for source_name in sources_to_hide:
                         with self.active_sources_thread_lock:
                             del self.active_sources[source_name]
-                        self.obs_client.call(obs_requests.SetTextGDIPlusProperties(source_name, text=""))
+                        self.obs.set_text_gdi_plus_properties(source_name, text="")
                     sources_to_hide.clear()
                 time.sleep(0.1)
 
@@ -472,7 +471,7 @@ class CountdownTimerComponent(ChatComponent):
         self.add_time_to_timer(timer, event.get_duration_ms())
 
     def add_time_to_timer(self, timer: RewardTimer, duration_ms: int):
-        if not self.is_obs_connected():
+        if not self.obs.is_connected():
             return
         with self.active_sources_thread_lock:
             source_name = timer.source
@@ -488,7 +487,7 @@ class CountdownTimerComponent(ChatComponent):
                     self.chat.send_message(timer.start_msg.replace("{name}", timer.name))
 
     def set_timer_time(self, timer: RewardTimer, duration_ms: int):
-        if not self.is_obs_connected():
+        if not self.obs.is_connected():
             return
         if duration_ms < 0:
             duration_ms = 0

@@ -5,7 +5,7 @@ from typing import Optional
 from PySide2.QtCore import QCoreApplication, QFile, QSettings, Qt, Signal
 from PySide2.QtGui import QIntValidator, QShowEvent
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QCheckBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from PySide2.QtWidgets import QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 from core.constants import Constants
 
@@ -16,7 +16,7 @@ class SettingsWidget(QWidget):
     accountHostDisconnectPressed = Signal()
     accountBotDisconnectPressed = Signal()
     systemTrayEnabled = Signal(bool)
-    obsWebsocketSettingsChanged = Signal(dict)
+    obsConfigChanged = Signal(dict)
 
     def __init__(self, parent: QWidget, app_settings: QSettings) -> None:
         super().__init__(parent=parent)
@@ -39,6 +39,7 @@ class SettingsWidget(QWidget):
         self.bot_account_info_label = getattr(my_widget, "bot_account_info_label")
         self.bot_account_label: QLabel = getattr(my_widget, "bot_account_label")
         self.bot_account_button: QPushButton = getattr(my_widget, "bot_account_button")
+        self.obs_choice_combo_box: QComboBox = getattr(my_widget, "obs_choice_combo_box")
         self.host_line_edit: QLineEdit = getattr(my_widget, "host_line_edit")
         self.port_line_edit: QLineEdit = getattr(my_widget, "port_line_edit")
         self.password_line_edit: QLineEdit = getattr(my_widget, "password_line_edit")
@@ -49,6 +50,8 @@ class SettingsWidget(QWidget):
         self.port_line_edit.setValidator(QIntValidator(0, 2**16 - 1, self))
         self.host_account_info_label.setText(self.host_account_info_label.text() + ":")
         self.bot_account_info_label.setText(self.bot_account_info_label.text() + ":")
+        self.obs_choice_combo_box.addItem("OBS WebSocket", "obswebsocket")
+        self.obs_choice_combo_box.addItem("Streamlabs OBS", "slobs")
         self.system_startup_check_box.setChecked(self.is_open_on_startup_enabled())  # type: ignore
         self.system_tray_check_box.setChecked(self.is_system_tray_enabled())  # type: ignore
 
@@ -73,7 +76,7 @@ class SettingsWidget(QWidget):
         self.setFixedSize(self.sizeHint())
 
     def obs_config_changed(self):
-        self.obsWebsocketSettingsChanged.emit({  # type: ignore
+        self.obsConfigChanged.emit({  # type: ignore
             "host": self.host_line_edit.text(),
             "port": int(self.port_line_edit.text()),
             "password": self.password_line_edit.text()

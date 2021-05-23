@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Set, Union, final
-from PySide2.QtGui import QIcon
-
-import obswebsocket
-from PySide2.QtWidgets import QWidget
 
 import qtawesome as qta
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QWidget
+
 from core.config import Config
 from model import User, UserType
+from obs import OBSInterface
 from twitch.chat import Chat  # TODO: Replace with ChatWrapper
 from twitch.service import Service as TwitchService
 
@@ -27,10 +27,9 @@ class ChatComponent(ABC):
         super().__init__()
 
     @final
-    def config_component(self, config: Config, obs_client: obswebsocket.obsws, chat: Chat,
-                         twitch: TwitchService) -> None:
+    def config_component(self, config: Config, obs: OBSInterface, chat: Chat, twitch: TwitchService) -> None:
         self.config = config
-        self.obs_client = obs_client
+        self.obs = obs
         self.chat = chat
         self.twitch = twitch
 
@@ -57,10 +56,6 @@ class ChatComponent(ABC):
 
     def stop(self) -> None:
         self.has_started = False
-
-    def is_obs_connected(self) -> bool:
-        return (hasattr(self, "obs_client") and self.obs_client is not None and self.obs_client.thread_recv is not None
-                and self.obs_client.thread_recv.running)
 
     def get_config_something(self) -> Union[QWidget, dict[str, Any], None]:
         return None

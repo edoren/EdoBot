@@ -1,8 +1,7 @@
 import logging
 import os.path
-from typing import Any, List, Mapping, Optional, Set, Union
+from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 
-import obswebsocket.requests as obs_requests
 import qtawesome as qta
 from PySide2.QtCore import QCoreApplication, QFile
 from PySide2.QtGui import QShowEvent
@@ -113,10 +112,11 @@ class SceneChangerComponentConfigWidget(QWidget):
 
     def showEvent(self, event: QShowEvent) -> None:
         scene_list = self.data_parent.get_obs_scenes()
+        scene_list_str = [scene.name for scene in scene_list]
         self.from_combo_box.clear()
         self.to_combo_box.clear()
-        self.from_combo_box.addItems(scene_list)
-        self.to_combo_box.addItems(scene_list)
+        self.from_combo_box.addItems(scene_list_str)
+        self.to_combo_box.addItems(scene_list_str)
         event.accept()
 
 
@@ -143,7 +143,7 @@ class SceneChangerComponent(ChatComponent):
         else:
             self.update_who_can(True, False, False, False)
 
-        self.transitions = ~self.config["transitions"]
+        self.transitions: MutableMapping[str, List[str]] = ~self.config["transitions"]
         if self.command is None or not isinstance(self.transitions, dict):
             self.transitions = {}
             self.config["transitions"] = {}
@@ -155,25 +155,24 @@ class SceneChangerComponent(ChatComponent):
 
     def process_message(self, message: str, user: User, user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
-        if not self.is_obs_connected():
+        if not self.obs.is_connected():
             return
 
         if len(self.who_can.intersection(user_types)) != 0:
-            scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
-            scenes: List[Mapping[str, Any]] = scenes_request.getScenes()
+            scenes = self.obs.get_scenes()
 
             # Find a suitable scene target name
             target_scene = None
             for scene in scenes:
-                if scene["name"].lower() == message.lower():
-                    target_scene = scene["name"]
+                if scene.name.lower() == message.lower():
+                    target_scene = scene.name
 
             if target_scene is not None:
-                current_scene = scenes_request.getCurrentScene()
-                if current_scene in self.transitions:
-                    if target_scene in self.transitions[current_scene]:
+                current_scene = self.obs.get_current_scene()
+                if current_scene is not None and current_scene.name in self.transitions:
+                    if target_scene in self.transitions[current_scene.name]:
                         gLogger.info(f"[{user.display_name}] Transitioning: {current_scene} -> {target_scene}")
-                        self.obs_client.call(obs_requests.SetCurrentScene(target_scene))
+                        self.obs.set_current_scene(target_scene)
 
     def process_event(self, event_name: str, metadata: Any) -> None:
         pass
@@ -213,8 +212,7 @@ class SceneChangerComponent(ChatComponent):
             self.who_can.add(UserType.CHATTER)
         self.config["who_can"] = {"mod": mod, "vip": vip, "sub": sub, "chatter": chatter}
 
-    def get_obs_scenes(self) -> List[str]:
-        if not self.is_obs_connected():
+    def get_obs_scenes(self):
+        if not self.obs.is_connected():
             return []
-        scenes_request: obs_requests.GetSceneList = self.obs_client.call(obs_requests.GetSceneList())
-        return [scene["name"] for scene in scenes_request.getScenes()]
+        return self.obs.get_scenes()

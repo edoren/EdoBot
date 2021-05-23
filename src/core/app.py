@@ -16,12 +16,12 @@ from typing import Any, Callable, List, Mapping, MutableMapping, Optional, Set, 
 
 import model
 import twitch
+from obs import OBSInterface, OBSWebSocket, StreamlabsOBS
 
 from .chat_component import ChatComponent
 from .config import Config
 from .constants import Constants
 from .data_base import DataBase
-from .obswrapper import OBSWrapper
 
 __all__ = ["App"]
 
@@ -80,8 +80,6 @@ class App:
         self.chat_service = None
         self.pubsub_service = None
 
-        self.obs_client = OBSWrapper()
-
         self.available_components: MutableMapping[str, Type[ChatComponent]] = {}
         self.failed_components: List[str] = []
         self.active_components: MutableMapping[str, ChatComponent] = {}
@@ -108,23 +106,26 @@ class App:
         self.bot_connected: Optional[Callable[[model.User], None]] = None
         self.bot_disconnected: Optional[Callable[[], None]] = None
 
-        if ~self.config["components"] is None:
-            self.config["components"] = []
+        self.current_components = self.config["components"].setdefault([])
 
-        if ~self.config["obswebsocket"] is None:
-            self.config["obswebsocket"]["host"] = self.obs_client.host
-            self.config["obswebsocket"]["port"] = self.obs_client.port
-            self.config["obswebsocket"]["password"] = self.obs_client.password
+        self.obs_choice = self.config["obs_choice"].setdefault("obswebsocket")
+        self.config["obswebsocket"].setdefault({"host": "localhost", "port": 4444, "password": "changeme"})
+        self.config["slobs"].setdefault({"host": "localhost", "port": 59650, "token": ""})
 
         # Load the components and remove the repeated items mantaining the order
-        self.current_components = ~self.config["components"]
         seen = set()
         self.current_components = [x for x in self.current_components if not (x in seen or seen.add(x))]
 
-        obswebsocket_config = ~self.config["obswebsocket"]
-        self.obs_client.set_config(obswebsocket_config["host"], obswebsocket_config["port"],
-                                   obswebsocket_config["password"])
-        self.obs_client.connect()
+        if self.obs_choice == "slobs":
+            config = ~self.config["slobs"]
+            self.obs_client: OBSInterface = StreamlabsOBS(config["host"], config["port"], config["token"])
+            self.obs_client.set_config(~self.config["slobs"])
+            self.obs_client.connect()
+        else:
+            config = ~self.config["obswebsocket"]
+            self.obs_client: OBSInterface = OBSWebSocket(config["host"], config["port"], config["password"])
+            self.obs_client.set_config(~self.config["obswebsocket"])
+            self.obs_client.connect()
 
     #################################################################
     # Listeners
@@ -219,11 +220,16 @@ class App:
     def get_active_components(self) -> Mapping[str, ChatComponent]:
         return self.active_components
 
+    def set_obs_choice(self, choice: str) -> None:
+        self.obs_choice = choice
+
+    def get_obs_choice(self) -> str:
+        return self.obs_choice
+
     def set_obs_config(self, host: str, port: int, password: str):
-        self.config["obswebsocket"]["host"] = host
-        self.config["obswebsocket"]["port"] = port
-        self.config["obswebsocket"]["password"] = password
-        self.obs_client.set_config(host, port, password)
+        config = {"host": host, "port": port, "password": password}
+        self.config["obswebsocket"] = config
+        self.obs_client.set_config(config)
 
     def get_obs_config(self):
         return ~self.config["obswebsocket"]
@@ -251,6 +257,9 @@ class App:
                     if extension in [".py", ".pyc"]:
                         module_name = f"components.{basename}"
                         spec = importlib.util.spec_from_file_location(module_name, file_path)
+                        if spec is None:
+                            # TODO: Report error
+                            continue
                         module = importlib.util.module_from_spec(spec)
                         sys.modules[module_name] = module
                         spec.loader.exec_module(module)  # type: ignore
@@ -302,8 +311,7 @@ class App:
                 self.component_added(instance)
             if self.has_started and self.chat_service is not None and self.host_twitch_service is not None:
                 instance.config_component(config=self.__get_component_config(instance.get_metadata().id),
-                                          obs_client=self.obs_client.get_client(), chat=self.chat_service,
-                                          twitch=self.host_twitch_service)
+                                          obs=self.obs_client, chat=self.chat_service, twitch=self.host_twitch_service)
                 succeded = self.__secure_component_method_call(instance, "start")
                 if not succeded:
                     self.__secure_component_method_call(instance, "stop")
@@ -360,8 +368,6 @@ class App:
                 return
 
             with self.start_stop_lock:
-                gLogger.info("Starting bot, please wait...")
-
                 self.chat_service = twitch.Chat(self.bot_twitch_service.user.display_name,
                                                 self.bot_twitch_service.token.access_token,
                                                 self.host_twitch_service.user.login)
@@ -371,7 +377,7 @@ class App:
                 with self.components_lock:
                     for instance in self.active_components.values():
                         instance.config_component(config=self.__get_component_config(instance.get_metadata().id),
-                                                  obs_client=self.obs_client.get_client(), chat=self.chat_service,
+                                                  obs=self.obs_client, chat=self.chat_service,
                                                   twitch=self.host_twitch_service)
                         succeded = self.__secure_component_method_call(instance, "start")
                         if not succeded:
@@ -394,6 +400,7 @@ class App:
                 return
             self.is_running = True
             self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="AppWorker")
+            gLogger.info(f"Starting {Constants.APP_NAME} ({Constants.APP_VERSION}), please wait...")
             self.executor.submit(__run, self)
 
     def stop(self):

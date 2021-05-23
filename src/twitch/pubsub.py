@@ -109,4 +109,4 @@ class PubSub(WebSocket):
                         pass
                     elif data_topic.startswith(PubSubEvent.BITS_BADGE_EVENT.value):
                         pass
-                    gLogger.debug(f"PUB_SUB {data_topic} - {json.dumps(data_message)}")
+                    gLogger.info(f"PUB_SUB {data_topic} - {json.dumps(data_message)}")

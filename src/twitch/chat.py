@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Callable, List, Optional
 
 from network import WebSocket
@@ -56,6 +57,7 @@ class Chat(WebSocket):
                 break
             except Exception as e:
                 gLogger.error(f"Error sending message: {e}")
+                time.sleep(0.1)
 
     def handle_message(self, message: str):
         lines = message.strip("\r\n").split("\r\n")

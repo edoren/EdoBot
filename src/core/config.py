@@ -32,6 +32,7 @@ class Config:
         with open(file, "r") as f:
             initial_file_contents = f.read()
         config: ConfigType = json.loads(initial_file_contents)
+        config_root = config
         for key in path[:-1]:
             if isinstance(config, dict):
                 if key not in config:
@@ -50,7 +51,7 @@ class Config:
             return False
         try:
             with open(file, "w") as f:
-                json.dump(config, f, indent=4)
+                json.dump(config_root, f, indent=4)
         except Exception as e:
             traceback_str = ''.join(traceback.format_tb(e.__traceback__))
             gLogger.critical(f"Critical error: {e}\n{traceback_str}")

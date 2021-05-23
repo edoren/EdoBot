@@ -311,7 +311,7 @@ class MainWindow(QMainWindow):
 
     def create_settings_window(self):
         self.settings_widget = SettingsWidget(self, self.settings)
-        self.settings_widget.obsWebsocketSettingsChanged.connect(self.obs_websocket_settings_changed)  # type: ignore
+        self.settings_widget.obsConfigChanged.connect(self.obs_settings_changed)  # type: ignore
         self.settings_widget.accountHostConnectPressed.connect(self.account_host_connect_pressed)  # type: ignore
         self.settings_widget.accountBotConnectPressed.connect(self.account_bot_connect_pressed)  # type: ignore
         self.settings_widget.accountHostDisconnectPressed.connect(self.account_host_disconnect_pressed)  # type: ignore
@@ -331,7 +331,7 @@ class MainWindow(QMainWindow):
     # Slots
     #################################################################
 
-    def obs_websocket_settings_changed(self, settings):
+    def obs_settings_changed(self, settings):
         self.app.set_obs_config(settings["host"], settings["port"], settings["password"])
 
     def account_host_connect_pressed(self):

@@ -8,7 +8,7 @@ from typing import Optional, final
 
 import websocket
 
-__any__ = ["WebSocket"]
+__all__ = ["WebSocket"]
 
 gLogger = logging.getLogger(f"edobot.{__name__}")
 gWebSocketRegex = re.compile(r"^(wss?:\/\/)([0-9]{1,3}(?:\.[0-9]{1,3}){3}|[a-zA-Z0-9-\.]+)(?::([0-9]{1,5}))?")
@@ -29,14 +29,20 @@ class WebSocket(threading.Thread, abc.ABC):
 
         self.running = True
         self.connected = False
+        self.retry_enabled = True
 
         self.socket: websocket.WebSocket = websocket.WebSocket()
         self.socket.settimeout(timeout)
-        self.lock = threading.Lock()
 
     @abc.abstractmethod
     def handle_message(self, message: str) -> None:
         pass
+
+    def connection_closed(self) -> None:
+        pass
+
+    def set_retry_enabled(self, enabled: bool):
+        self.retry_enabled = enabled
 
     def connect(self) -> None:
         try:
@@ -65,37 +71,26 @@ class WebSocket(threading.Thread, abc.ABC):
 
     @final
     def send(self, message: str):
-        with self.lock:
-            self.socket.send(message)
-
-    @final
-    def send_and_recv(self, message: str, timeout: Optional[float] = None) -> str:
-        try:
-            with self.lock:
-                old_timeout: float = self.socket.gettimeout()
-                self.socket.settimeout(timeout)
-                self.socket.send(message)
-                response: str = self.socket.recv()
-                self.socket.settimeout(old_timeout)
-            return response
-        except websocket.WebSocketException:
-            return ""
+        self.socket.send(message)
 
     @final
     def run(self):
         reconnect_time = 1
         while self.running:
+            if not self.connected:
+                time.sleep(0.1)
+                continue
             message = ""
             try:
                 self.ping()
-                with self.lock:
-                    message: str = self.socket.recv()
+                message: str = self.socket.recv()
                 if message:
                     self.handle_message(message)
             except (OSError, websocket.WebSocketConnectionClosedException) as e:
-                gLogger.error(f"Connection failed for endpoint {self.host}: {e}")
+                gLogger.info(f"Connection closed for endpoint {self.host}: {e}")
                 self.connected = False
-                if self.running:
+                self.connection_closed()
+                if self.retry_enabled and self.running:
                     gLogger.info(f"Retrying connection in {reconnect_time}s")
                     time.sleep(reconnect_time)
                     self.connect()

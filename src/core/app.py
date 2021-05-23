@@ -42,7 +42,7 @@ class TokenRedirectWebServer(threading.Thread):
         def do_PUT(self):
             self.send_response(200)
             self.end_headers()
-            content_len = int(self.headers.get("Content-Length"))  # type: ignore
+            content_len = int(self.headers["Content-Length"])
             put_body = self.rfile.read(content_len)
             json_body = json.loads(put_body)
             self.token_received(model.AccessToken(**json_body))

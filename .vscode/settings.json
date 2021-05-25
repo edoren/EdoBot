@@ -13,6 +13,10 @@
     "[html]": {
         "editor.defaultFormatter": "vscode.html-language-features"
     },
+    "[python]": {
+        "editor.semanticHighlighting.enabled": false,
+    },
+    "python.languageServer": "Pylance",
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
     "python.linting.pycodestyleEnabled": true,

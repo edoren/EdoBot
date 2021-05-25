@@ -59,7 +59,8 @@ class TokenRedirectWebServer(threading.Thread):
         server_address = (TokenRedirectWebServer.host, TokenRedirectWebServer.port)
         handler_class = partial(TokenRedirectWebServer.RequestHandler, token_received=self.token_listener)
         with ThreadingHTTPServer(server_address, handler_class) as self.httpd:
-            self.httpd.serve_forever()
+            if self.httpd is not None:
+                self.httpd.serve_forever()
 
     def stop(self):
         if self.httpd is not None:

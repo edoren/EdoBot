@@ -23,6 +23,7 @@ class Service:
         self.__active = True
 
         self.users_cache: MutableMapping[str, CacheRequest] = {}
+        self.channel_cache: MutableMapping[str, CacheRequest] = {}
 
         user = self.get_user()
         if user is not None:
@@ -62,19 +63,26 @@ class Service:
         response = self.__call_endpoint(self.sub_requestor)
         return [model.Suscription(**x) for x in response["data"] or []]
 
-    def get_user(self, name: Optional[str] = None) -> Optional[model.User]:
-        if name is None:
-            name = "$"
-            requestor = self.users_cache.setdefault(name, self.__get_cache_requestor("GET", "/users"))
+    def get_user(self, login: Optional[str] = None) -> Optional[model.User]:
+        if login is None:
+            login = "$"
+            requestor = self.users_cache.setdefault(login, self.__get_cache_requestor("GET", "/users"))
         else:
-            requestor = self.users_cache.setdefault(name,
-                                                    self.__get_cache_requestor("GET", "/users", params={"login": name}))
+            requestor = self.users_cache.setdefault(login,
+                                                    self.__get_cache_requestor("GET", "/users", params={"login": login}))
         response = self.__call_endpoint(requestor)
         users = [model.User(**x) for x in response["data"] or []]
         user = None if len(users) == 0 else users[0]
-        if user and name == "$":
+        if user and login == "$":
             self.users_cache[user.login] = self.users_cache["$"]
         return user
+
+    def get_channel(self, broadcaster_id: str) -> Optional[model.Channel]:
+        requestor = self.channel_cache.setdefault(broadcaster_id, self.__get_cache_requestor("GET", "/channels", params={"broadcaster_id": broadcaster_id}))
+        response = self.__call_endpoint(requestor)
+        channels = [model.Channel(**x) for x in response["data"] or []]
+        channel = None if len(channels) == 0 else channels[0]
+        return channel
 
     def __get_cache_requestor(self, method, path, params=None):
         return CacheRequest(

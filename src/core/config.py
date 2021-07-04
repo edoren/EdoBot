@@ -20,16 +20,16 @@ class Config:
             file_dir = os.path.dirname(file_path)
             if not os.path.isdir(file_dir):
                 os.makedirs(file_dir)
-            with open(file_path, 'w') as f:
+            with open(file_path, 'w', encoding="utf-8") as f:
                 f.write("{}")
         elif os.stat(file_path).st_size == 0:
-            with open(file_path, 'w') as f:
+            with open(file_path, 'w', encoding="utf-8") as f:
                 f.write("{}")
 
     @staticmethod
     def __write_config(file: str, path: Path, data: Any) -> bool:
         Config.__create_if_not_exist(file)
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             initial_file_contents = f.read()
         config: ConfigType = json.loads(initial_file_contents)
         config_root = config
@@ -50,19 +50,19 @@ class Config:
         else:
             return False
         try:
-            with open(file, "w") as f:
+            with open(file, "w", encoding="utf-8") as f:
                 json.dump(config_root, f, indent=4)
         except Exception as e:
             traceback_str = ''.join(traceback.format_tb(e.__traceback__))
             gLogger.critical(f"Critical error: {e}\n{traceback_str}")
-            with open(file, "w") as f:
+            with open(file, "w", encoding="utf-8") as f:
                 f.write(initial_file_contents)
         return True
 
     @staticmethod
     def __read_config(file: str, path: Path) -> Any:
         Config.__create_if_not_exist(file)
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             config: ConfigType = json.load(f)
         for key in path:
             if isinstance(config, dict) and key in config:

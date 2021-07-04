@@ -176,7 +176,7 @@ class App:
                         command_pack = text.lstrip("!").split(" ", 1)
                         command = command_pack[0]
                         message = command_pack[1] if len(command_pack) > 1 else ""
-                        if ((isinstance(comp_command, str) and command == comp_command)
+                        if ((isinstance(comp_command, str) and command.lower() == comp_command.lower())
                                 or (isinstance(comp_command, list) and command in comp_command)):
                             self.__secure_component_method_call(component, "process_message", message, user, user_types)
                 else:
@@ -243,6 +243,27 @@ class App:
             os.path.join(Constants.SAVE_DIRECTORY, "components")
         ]
 
+        def import_component(file_path, module_name):
+            spec = importlib.util.spec_from_file_location(module_name, file_path)
+            if spec is None:
+                # TODO: Report error
+                return
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)  # type: ignore
+            for class_name, class_type in inspect.getmembers(module, inspect.isclass):
+                try:
+                    if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
+                        component_id = class_type.get_metadata().id
+                        if component_id in self.available_components:
+                            gLogger.error(f"Error loading component with id '{component_id}' for "
+                                          f"class name '{class_name}': another component has the same id")
+                        self.available_components[component_id] = class_type
+                except NotImplementedError:
+                    class_abstract_methods = [a for a in class_type.__abstractmethods__]  # type: ignore
+                    gLogger.error(f"Error in file '{file_path}' class '{class_name}' does not "
+                                  f"implement all abstract methods: {class_abstract_methods}")
+
         for components_folder in search_folders:
             if not os.path.isdir(components_folder):
                 try:
@@ -252,32 +273,19 @@ class App:
                 continue
 
             for filename in os.listdir(components_folder):
-                file_path = os.path.join(components_folder, filename)
-                if os.path.isfile(file_path):
+                full_path = os.path.join(components_folder, filename)
+                if os.path.isfile(full_path):
                     basename, extension = os.path.splitext(filename)
-                    if extension in [".py", ".pyc"]:
+                    if extension in (".pyc", ".py"):
                         module_name = f"components.{basename}"
-                        spec = importlib.util.spec_from_file_location(module_name, file_path)
-                        if spec is None:
-                            # TODO: Report error
-                            continue
-                        module = importlib.util.module_from_spec(spec)
-                        sys.modules[module_name] = module
-                        spec.loader.exec_module(module)  # type: ignore
-                        for class_name, class_type in inspect.getmembers(module, inspect.isclass):
-                            try:
-                                if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
-                                    component_id = class_type.get_metadata().id
-                                    if component_id in self.available_components:
-                                        gLogger.error(f"Error loading component with id '{component_id}' for "
-                                                      f"class name '{class_name}': another component has the same id")
-                                    self.available_components[component_id] = class_type
-                            except NotImplementedError:
-                                class_abstract_methods = [a for a in class_type.__abstractmethods__]  # type: ignore
-                                gLogger.error(f"Error in file '{file_path}' class '{class_name}' does not "
-                                              f"implement all abstract methods: {class_abstract_methods}")
-                elif os.path.isdir(file_path):
-                    pass  # TODO: More complex modules
+                        import_component(full_path, module_name)
+                elif os.path.isdir(full_path):
+                    for filename in os.listdir(full_path):
+                        if filename in ("__init__.pyc", "__init__.py"):
+                            basename = os.path.basename(full_path)
+                            module_name = f"components.{basename}"
+                            file_path = os.path.join(full_path, filename)
+                            import_component(file_path, module_name)
 
     def add_component(self, component_id: str) -> Optional[ChatComponent]:
         if component_id in self.active_components:

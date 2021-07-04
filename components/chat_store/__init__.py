@@ -17,7 +17,7 @@ __all__ = ["ChatStoreComponent"]
 gLogger = logging.getLogger("edobot.components.chat_store")
 
 
-class ChatStoreComponent(ChatComponent):  # TODO: Change to chat store
+class ChatStoreComponent(ChatComponent):
     def __init__(self) -> None:
         super().__init__()
         self.widget: Optional[QWidget] = None

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>353</width>
-    <height>254</height>
+    <width>364</width>
+    <height>258</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,6 +61,9 @@
           <width>0</width>
           <height>40</height>
          </size>
+        </property>
+        <property name="placeholderText">
+         <string>Follow {name}, last game played was {game}. https://twitch.tv/{login}</string>
         </property>
        </widget>
       </item>
@@ -127,10 +130,17 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="placeholderText">
+           <string>twitch</string>
+          </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="blacklist_line_edit"/>
+         <widget class="QLineEdit" name="blacklist_line_edit">
+          <property name="placeholderText">
+           <string>streamelements, streamlabs</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

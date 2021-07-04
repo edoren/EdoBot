@@ -60,8 +60,8 @@ class AutoShoutOut(ChatComponent):
     def start(self) -> None:
         self.cooldown = self.config["cooldown"].setdefault(30)
         self.cooldown_format = self.config["cooldown_format"].setdefault("minutes")
-        self.blacklist = self.config["blacklist"].setdefault([])
-        self.blacklist_enabled = self.config["blacklist_enabled"].setdefault(False)
+        self.blacklist = self.config["blacklist"].setdefault(["streamelements", "streamlabs"])
+        self.blacklist_enabled = self.config["blacklist_enabled"].setdefault(True)
         self.whitelist = self.config["whitelist"].setdefault([])
         self.whitelist_enabled = self.config["whitelist_enabled"].setdefault(False)
         self.message = self.config["message"].setdefault("")
@@ -74,20 +74,20 @@ class AutoShoutOut(ChatComponent):
 
     def process_message(self, message: str, user: User, user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
-        if self.blacklist_enabled and user.login in self.blacklist:
+        if self.blacklist_enabled and user.login in self.blacklist or user.login == self.twitch.user.login:
             return
         if user.broadcaster_type in ("affiliate", "partner") or (self.whitelist_enabled
                                                                  and user.login in self.whitelist):
             current_time = time.time()
-            if user.id not in self.last_shoutouts or self.last_shoutouts[user.id] < current_time:
+            if self.cooldown_format == "hours":
+                cooldown_time = self.cooldown * 3600
+            elif self.cooldown_format == "minutes":
+                cooldown_time = self.cooldown * 60
+            else:
+                cooldown_time = self.cooldown
+            last_shoutout_time = self.last_shoutouts.get(user.id, current_time)
+            if user.id not in self.last_shoutouts or (current_time - last_shoutout_time) > cooldown_time:
                 channel = self.twitch.get_channel(user.id)
-                if self.cooldown_format == "hours":
-                    added_time = self.cooldown * 3600
-                elif self.cooldown_format == "minutes":
-                    added_time = self.cooldown * 60
-                else:
-                    added_time = self.cooldown
-                self.last_shoutouts[user.id] = current_time + added_time
                 if channel is not None:
                     for message in (self.message, self.message_alt):
                         if message:
@@ -95,6 +95,7 @@ class AutoShoutOut(ChatComponent):
                             final_message = final_message.replace("{game}", channel.game_name)
                             final_message = final_message.replace("{login}", user.login)
                             self.chat.send_message(final_message)
+                            self.last_shoutouts[user.id] = current_time
 
     def process_event(self, event_name: str, metadata: Any) -> None:
         pass

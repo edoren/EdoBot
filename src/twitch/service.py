@@ -68,8 +68,8 @@ class Service:
             login = "$"
             requestor = self.users_cache.setdefault(login, self.__get_cache_requestor("GET", "/users"))
         else:
-            requestor = self.users_cache.setdefault(login,
-                                                    self.__get_cache_requestor("GET", "/users", params={"login": login}))
+            requestor = self.users_cache.setdefault(
+                login, self.__get_cache_requestor("GET", "/users", params={"login": login}))
         response = self.__call_endpoint(requestor)
         users = [model.User(**x) for x in response["data"] or []]
         user = None if len(users) == 0 else users[0]
@@ -78,7 +78,8 @@ class Service:
         return user
 
     def get_channel(self, broadcaster_id: str) -> Optional[model.Channel]:
-        requestor = self.channel_cache.setdefault(broadcaster_id, self.__get_cache_requestor("GET", "/channels", params={"broadcaster_id": broadcaster_id}))
+        requestor = self.channel_cache.setdefault(
+            broadcaster_id, self.__get_cache_requestor("GET", "/channels", params={"broadcaster_id": broadcaster_id}))
         response = self.__call_endpoint(requestor)
         channels = [model.Channel(**x) for x in response["data"] or []]
         channel = None if len(channels) == 0 else channels[0]

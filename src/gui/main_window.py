@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
             if not component_instance.has_started:
                 return
             try:
-                config_something = component_instance.get_config_something()
+                config_something = component_instance.get_config_ui()
             except Exception as e:
                 gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
                 return

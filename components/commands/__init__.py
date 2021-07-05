@@ -12,7 +12,7 @@ from PySide2.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, 
                                QToolButton, QVBoxLayout, QWidget)
 
 from core import ChatComponent
-from model import User, UserType
+from model import EventType, User, UserType
 
 __all__ = ["CommandsComponent"]
 
@@ -25,12 +25,12 @@ class CommandsTableWidget(QWidget):
 
         self.data_parent = data_parent
 
-        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "commands.ui"))
+        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
         my_widget = QUiLoader().load(file, self)
         file.close()
 
-        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "commands_add.ui"))
+        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "add_command.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
         self.edit_dialog: QDialog = QUiLoader().load(file, self)  # type: ignore
         file.close()
@@ -51,6 +51,7 @@ class CommandsTableWidget(QWidget):
             UserType.SUBSCRIPTOR: "Subscriber",
             UserType.VIP: "VIP",
             UserType.MODERATOR: "Moderator",
+            UserType.EDITOR: "Editor",
             UserType.BROADCASTER: "Broadcaster"
         }
 
@@ -255,10 +256,10 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
                             print("User cooldown:", user_cooldown_time - current_time)
                     break
 
-    def process_event(self, event_name: str, metadata: Any) -> None:
+    def process_event(self, event_type: EventType, metadata: Any) -> None:
         pass
 
-    def get_config_something(self) -> Optional[QWidget]:
+    def get_config_ui(self) -> Optional[QWidget]:
         return CommandsTableWidget(self)
 
     def store_commands(self, save_data):

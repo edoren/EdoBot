@@ -6,7 +6,7 @@ from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QWidget
 
 from core.config import Config
-from model import User, UserType
+from model import EventType, User, UserType
 from obs import OBSInterface
 from twitch.chat import Chat  # TODO: Replace with ChatWrapper
 from twitch.service import Service as TwitchService
@@ -48,7 +48,7 @@ class ChatComponent(ABC):
         pass
 
     @abstractmethod
-    def process_event(self, event_name: str, metadata: Optional[Any] = None) -> None:
+    def process_event(self, event_type: EventType, metadata: Optional[Any] = None) -> None:
         pass
 
     def start(self) -> None:
@@ -57,7 +57,7 @@ class ChatComponent(ABC):
     def stop(self) -> None:
         self.has_started = False
 
-    def get_config_something(self) -> Union[QWidget, dict[str, Any], None]:
+    def get_config_ui(self) -> Union[QWidget, dict[str, Any], None]:
         return None
 
     def on_config_updated(self, name: str, value: Any) -> None:

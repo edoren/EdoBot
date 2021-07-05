@@ -88,10 +88,12 @@ class App:
         self.update_available_components()
 
         self.host_scope = [
-            "bits:read", "channel:moderate", "channel:read:redemptions", "channel:read:subscriptions",
-            "moderation:read", "user:read:email", "whispers:read"
+            "bits:read", "channel:moderate", "channel:read:editors", "channel:read:redemptions",
+            "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"
         ]
         self.bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
+        self.host_scope.sort()
+        self.bot_scope.sort()
 
         self.executor: Optional[ThreadPoolExecutor] = None
 
@@ -153,8 +155,15 @@ class App:
 
         if self.host_twitch_service.user.login == sender:
             user_types.add(model.UserType.BROADCASTER)
+            user_types.add(model.UserType.EDITOR)
             user_types.add(model.UserType.MODERATOR)
             user_types.add(model.UserType.VIP)
+
+        user = self.host_twitch_service.get_user(sender)
+
+        if user is None:
+            gLogger.warning(f"User '{sender}' could not be found")
+            return
 
         if tags.mod:
             user_types.add(model.UserType.MODERATOR)
@@ -162,10 +171,14 @@ class App:
         if "vip" in tags.badges:
             user_types.add(model.UserType.VIP)
 
+        if model.UserType.VIP in user_types or model.UserType.MODERATOR in user_types:
+            channel_editors = self.host_twitch_service.get_channel_editors()
+            for editor in channel_editors:
+                if editor.user_id == user.id:
+                    user_types.add(model.UserType.EDITOR)
+
         if "subscriber" in tags.badges:
             user_types.add(model.UserType.SUBSCRIPTOR)
-
-        user = self.host_twitch_service.get_user(sender)
 
         is_command = text.startswith("!")
         with self.components_lock:
@@ -182,12 +195,12 @@ class App:
                 else:
                     self.__secure_component_method_call(component, "process_message", text, user, user_types)
 
-    def handle_event(self, event_name: str, metadata: Any):
+    def handle_event(self, event_type: model.EventType, metadata: Any):
         if self.host_twitch_service is None or self.bot_twitch_service is None:
             return
         with self.components_lock:
             for component in self.active_components.values():
-                self.__secure_component_method_call(component, "process_event", event_name, metadata)
+                self.__secure_component_method_call(component, "process_event", event_type, metadata)
 
     #################################################################
     # Public
@@ -345,7 +358,11 @@ class App:
 
             host_token = self.db.get_token_for_user("host")
             bot_token = self.db.get_token_for_user("bot")
-            if host_token is not None:
+            host_token.scope.sort()
+            bot_token.scope.sort()
+
+            auth_completed = True
+            if host_token is not None and host_token.scope == self.host_scope:
                 try:
                     self.host_twitch_service = twitch.Service(host_token)
                     if self.host_connected:
@@ -354,7 +371,10 @@ class App:
                     self.db.remove_user("host")
                 except Exception as e:
                     gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
-            if bot_token is not None:
+            else:
+                auth_completed = False
+
+            if bot_token is not None and bot_token.scope == self.bot_scope:
                 try:
                     self.bot_twitch_service = twitch.Service(bot_token)
                     if self.bot_connected:
@@ -363,10 +383,12 @@ class App:
                     self.db.remove_user("bot")
                 except Exception as e:
                     gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
+            else:
+                auth_completed = False
 
             # Waiting for tokens available
             gLogger.info("Waiting for tokens available to start Services")
-            if host_token is None or bot_token is None:
+            if not auth_completed:
                 self.__start_token_web_server()
 
             while self.is_running:
@@ -396,6 +418,7 @@ class App:
 
             self.chat_service.start()
             self.chat_service.subscribe(self.handle_message)
+            self.chat_service.subscribe_events(self.handle_event)
             self.pubsub_service.start()
             self.pubsub_service.subscribe(self.handle_event)
 

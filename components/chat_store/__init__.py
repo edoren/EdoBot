@@ -10,7 +10,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QFileDialog, QWidget
 
 from core import ChatComponent
-from model import User, UserType
+from model import EventType, User, UserType
 
 __all__ = ["ChatStoreComponent"]
 
@@ -60,11 +60,11 @@ class ChatStoreComponent(ChatComponent):
         with open(os.path.join(self.filedir, full_filename), "a", encoding="utf-8") as f:
             f.write(f"[{datetime.now().strftime('%H:%M:%S')}] [{user.display_name}] {message}\n")
 
-    def process_event(self, event_name: str, metadata: Any) -> None:
+    def process_event(self, event_type: EventType, metadata: Any) -> None:
         pass
 
-    def get_config_something(self) -> Optional[QWidget]:
-        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_store.ui"))
+    def get_config_ui(self) -> Optional[QWidget]:
+        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
         self.widget = QUiLoader().load(file)
         file.close()

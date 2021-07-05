@@ -5,6 +5,7 @@ import time
 from enum import Enum
 from typing import Callable, List, MutableMapping, Optional, Union
 
+from model import EventType
 from network import WebSocket
 
 from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, BitsEventMessageMeta,
@@ -28,9 +29,9 @@ class PubSubEvent(Enum):
 
 
 class PubSub(WebSocket):
-    EventTypes = Union[BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
-                       ChannelSubscriptionsEventMessage]
-    EventCallable = Callable[[str, EventTypes], None]
+    EventMessages = Union[BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
+                          ChannelSubscriptionsEventMessage]
+    EventCallable = Callable[[EventType, EventMessages], None]
 
     def __init__(self, broadcaster_id: str, password: str) -> None:
         super().__init__("wss://pubsub-edge.twitch.tv", timeout=1)
@@ -101,10 +102,10 @@ class PubSub(WebSocket):
                     data_message = json.loads(data["message"])
                     if data_topic.startswith(PubSubEvent.CHANNEL_POINTS_EVENT.value):
                         parsed_message = ChannelPointsEventMessageMeta(**data_message)
-                        sub("REWARD_REDEEMED", parsed_message.data)
+                        sub(EventType.REWARD_REDEEMED, parsed_message.data)
                     elif data_topic.startswith(PubSubEvent.BITS_EVENT.value):
                         parsed_message = BitsEventMessageMeta(**data_message)
-                        sub("BITS", parsed_message.data)
+                        sub(EventType.BITS, parsed_message.data)
                     elif data_topic.startswith(PubSubEvent.SUBSCRIPTION_EVENT.value):
                         pass
                     elif data_topic.startswith(PubSubEvent.BITS_BADGE_EVENT.value):

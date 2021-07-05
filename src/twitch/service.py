@@ -24,6 +24,7 @@ class Service:
 
         self.users_cache: MutableMapping[str, CacheRequest] = {}
         self.channel_cache: MutableMapping[str, CacheRequest] = {}
+        self.channel_editors_cache: Optional[CacheRequest] = None
 
         user = self.get_user()
         if user is not None:
@@ -84,6 +85,14 @@ class Service:
         channels = [model.Channel(**x) for x in response["data"] or []]
         channel = None if len(channels) == 0 else channels[0]
         return channel
+
+    def get_channel_editors(self) -> List[model.ChannelEditor]:
+        if self.channel_editors_cache is None:
+            self.channel_editors_cache = self.__get_cache_requestor("GET", "/channels/editors",
+                                                                    params={"broadcaster_id": self.user.id})
+        response = self.__call_endpoint(self.channel_editors_cache)
+        editors = [model.ChannelEditor(**x) for x in response["data"] or []]
+        return editors
 
     def __get_cache_requestor(self, method, path, params=None):
         return CacheRequest(

@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Set, Union
 
 import twitch
 from core import ChatComponent
-from model import User, UserType
+from model import EventType, User, UserType
 
 __all__ = ["EchoComponent"]
 
@@ -30,8 +30,8 @@ class EchoComponent(ChatComponent):
                         metadata: Optional[Any] = None) -> None:
         gLogger.info((f"[{user.display_name}] {message}"))
 
-    def process_event(self, event_name: str, metadata: Any) -> None:
-        if event_name == "REWARD_REDEEMED":
+    def process_event(self, event_type: EventType, metadata: Any) -> None:
+        if event_type == event_type.REWARD_REDEEMED:
             event_data: twitch.ChannelPointsEventMessage = metadata
-            gLogger.info((f"[{event_data.redemption.user.display_name}] {event_name}: "
+            gLogger.info((f"[{event_data.redemption.user.display_name}] {event_type}: "
                           f"{event_data.redemption.reward.title}"))

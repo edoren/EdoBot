@@ -13,7 +13,7 @@ from PySide2.QtWidgets import (QAction, QComboBox, QFormLayout, QGroupBox, QLine
 
 import twitch
 from core import ChatComponent
-from model import User, UserType
+from model import EventType, User, UserType
 
 gLogger = logging.getLogger("edobot.components.counter")
 
@@ -111,7 +111,7 @@ class CountdownTimerWidget(QWidget):
 
         self.data_parent = data_parent
 
-        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "countdown_timer.ui"))
+        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
         my_widget = QUiLoader().load(file, self)
         file.close()
@@ -514,8 +514,8 @@ class CountdownTimerComponent(ChatComponent):
             else:
                 return self.format_time(time_ms, "seconds")
 
-    def process_event(self, event_name: str, metadata: Any) -> None:
-        if event_name == "REWARD_REDEEMED":
+    def process_event(self, event_type: EventType, metadata: Any) -> None:
+        if event_type == EventType.REWARD_REDEEMED:
             event_data: twitch.ChannelPointsEventMessage = metadata
             reward_name = event_data.redemption.reward.title
             with self.timer_thread_lock:
@@ -525,7 +525,7 @@ class CountdownTimerComponent(ChatComponent):
                         if event is not None and event.enabled:
                             self.start_timer_for_event(timer, event)
 
-    def get_config_something(self) -> Optional[QWidget]:
+    def get_config_ui(self) -> Optional[QWidget]:
         widget = CountdownTimerWidget(self)
         widget.addButtonPressed.connect(self.add_time_to_timer)  # type: ignore
         widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore

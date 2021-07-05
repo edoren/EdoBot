@@ -10,7 +10,7 @@ from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QHBoxLayout, QLabe
                                QListWidgetItem, QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 from core import ChatComponent
-from model import User, UserType
+from model import EventType, User, UserType
 
 gLogger = logging.getLogger("edobot.components.scene_changer")
 
@@ -23,7 +23,7 @@ class SceneChangerComponentConfigWidget(QWidget):
 
         self.data_parent = data_parent
 
-        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "scene_changer.ui"))
+        file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ui"))
         file.open(QFile.OpenModeFlag.ReadOnly)  # type: ignore
         my_widget = QUiLoader().load(file, self)
         file.close()
@@ -34,6 +34,7 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.scene_changes_widget: QListWidget = getattr(my_widget, "scene_changes_widget")
         self.add_button: QPushButton = getattr(my_widget, "add_button")
 
+        self.editor_check_box: QCheckBox = getattr(my_widget, "editor_check_box")
         self.mod_check_box: QCheckBox = getattr(my_widget, "mod_check_box")
         self.vip_check_box: QCheckBox = getattr(my_widget, "vip_check_box")
         self.sub_check_box: QCheckBox = getattr(my_widget, "sub_check_box")
@@ -43,6 +44,7 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.add_button.clicked.connect(self.on_add_clicked)  # type: ignore
         self.scene_changes_widget.customContextMenuRequested.connect(self.open_context_menu)  # type: ignore
         self.command_line_edit.editingFinished.connect(self.command_changed)  # type: ignore
+        self.editor_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
         self.mod_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
         self.vip_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
         self.sub_check_box.clicked.connect(self.who_can_use_changed)  # type: ignore
@@ -54,6 +56,7 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.setMinimumWidth(self.width())
 
         self.command_line_edit.setText(self.data_parent.command)
+        self.editor_check_box.setChecked(UserType.EDITOR in self.data_parent.who_can)
         self.mod_check_box.setChecked(UserType.MODERATOR in self.data_parent.who_can)
         self.vip_check_box.setChecked(UserType.VIP in self.data_parent.who_can)
         self.sub_check_box.setChecked(UserType.SUBSCRIPTOR in self.data_parent.who_can)
@@ -107,8 +110,9 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.data_parent.set_command(self.command_line_edit.text())
 
     def who_can_use_changed(self):
-        self.data_parent.update_who_can(self.mod_check_box.isChecked(), self.vip_check_box.isChecked(),
-                                        self.sub_check_box.isChecked(), self.chatter_check_box.isChecked())
+        self.data_parent.update_who_can(self.editor_check_box.isChecked(), self.mod_check_box.isChecked(),
+                                        self.vip_check_box.isChecked(), self.sub_check_box.isChecked(),
+                                        self.chatter_check_box.isChecked())
 
     def showEvent(self, event: QShowEvent) -> None:
         scene_list = self.data_parent.get_obs_scenes()
@@ -137,11 +141,9 @@ class SceneChangerComponent(ChatComponent):
             self.command = "scene"
             self.config["command"] = self.command
 
-        who_can = ~self.config["who_can"]
-        if who_can is not None or isinstance(who_can, dict):
-            self.update_who_can(who_can["mod"], who_can["vip"], who_can["sub"], who_can["chatter"])
-        else:
-            self.update_who_can(True, False, False, False)
+        who_can = self.config["who_can"].setdefault({})
+        self.update_who_can(who_can.get("editor", True), who_can.get("mod", True), who_can.get("vip", False),
+                            who_can.get("sub", False), who_can.get("chatter", False))
 
         self.transitions: MutableMapping[str, List[str]] = ~self.config["transitions"]
         if self.command is None or not isinstance(self.transitions, dict):
@@ -174,10 +176,10 @@ class SceneChangerComponent(ChatComponent):
                         gLogger.info(f"[{user.display_name}] Transitioning: {current_scene} -> {target_scene}")
                         self.obs.set_current_scene(target_scene)
 
-    def process_event(self, event_name: str, metadata: Any) -> None:
+    def process_event(self, event_type: EventType, metadata: Any) -> None:
         pass
 
-    def get_config_something(self) -> Optional[QWidget]:
+    def get_config_ui(self) -> Optional[QWidget]:
         return SceneChangerComponentConfigWidget(self)
 
     def add_transition(self, from_scene: str, to_scene: str):
@@ -200,8 +202,10 @@ class SceneChangerComponent(ChatComponent):
         self.command = command
         self.config["command"] = self.command
 
-    def update_who_can(self, mod: bool, vip: bool, sub: bool, chatter: bool):
+    def update_who_can(self, editor: bool, mod: bool, vip: bool, sub: bool, chatter: bool):
         self.who_can = set()
+        if editor:
+            self.who_can.add(UserType.EDITOR)
         if mod:
             self.who_can.add(UserType.MODERATOR)
         if vip:
@@ -210,7 +214,7 @@ class SceneChangerComponent(ChatComponent):
             self.who_can.add(UserType.SUBSCRIPTOR)
         if chatter:
             self.who_can.add(UserType.CHATTER)
-        self.config["who_can"] = {"mod": mod, "vip": vip, "sub": sub, "chatter": chatter}
+        self.config["who_can"] = {"editor": editor, "mod": mod, "vip": vip, "sub": sub, "chatter": chatter}
 
     def get_obs_scenes(self):
         if not self.obs.is_connected():

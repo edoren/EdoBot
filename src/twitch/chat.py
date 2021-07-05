@@ -1,7 +1,8 @@
 import logging
 import time
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Mapping, Optional
 
+from model import EventType
 from network import WebSocket
 from twitch.irc_tags import PrivateMsgTags
 
@@ -12,6 +13,7 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 class Chat(WebSocket):
     MessageCallable = Callable[[str, PrivateMsgTags, str], None]
+    EventCallable = Callable[[EventType, Any], None]
 
     def __init__(self, nickname: str, password: str, channel_name: str):
         super().__init__("wss://irc-ws.chat.twitch.tv", timeout=1)
@@ -22,6 +24,7 @@ class Chat(WebSocket):
         self.last_ping_time: Optional[float] = None
         self.has_started = False
         self.subscribers: List[Chat.MessageCallable] = []
+        self.subscribers_events: List[Chat.EventCallable] = []
 
     def start(self) -> None:
         self.connect()
@@ -50,6 +53,9 @@ class Chat(WebSocket):
     def subscribe(self, subscriber: MessageCallable):
         self.subscribers.append(subscriber)
 
+    def subscribe_events(self, subscriber: EventCallable):
+        self.subscribers_events.append(subscriber)
+
     def send_message(self, message: str) -> None:
         while self.running:
             try:
@@ -61,21 +67,22 @@ class Chat(WebSocket):
 
     def handle_message(self, message: str):
         lines = message.strip("\r\n").split("\r\n")
+
+        def process_tags(tags_str: str) -> Mapping[str, str]:
+            tags_dict = {}
+            for key_value in tags_raw.lstrip("@").split(";"):
+                key, value = key_value.split("=", 1)
+                if key not in ["subscriber", "turbo", "user-type"]:  # Ignore deprecated tags
+                    tags_dict[key.replace("-", "_")] = value
+            return tags_dict
+
         for line in lines:
             if line.find("PRIVMSG") > 0:
                 gLogger.debug(line)
 
                 raw_message_list = line.rsplit("PRIVMSG", 1)
-
                 tags_raw, sender_raw = raw_message_list[0].strip(" ").rsplit(" ", 1)
-
-                tags_dict = {}
-                for key_value in tags_raw.lstrip("@").split(";"):
-                    key, value = key_value.split("=", 1)
-                    if key not in ["subscriber", "turbo", "user-type"]:  # Ignore deprecated tags
-                        tags_dict[key.replace("-", "_")] = value
-                tags = PrivateMsgTags(**tags_dict)
-
+                tags = PrivateMsgTags(**process_tags(tags_raw))
                 sender = sender_raw.split("!")[0].lstrip(":")
 
                 if not tags.display_name:  # display_name might be empty
@@ -87,6 +94,19 @@ class Chat(WebSocket):
                 text = text.strip(" ")
                 for sub in self.subscribers:
                     sub(sender, tags, text)
+            elif line.find("USERNOTICE") > 0:
+                raw_message_list = line.rsplit("USERNOTICE", 1)
+                tags_raw, sender_raw = raw_message_list[0].strip(" ").rsplit(" ", 1)
+                tags_dict = process_tags(tags_raw)
+                if tags_dict.get("msg_id") == "raid":
+                    for sub in self.subscribers_events:
+                        sub(
+                            EventType.RAID, {
+                                "displayName": tags_dict.get("msg_param_displayName", ""),
+                                "login": tags_dict.get("msg_param_login", ""),
+                                "profileImageURL": tags_dict.get("msg_param_profileImageURL", ""),
+                                "viewerCount": int(tags_dict.get("msg_param_viewerCount", 0))
+                            })
             else:
                 if line.startswith("PING"):
                     pong_host = line.split(" ")[1]

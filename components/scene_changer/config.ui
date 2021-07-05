@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
+    <width>582</width>
     <height>224</height>
    </rect>
   </property>
@@ -110,31 +110,38 @@
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="mod_check_box">
+            <item row="0" column="2">
+             <widget class="QCheckBox" name="chatter_check_box">
               <property name="text">
-               <string>Mods</string>
+               <string>Chatter</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
+            <item row="0" column="1">
              <widget class="QCheckBox" name="sub_check_box">
               <property name="text">
                <string>Subs</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
+            <item row="1" column="1">
              <widget class="QCheckBox" name="vip_check_box">
               <property name="text">
                <string>VIP</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="chatter_check_box">
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="editor_check_box">
               <property name="text">
-               <string>Chatter</string>
+               <string>Editor</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="mod_check_box">
+              <property name="text">
+               <string>Mods</string>
               </property>
              </widget>
             </item>

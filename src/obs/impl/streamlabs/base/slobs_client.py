@@ -4,8 +4,8 @@ import threading
 import time
 from typing import Any, MutableMapping
 
-from network.websocket import WebSocket
 from core.signal import Signal
+from network.websocket import WebSocket
 
 from ..services.scenes_service import ScenesService
 from .json_rpc_message import JSONRPCMessage

@@ -121,7 +121,7 @@ class CountdownTimerWidget(QWidget):
         self.timers_list: QListWidget = getattr(my_widget, "timers_list")
         self.add_timer_button: QPushButton = getattr(my_widget, "add_timer_button")
         self.remove_timer_button: QPushButton = getattr(my_widget, "remove_timer_button")
-        self.timer_config: QGroupBox = getattr(my_widget, "timer_config")
+        self.timer_config_group_box: QGroupBox = getattr(my_widget, "timer_config_group_box")
         self.tab_widget: QTabWidget = getattr(my_widget, "tab_widget")
 
         self.format_input: QLineEdit = getattr(my_widget, "format_input")
@@ -147,7 +147,7 @@ class CountdownTimerWidget(QWidget):
 
         # Default Configs
 
-        self.timer_config.setEnabled(False)
+        self.timer_config_group_box.setEnabled(False)
         self.remove_timer_button.setEnabled(False)
 
         self.display_selection.addItem("Hours", "hours")
@@ -262,10 +262,10 @@ class CountdownTimerWidget(QWidget):
 
     def timer_selection_changed(self, current, previous):
         if current is None:
-            self.timer_config.setEnabled(False)
+            self.timer_config_group_box.setEnabled(False)
             self.remove_timer_button.setEnabled(False)
         else:
-            self.timer_config.setEnabled(True)
+            self.timer_config_group_box.setEnabled(True)
             self.remove_timer_button.setEnabled(True)
             timer: RewardTimer = current.data(Qt.UserRole)  # type: ignore
             self.format_input.setText(timer.format)

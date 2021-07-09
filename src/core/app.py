@@ -138,11 +138,11 @@ class App:
         if token.state[0] == "host":
             self.host_twitch_service = twitch.Service(token)
             if self.host_connected:
-                self.host_connected(self.host_twitch_service.user)
+                self.host_connected(self.host_twitch_service.get_user())
         elif token.state[0] == "bot":
             self.bot_twitch_service = twitch.Service(token)
             if self.bot_connected:
-                self.bot_connected(self.bot_twitch_service.user)
+                self.bot_connected(self.bot_twitch_service.get_user())
         self.db.set_user_token(token.state[0], token)
         if self.host_twitch_service is not None and self.bot_twitch_service is not None:
             self.__stop_token_web_server()
@@ -153,7 +153,7 @@ class App:
 
         user_types: Set[model.UserType] = {model.UserType.CHATTER}
 
-        if self.host_twitch_service.user.login == sender:
+        if self.host_twitch_service.get_user().login == sender:
             user_types.add(model.UserType.BROADCASTER)
             user_types.add(model.UserType.EDITOR)
             user_types.add(model.UserType.MODERATOR)
@@ -358,37 +358,37 @@ class App:
 
             host_token = self.db.get_token_for_user("host")
             bot_token = self.db.get_token_for_user("bot")
-            host_token.scope.sort()
-            bot_token.scope.sort()
+            if host_token:
+                host_token.scope.sort()
+            if bot_token:
+                bot_token.scope.sort()
 
-            auth_completed = True
-            if host_token is not None and host_token.scope == self.host_scope:
+            self.host_twitch_service = None
+            self.bot_twitch_service = None
+
+            if self.is_running and host_token is not None and host_token.scope == self.host_scope:
                 try:
                     self.host_twitch_service = twitch.Service(host_token)
                     if self.host_connected:
-                        self.host_connected(self.host_twitch_service.user)
+                        self.host_connected(self.host_twitch_service.get_user())
                 except twitch.service.UnauthenticatedException:
                     self.db.remove_user("host")
                 except Exception as e:
                     gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
-            else:
-                auth_completed = False
 
-            if bot_token is not None and bot_token.scope == self.bot_scope:
+            if self.is_running and bot_token is not None and bot_token.scope == self.bot_scope:
                 try:
                     self.bot_twitch_service = twitch.Service(bot_token)
                     if self.bot_connected:
-                        self.bot_connected(self.bot_twitch_service.user)
+                        self.bot_connected(self.bot_twitch_service.get_user())
                 except twitch.service.UnauthenticatedException:
                     self.db.remove_user("bot")
                 except Exception as e:
                     gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
-            else:
-                auth_completed = False
 
             # Waiting for tokens available
             gLogger.info("Waiting for tokens available to start Services")
-            if not auth_completed:
+            if self.is_running and (self.host_twitch_service is None or self.bot_twitch_service is None):
                 self.__start_token_web_server()
 
             while self.is_running:
@@ -399,10 +399,10 @@ class App:
                 return
 
             with self.start_stop_lock:
-                self.chat_service = twitch.Chat(self.bot_twitch_service.user.display_name,
+                self.chat_service = twitch.Chat(self.bot_twitch_service.get_user().display_name,
                                                 self.bot_twitch_service.token.access_token,
-                                                self.host_twitch_service.user.login)
-                self.pubsub_service = twitch.PubSub(self.host_twitch_service.user.id,
+                                                self.host_twitch_service.get_user().login)
+                self.pubsub_service = twitch.PubSub(self.host_twitch_service.get_user().id,
                                                     self.host_twitch_service.token.access_token)
 
                 with self.components_lock:
@@ -463,8 +463,12 @@ class App:
         if not self.is_running:
             return
         self.config["components"] = self.current_components
-        self.bot_twitch_service = None
-        self.host_twitch_service = None
+        if self.bot_twitch_service is not None:
+            self.bot_twitch_service.stop_()
+            self.bot_twitch_service = None
+        if self.host_twitch_service is not None:
+            self.host_twitch_service.stop_()
+            self.host_twitch_service = None
         self.stop()
         with self.start_stop_lock:
             gLogger.info("Shutting down bot, please wait...")

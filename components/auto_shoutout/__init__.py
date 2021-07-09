@@ -51,7 +51,7 @@ class AutoShoutOut(ChatComponent):
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
         return ChatComponent.Metadata(id="auto_shoutout", name="Auto Shout-Out",
-                                      description="Stores the chat in a specific folder",
+                                      description="Automatically shout-out a streamers in the chat",
                                       icon=qta.icon("fa5s.bullhorn"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
@@ -81,9 +81,8 @@ class AutoShoutOut(ChatComponent):
         self.process_shoutout(user, True)
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
-        viewer_count = metadata["viewerCount"]
-        if event_type == EventType.RAID and self.raids_enabled and viewer_count >= self.raid_min_viewers:
-            user = self.twitch.get_user(metadata["login"])
+        if event_type == EventType.RAID and self.raids_enabled and metadata.viewer_count >= self.raid_min_viewers:
+            user = self.twitch.get_user(metadata.login)
             if user is not None:
                 self.process_shoutout(user, True)
 
@@ -144,7 +143,7 @@ class AutoShoutOut(ChatComponent):
 
     # Shoutouts
     def process_shoutout(self, user: User, check_time: bool):
-        if self.blacklist_enabled and user.login in self.blacklist or user.login == self.twitch.user.login:
+        if self.blacklist_enabled and user.login in self.blacklist or user.login == self.twitch.get_user().login:
             return
 
         broadcaster_types_to_check = []

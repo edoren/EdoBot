@@ -73,5 +73,17 @@
         <source>Partner</source>
         <translation>Partner</translation>
     </message>
+    <message>
+        <source>Hours</source>
+        <translation>Horas</translation>
+    </message>
+    <message>
+        <source>Minutes</source>
+        <translation>Minutos</translation>
+    </message>
+    <message>
+        <source>Seconds</source>
+        <translation>Segundos</translation>
+    </message>
 </context>
 </TS>

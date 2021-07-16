@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Callable, List, Optional
 
 import arrow
-from PySide2.QtCore import QLocale, QSettings, QSize, QTranslator, Qt, QUrl, Signal
+from PySide2.QtCore import QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
 from PySide2.QtGui import QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
                                QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
@@ -392,6 +392,11 @@ class MainWindow(QMainWindow):
             if not component_instance.has_started:
                 return
             try:
+                component_folder = self.app.get_component_folder(component_id)
+                if component_folder is not None:
+                    translator = QTranslator()
+                    translator.load(QLocale(), "", "", os.path.join(component_folder, "i18n"), ".qm")
+                    QApplication.installTranslator(translator)
                 config_something = component_instance.get_config_ui()
             except Exception as e:
                 gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
@@ -531,7 +536,7 @@ def main():
         app = UniqueApplication(sys.argv)
         app.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
 
-        # QLocale.setDefault(QLocale(QLocale.Language.Spanish, QLocale.Country.Spain))
+        # QLocale.setDefault(QLocale(QLocale.Language.Spanish, QLocale.Country.Colombia))
         # QLocale.setDefault(QLocale(QLocale.Language.English, QLocale.Country.UnitedStates))
 
         translator = QTranslator()

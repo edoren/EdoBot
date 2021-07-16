@@ -4,7 +4,7 @@ import time
 from typing import Any, List, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QFile, Signal
+from PySide2.QtCore import QCoreApplication, QFile, Signal
 from PySide2.QtGui import QFocusEvent
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
@@ -119,9 +119,9 @@ class AutoShoutOut(ChatComponent):
         self.cooldown_enabled_check_box.setChecked(self.cooldown_enabled)
         self.cooldown_spin_box.setValue(self.cooldown)
         self.cooldown_spin_box.setEnabled(self.cooldown_enabled)
-        self.cooldown_combo_box.addItem("Hours", "hours")
-        self.cooldown_combo_box.addItem("Minutes", "minutes")
-        self.cooldown_combo_box.addItem("Seconds", "seconds")
+        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", u"Hours", None), "hours")
+        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", u"Minutes", None), "minutes")
+        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", u"Seconds", None), "seconds")
         self.cooldown_combo_box.setEnabled(self.cooldown_enabled)
         self.cooldown_combo_box.setCurrentIndex(self.cooldown_combo_box.findData(self.cooldown_format))
         self.message_text_edit.setPlainText(self.message)

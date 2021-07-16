@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Callable, List, Optional
 
 import arrow
-from PySide2.QtCore import QSettings, QSize, Qt, QUrl, Signal
+from PySide2.QtCore import QLocale, QSettings, QSize, QTranslator, Qt, QUrl, Signal
 from PySide2.QtGui import QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
                                QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
@@ -198,33 +198,37 @@ class MainWindow(QMainWindow):
                 "Please go to <a href='https://github.com/edoren/EdoBot'>github.com/edoren/EdoBot</a> for more info."
                 "<br><br>"
                 "Download latest release <a href='https://github.com/edoren/edobot/releases/latest'>here</a>.")
-        QMessageBox.about(self, f"About {Constants.APP_NAME}", text)
+        QMessageBox.about(self, self.tr("About {0}").format(Constants.APP_NAME), text)
 
     def create_actions(self):
         self.settings_action = QAction("&Settings", self)
+        self.settings_action.setText(self.tr("Settings"))
         self.settings_action.setShortcut(QKeySequence.Preferences)
-        self.settings_action.setStatusTip("Application settings")
+        self.settings_action.setStatusTip(self.tr("Application settings"))
         self.settings_action.triggered.connect(self.open_settings)  # type: ignore
 
-        self.open_user_folder_action = QAction("Open User Folder", self)
-        self.open_user_folder_action.setStatusTip("Open the user folder")
+        self.open_user_folder_action = QAction(self.tr("Open User Folder"), self)
+        self.open_user_folder_action.setStatusTip(self.tr("Open the user's folder"))
         self.open_user_folder_action.triggered.connect(self.open_user_folder)  # type: ignore
 
         self.close_action = QAction("&Close", self)
+        self.close_action.setText(self.tr("Close"))
         self.close_action.setShortcut(QKeySequence.Quit)
-        self.close_action.setStatusTip("Close the application")
+        self.close_action.setStatusTip(self.tr("Close the application"))
         self.close_action.triggered.connect(self.close)  # type: ignore
 
         self.about_action = QAction("&About", self)
-        self.about_action.setStatusTip("Show the application's About box")
+        self.about_action.setText(self.tr("About"))
+        self.about_action.setStatusTip(self.tr("Show the application's About box"))
         self.about_action.triggered.connect(self.about)  # type: ignore
 
-        self.about_qt_action = QAction("About &Qt", self)
-        self.about_qt_action.setStatusTip("Show the Qt library's About box")
+        self.about_qt_action = QAction(self.tr("About {0}").format("&Qt"), self)
+        self.about_qt_action.setStatusTip(self.tr("Show the Qt library's About box"))
         self.about_qt_action.triggered.connect(QApplication.aboutQt)  # type: ignore
 
     def create_menus(self):
         self.file_menu = self.menuBar().addMenu("&File")
+        self.file_menu.setTitle(self.tr("File"))
         self.file_menu.addAction(self.settings_action)
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.open_user_folder_action)
@@ -232,21 +236,23 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction(self.close_action)
 
         self.view_menu = self.menuBar().addMenu("&View")
+        self.view_menu.setTitle(self.tr("View"))
 
         self.menuBar().addSeparator()
 
         self.help_menu = self.menuBar().addMenu("&Help")
+        self.help_menu.setTitle(self.tr("Help"))
         self.help_menu.addAction(self.about_action)
         self.help_menu.addAction(self.about_qt_action)
 
     def create_system_tray(self):
         # Creating the options
         menu = QMenu()
-        quit_action = QAction("Quit", self)
-        quit_action.setStatusTip("Quit the application")
+        quit_action = QAction(self.tr("Quit"), self)
+        quit_action.setToolTip(self.tr("Quit the application"))
         quit_action.triggered.connect(self.system_tray_quit)  # type: ignore
-        open_action = QAction("Open", self)
-        open_action.setStatusTip("Open the application")
+        open_action = QAction(self.tr("Open"), self)
+        open_action.setToolTip(self.tr("Open the application"))
         open_action.triggered.connect(self.system_tray_open)  # type: ignore
         menu.addAction(open_action)
         menu.addSeparator()
@@ -261,10 +267,10 @@ class MainWindow(QMainWindow):
         self.system_tray.activated.connect(self.system_tray_activated)  # type: ignore
 
     def create_status_bar(self):
-        self.statusBar().showMessage("Ready")
+        self.statusBar().showMessage(self.tr("Ready"))
 
     def create_dock_windows(self):
-        dock = QDockWidget("Logs", self)
+        dock = QDockWidget(self.tr("Logs"), self)
         dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea |  # type: ignore
                              Qt.DockWidgetArea.BottomDockWidgetArea)
         dock.setObjectName("Logs Window")
@@ -273,9 +279,11 @@ class MainWindow(QMainWindow):
         dock.setWidget(self.log_widget)
         dock.hide()
         self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, dock)
-        self.view_menu.addAction(dock.toggleViewAction())
+        toggle_action = dock.toggleViewAction()
+        toggle_action.setStatusTip(self.tr("Toggle the log window"))
+        self.view_menu.addAction(toggle_action)
 
-        dock = QDockWidget("Available Components", self)
+        dock = QDockWidget(self.tr("Available Components"), self)
         dock.setObjectName("Available Components Window")
         dock.setMinimumWidth(200)
         dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)  # type: ignore
@@ -285,7 +293,7 @@ class MainWindow(QMainWindow):
         dock.setWidget(self.avaiable_comps_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        dock = QDockWidget("Component Configuration", self)
+        dock = QDockWidget(self.tr("Component Configuration"), self)
         dock.setObjectName("Component Configuration Window")
         dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)  # type: ignore
         dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea)  # type: ignore
@@ -522,6 +530,13 @@ def main():
     try:
         app = UniqueApplication(sys.argv)
         app.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
+
+        # QLocale.setDefault(QLocale(QLocale.Language.Spanish, QLocale.Country.Spain))
+        # QLocale.setDefault(QLocale(QLocale.Language.English, QLocale.Country.UnitedStates))
+
+        translator = QTranslator()
+        translator.load(QLocale(), "", "", os.path.join(Constants.EXECUTABLE_DIRECTORY, "i18n"), ".qm")
+        QApplication.installTranslator(translator)
 
         if app.is_unique():
             if __debug__:

@@ -10,6 +10,8 @@ import subprocess
 import sys
 from typing import List
 
+import PySide2.QtCore
+
 import scripts.constants as constants  # type: ignore
 from scripts.file_generator import generate_file_version_info, generate_nsis_file  # type: ignore
 
@@ -21,6 +23,7 @@ parser.add_argument("-O", "--optimized", help="Optimize the compiled python code
 parser.add_argument("--output_dir", help="The folder to output the build", type=str, default="build")
 parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
 parser.add_argument("--console", help="Create a console application", action="store_true")
+parser.add_argument("--localization", help="Build only the localization files", action="store_true")
 args = parser.parse_args()
 
 ######################################################################
@@ -28,6 +31,7 @@ args = parser.parse_args()
 source_dir = os.path.dirname(__file__)
 data_dir = os.path.join(source_dir, "data")
 build_dir = os.path.normpath(os.path.join(source_dir, args.output_dir))
+components_dir = os.path.join(source_dir, "components")
 
 os_name = platform.system().lower()
 
@@ -66,6 +70,30 @@ def copy_function(src: str, dst: str):
     logger.info('Copying {0}'.format(dst))
     shutil.copy2(src, dst)
 
+
+logger.info("=================== Building localization files =====================")
+
+pyside_dir = os.path.dirname(os.path.abspath(PySide2.QtCore.__file__))
+lrelease_exe = os.path.join(pyside_dir, "lrelease.exe")
+
+if os_name == "windows" and os.path.isfile(lrelease_exe):
+    folders = [source_dir] + [
+        os.path.join(components_dir, dI)
+        for dI in os.listdir(components_dir) if os.path.isdir(os.path.join(components_dir, dI))
+    ]
+    files_to_process = []
+    for folder in folders:
+        for content in os.listdir(folder):
+            content_path = os.path.join(folder, content)
+            if content == "i18n" and os.path.isdir(content_path):
+                for ts_file in os.listdir(content_path):
+                    ts_file_path = os.path.join(content_path, ts_file)
+                    if ts_file.endswith(".ts") and os.path.isfile(ts_file_path):
+                        files_to_process.append(ts_file_path)
+    result = subprocess.run([lrelease_exe] + files_to_process)
+
+if args.localization:
+    sys.exit(0)
 
 logger.info("=================== Collecting version =====================")
 
@@ -135,9 +163,11 @@ if result.returncode != 0:
 
 logger.info("=================== Copying data         ===================")
 
-components_dir = os.path.join(source_dir, "components")
 shutil.copytree(components_dir, os.path.join(dist_dir, "components"), dirs_exist_ok=True, copy_function=copy_function,
-                ignore=shutil.ignore_patterns("__pycache__"))
+                ignore=shutil.ignore_patterns("__pycache__", "*.ts"))
+
+shutil.copytree(os.path.join(source_dir, "i18n"), os.path.join(dist_dir, "i18n"), dirs_exist_ok=True,
+                copy_function=copy_function, ignore=shutil.ignore_patterns("*.ts"))
 
 logger.info("============== Downloading required modules ================")
 

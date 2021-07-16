@@ -11,6 +11,7 @@ from PySide2.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, Q
 
 from core import ChatComponent
 from model import EventType, User, UserType
+from twitch import RaidEventMessage, ChannelPointsEventMessage
 
 __all__ = ["AutoShoutOut"]
 
@@ -51,13 +52,14 @@ class AutoShoutOut(ChatComponent):
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
         return ChatComponent.Metadata(id="auto_shoutout", name="Auto Shout-Out",
-                                      description="Automatically shout-out a streamers in the chat",
+                                      description="Automatically shout-out streamers in the chat",
                                       icon=qta.icon("fa5s.bullhorn"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
 
     def start(self) -> None:
+        self.cooldown_enabled = self.config["cooldown_enabled"].setdefault(True)
         self.cooldown = self.config["cooldown"].setdefault(30)
         self.cooldown_format = self.config["cooldown_format"].setdefault("minutes")
         self.blacklist = self.config["blacklist"].setdefault(["streamelements", "streamlabs"])
@@ -78,13 +80,19 @@ class AutoShoutOut(ChatComponent):
 
     def process_message(self, message: str, user: User, user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
-        self.process_shoutout(user, True)
+        self.process_shoutout(user)
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
         if event_type == EventType.RAID and self.raids_enabled and metadata.viewer_count >= self.raid_min_viewers:
-            user = self.twitch.get_user(metadata.login)
+            raid_data: RaidEventMessage = metadata
+            user = self.twitch.get_user(raid_data.login)
             if user is not None:
-                self.process_shoutout(user, True)
+                self.process_shoutout(user)
+        elif event_type == EventType.REWARD_REDEEMED:
+            channel_points_data: ChannelPointsEventMessage = metadata
+            user = self.twitch.get_user(channel_points_data.redemption.user.login)
+            if user is not None:
+                self.process_shoutout(user)
 
     def get_config_ui(self) -> Optional[QWidget]:
         file = QFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ui"))
@@ -94,6 +102,7 @@ class AutoShoutOut(ChatComponent):
         self.widget = loader.load(file)
         file.close()
 
+        self.cooldown_enabled_check_box: QCheckBox = getattr(self.widget, "cooldown_check_box")
         self.cooldown_spin_box: QSpinBox = getattr(self.widget, "cooldown_spin_box")
         self.cooldown_combo_box: QComboBox = getattr(self.widget, "cooldown_combo_box")
         self.message_text_edit: PlainTextEdit = getattr(self.widget, "message_text_edit")
@@ -107,10 +116,13 @@ class AutoShoutOut(ChatComponent):
         self.raids_enabled_check_box: QCheckBox = getattr(self.widget, "raids_enabled_check_box")
         self.raid_min_viewers_spin_box: QSpinBox = getattr(self.widget, "raid_min_viewers_spin_box")
 
+        self.cooldown_enabled_check_box.setChecked(self.cooldown_enabled)
         self.cooldown_spin_box.setValue(self.cooldown)
+        self.cooldown_spin_box.setEnabled(self.cooldown_enabled)
         self.cooldown_combo_box.addItem("Hours", "hours")
         self.cooldown_combo_box.addItem("Minutes", "minutes")
         self.cooldown_combo_box.addItem("Seconds", "seconds")
+        self.cooldown_combo_box.setEnabled(self.cooldown_enabled)
         self.cooldown_combo_box.setCurrentIndex(self.cooldown_combo_box.findData(self.cooldown_format))
         self.message_text_edit.setPlainText(self.message)
         self.message_alt_text_edit.setPlainText(self.message_alt)
@@ -126,6 +138,7 @@ class AutoShoutOut(ChatComponent):
         self.raid_min_viewers_spin_box.setValue(self.raid_min_viewers)
         self.raid_min_viewers_spin_box.setEnabled(self.raids_enabled)
 
+        self.cooldown_enabled_check_box.stateChanged.connect(self.cooldown_enabled_changed)  # type: ignore
         self.cooldown_spin_box.valueChanged.connect(self.cooldown_changed)  # type: ignore
         self.cooldown_combo_box.activated.connect(self.cooldown_format_changed)  # type: ignore
         self.message_text_edit.editingFinished.connect(self.message_changed)  # type: ignore
@@ -142,7 +155,7 @@ class AutoShoutOut(ChatComponent):
         return self.widget
 
     # Shoutouts
-    def process_shoutout(self, user: User, check_time: bool):
+    def process_shoutout(self, user: User):
         if self.blacklist_enabled and user.login in self.blacklist or user.login == self.twitch.get_user().login:
             return
 
@@ -163,9 +176,9 @@ class AutoShoutOut(ChatComponent):
             else:
                 cooldown_time = self.cooldown
 
-            if check_time:
-                last_shoutout_time = self.last_shoutouts.get(user.id)
-                if last_shoutout_time is not None and (current_time - last_shoutout_time) <= cooldown_time:
+            last_shoutout_time = self.last_shoutouts.get(user.id)
+            if last_shoutout_time is not None:
+                if not self.cooldown_enabled or (current_time - last_shoutout_time) <= cooldown_time:
                     return
 
             channel = self.twitch.get_channel(user.id)
@@ -179,6 +192,12 @@ class AutoShoutOut(ChatComponent):
                         self.last_shoutouts[user.id] = current_time
 
     # Slots
+    def cooldown_enabled_changed(self, state: int):
+        self.cooldown_enabled = state != 0
+        self.config["cooldown_enabled"] = self.cooldown_enabled
+        self.cooldown_spin_box.setEnabled(self.cooldown_enabled)
+        self.cooldown_combo_box.setEnabled(self.cooldown_enabled)
+
     def cooldown_changed(self, value: int):
         self.cooldown = value
         self.config["cooldown"] = self.cooldown
@@ -224,10 +243,12 @@ class AutoShoutOut(ChatComponent):
 
     def whitelist_changed(self):
         text = self.whitelist_line_edit.text().strip().replace(" ", "").lower()
-        self.whitelist = text.split(",") if text else []
+        self.whitelist = [x for x in (text.split(",") if text else []) if len(x) > 0]
         self.config["whitelist"] = self.whitelist
+        self.whitelist_line_edit.setText(", ".join(self.whitelist))
 
     def blacklist_changed(self):
         text = self.blacklist_line_edit.text().strip().replace(" ", "").lower()
-        self.blacklist = text.split(",") if text else []
+        self.blacklist = [x for x in (text.split(",") if text else []) if len(x) > 0]
         self.config["blacklist"] = self.blacklist
+        self.blacklist_line_edit.setText(", ".join(self.blacklist))

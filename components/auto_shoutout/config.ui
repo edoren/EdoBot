@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ChatStore</class>
- <widget class="QWidget" name="ChatStore">
+ <class>AutoShoutOut</class>
+ <widget class="QWidget" name="AutoShoutOut">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>659</width>
-    <height>293</height>
+    <height>287</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string notr="true">Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QGroupBox { font-weight: bold; }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -19,36 +22,20 @@
      <item>
       <widget class="QGroupBox" name="configGroup">
        <property name="styleSheet">
-        <string notr="true">QGroupBox { font-weight: bold; }</string>
+        <string notr="true"/>
        </property>
        <property name="title">
-        <string>Config</string>
+        <string>Configuration</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="cooldown_label">
-            <property name="text">
-             <string>Cooldown</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QSpinBox" name="cooldown_spin_box">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximum">
-               <number>1440</number>
-              </property>
-              <property name="value">
-               <number>30</number>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::NoButtons</enum>
               </property>
              </widget>
             </item>
@@ -125,57 +112,68 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="cooldown_check_box">
+            <property name="text">
+             <string>Cooldown</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox">
-       <property name="styleSheet">
-        <string notr="true">QGroupBox { font-weight: bold; }</string>
-       </property>
-       <property name="title">
-        <string>Raids</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QCheckBox" name="raids_enabled_check_box">
-          <property name="text">
-           <string>Enable Raids</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QFormLayout" name="formLayout_2">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="title">
+          <string>Raids</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QCheckBox" name="raids_enabled_check_box">
             <property name="text">
-             <string>Min Viewers</string>
+             <string>Enable Raids</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="raid_min_viewers_spin_box">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>1000000</number>
-            </property>
-           </widget>
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Min Viewers</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="raid_min_viewers_spin_box">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>1000000</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
    <item>
     <widget class="QGroupBox" name="filteringGroup">
      <property name="styleSheet">
-      <string notr="true">QGroupBox { font-weight: bold; }</string>
+      <string notr="true"/>
      </property>
      <property name="title">
       <string>Filtering</string>
@@ -196,7 +194,7 @@
            <bool>true</bool>
           </property>
           <property name="placeholderText">
-           <string>twitch</string>
+           <string notr="true">twitch</string>
           </property>
          </widget>
         </item>
@@ -210,7 +208,7 @@
         <item row="2" column="1">
          <widget class="QLineEdit" name="blacklist_line_edit">
           <property name="placeholderText">
-           <string>streamelements, streamlabs</string>
+           <string notr="true">streamelements, streamlabs</string>
           </property>
          </widget>
         </item>
@@ -246,6 +244,9 @@
    </item>
    <item>
     <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
      <property name="sizeHint" stdset="0">
       <size>
        <width>0</width>

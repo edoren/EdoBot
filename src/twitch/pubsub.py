@@ -11,10 +11,7 @@ from network import WebSocket
 from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, BitsEventMessageMeta,
                             ChannelPointsEventMessage, ChannelPointsEventMessageMeta, ChannelSubscriptionsEventMessage)
 
-__all__ = [
-    "PubSub", "PubSubEvent", "BitsBadgeNotificationMessage", "BitsEventMessage", "ChannelPointsEventMessage",
-    "ChannelSubscriptionsEventMessage"
-]
+__all__ = ["PubSub", "PubSubEvent"]
 
 gLogger = logging.getLogger(f"edobot.{__name__}")
 

@@ -14,18 +14,29 @@
             "justMyCode": false
         },
         {
-            "name": "Build",
+            "name": "Build Onedir",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/build.py",
-            "args": ["--onefile"],
+            "args": [],
             "console": "integratedTerminal"
         },
         {
-            "name": "Attach",
+            "name": "Build Onefile",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/build.py",
+            "args": [
+                "--onefile"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Attach PID",
             "type": "python",
             "request": "attach",
-            "processId": "${command:pickProcess}"
+            "processId": "${command:pickProcess}",
+            "justMyCode": false
         },
         {
             "name": "Current File",

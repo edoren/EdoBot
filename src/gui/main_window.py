@@ -156,6 +156,9 @@ class MainWindow(QMainWindow):
 
         logging.basicConfig(level=default_level, handlers=handlers)
 
+        if __debug__:
+            gLogger.info(f"Debug info: [PID: {os.getpid()}]")
+
         self.app: App = App()
         self.app.started = self.edobotStarted.emit  # type: ignore
         self.edobotStarted.connect(self.edobot_started)  # type: ignore
@@ -179,13 +182,13 @@ class MainWindow(QMainWindow):
         self.component_list.componentRemoved.connect(self.remove_component)  # type: ignore
         self.component_list.componentClicked.connect(self.component_clicked)  # type: ignore
 
+        for comp_instance in self.app.get_active_components().values():
+            self.add_component_widget(comp_instance)
+
         for comp_type in self.app.get_available_components().values():
             comp_metadata = self.__get_translated_component_metadata(comp_type)
             if __debug__ or not comp_metadata.debug:
                 self.available_comps_widget.add_component(comp_type.get_id(), comp_metadata)
-
-        for comp_instance in self.app.get_active_components().values():
-            self.add_component_widget(comp_instance)
 
         self.restore_window_settings()
 
@@ -555,11 +558,7 @@ def main():
         QApplication.installTranslator(translator)
 
         if app.is_unique():
-            if __debug__:
-                print(f"Debug info: [PID: {os.getpid()}]")
-
             app.start_listener()
-
             main_win = MainWindow(args)
             app.anotherInstance.connect(main_win.system_tray_open)  # type: ignore
             ret = app.exec_()

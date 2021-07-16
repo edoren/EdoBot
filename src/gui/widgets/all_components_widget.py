@@ -12,13 +12,13 @@ __all__ = ["AllComponentsWidget"]
 
 
 class AllComponentsWidgetItem(QListWidgetItem):
-    def __init__(self, meta: ChatComponent.Metadata):
+    def __init__(self, id: str, meta: ChatComponent.Metadata):
         super().__init__()
         self.widget = QLabel(meta.name)
         self.widget.setStyleSheet("QLabel { padding: 0 5px 0 5px; }")
         self.widget.setFixedHeight(20)
         self.widget.setToolTip(meta.description)
-        self.setData(Qt.ItemDataRole.UserRole, {"id": meta.id, "name": meta.name})  # type: ignore
+        self.setData(Qt.ItemDataRole.UserRole, {"id": id, "name": meta.name})  # type: ignore
         self.setSizeHint(self.widget.sizeHint())
         self.setIcon(meta.icon)
 
@@ -55,7 +55,7 @@ class AllComponentsWidget(BaseListWidget):
         del painter
         del pixmap
 
-    def add_component(self, meta: ChatComponent.Metadata):
-        item = AllComponentsWidgetItem(meta)
+    def add_component(self, id: str, meta: ChatComponent.Metadata):
+        item = AllComponentsWidgetItem(id, meta)
         self.addItem(item)
         self.setItemWidget(item, item.widget)

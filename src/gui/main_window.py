@@ -7,7 +7,7 @@ import traceback
 import webbrowser
 import zipfile
 from datetime import datetime
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Type, Union
 
 import arrow
 from PySide2.QtCore import QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
@@ -179,12 +179,12 @@ class MainWindow(QMainWindow):
         self.component_list.componentRemoved.connect(self.remove_component)  # type: ignore
         self.component_list.componentClicked.connect(self.component_clicked)  # type: ignore
 
+        for comp_type in self.app.get_available_components().values():
+            comp_metadata = self.__get_translated_component_metadata(comp_type)
+            self.avaiable_comps_widget.add_component(comp_type.get_id(), comp_metadata)
+
         for comp_instance in self.app.get_active_components().values():
             self.add_component_widget(comp_instance)
-
-        for comp_type in self.app.get_available_components().values():
-            comp_metadata = comp_type.get_metadata()
-            self.avaiable_comps_widget.add_component(comp_metadata)
 
         self.restore_window_settings()
 
@@ -462,8 +462,8 @@ class MainWindow(QMainWindow):
             self.active_component_config_widget = None
 
     def add_component_widget(self, component: ChatComponent):
-        comp_metadata = component.get_metadata()
-        widget = ComponentWidget(comp_metadata)
+        comp_metadata = self.__get_translated_component_metadata(component)
+        widget = ComponentWidget(component.get_id(), comp_metadata)
         self.component_list.add_component(widget)
 
     def host_connected(self, user: model.User):
@@ -506,6 +506,16 @@ class MainWindow(QMainWindow):
     #################################################################
     # Private
     #################################################################
+
+    def __get_translated_component_metadata(
+            self, comp_type: Union[ChatComponent, Type[ChatComponent]]) -> ChatComponent.Metadata:
+        component_id = comp_type.get_id()
+        component_folder = self.app.get_component_folder(component_id)
+        if component_folder is not None:
+            translator = QTranslator()
+            translator.load(QLocale(), "", "", os.path.join(component_folder, "i18n"), ".qm")
+            QApplication.installTranslator(translator)
+        return comp_type.get_metadata()
 
     def __open_url(self, url):
         gLogger.info(f"You will be redirected to the browser to login to {url}")

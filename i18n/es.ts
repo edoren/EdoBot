@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="es" sourcelanguage="en">
+<!DOCTYPE TS><TS version="1.1" language="es">
 <context>
     <name>MainWindow</name>
     <message>
@@ -48,7 +47,7 @@
         <translation>Abrir Carpeta del Usuario</translation>
     </message>
     <message>
-        <source>Open the user's folder</source>
+        <source>Open the user&apos;s folder</source>
         <translation>Abrir la carpeta del usuario</translation>
     </message>
     <message>
@@ -64,7 +63,7 @@
         <translation>Acerca</translation>
     </message>
     <message>
-        <source>Show the application's About box</source>
+        <source>Show the application&apos;s About box</source>
         <translation>Muestra la ventana de información de la aplicación</translation>
     </message>
     <message>
@@ -72,7 +71,7 @@
         <translation>Acerca de {0}</translation>
     </message>
     <message>
-        <source>Show the Qt library's About box</source>
+        <source>Show the Qt library&apos;s About box</source>
         <translation>Muestra la ventana de información de la libraria Qt</translation>
     </message>
     <message>
@@ -100,22 +99,22 @@
         <translation>Configuración</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="37"/>
+        <location filename="settings.ui" line="37"/>
         <source>Main Account</source>
         <translation>Cuenta Principal</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="70"/>
+        <location filename="settings.ui" line="70"/>
         <source>Name</source>
         <translation>Nombre</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="57"/>
+        <location filename="settings.ui" line="57"/>
         <source>Chat Account</source>
         <translation>Cuenta de Chat</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="84"/>
+        <location filename="settings.ui" line="84"/>
         <source>Connect</source>
         <translation>Conectar</translation>
     </message>
@@ -130,32 +129,32 @@
         <translation>Desconectar</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="110"/>
+        <location filename="settings.ui" line="110"/>
         <source>Host</source>
         <translation>Host</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="127"/>
+        <location filename="settings.ui" line="127"/>
         <source>Port</source>
         <translation>Puerto</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="147"/>
+        <location filename="settings.ui" line="147"/>
         <source>Password</source>
         <translation>Contraseña</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="172"/>
+        <location filename="settings.ui" line="175"/>
         <source>System</source>
         <translation>Sistema</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="178"/>
+        <location filename="settings.ui" line="181"/>
         <source>Open on system startup</source>
         <translation>Abrir al iniciar el sistema</translation>
     </message>
     <message>
-        <location filename="data/designer/settings.ui" line="185"/>
+        <location filename="settings.ui" line="188"/>
         <source>Close to system tray</source>
         <translation>Cerrar a la bandeja del sistema</translation>
     </message>

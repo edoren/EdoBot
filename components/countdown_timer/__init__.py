@@ -150,13 +150,18 @@ class CountdownTimerWidget(QWidget):
         self.timer_config_group_box.setEnabled(False)
         self.remove_timer_button.setEnabled(False)
 
-        self.display_selection.addItem("Hours", "hours")
-        self.display_selection.addItem("Minutes", "minutes")
-        self.display_selection.addItem("Seconds", "seconds")
-        self.display_selection.addItem("Automatic", "automatic")
+        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Hours", None), "hours")
+        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None),
+                                       "minutes")
+        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Seconds", None),
+                                       "seconds")
+        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Automatic", None),
+                                       "automatic")
         self.display_selection.setCurrentIndex(self.display_selection.findData("minutes"))
 
-        self.available_events = {"reward": "Channel Points"}
+        self.available_events = {
+            "reward": QCoreApplication.translate("CountdownTimerCompConfig", "Channel Points", None)
+        }
 
         for key, name in self.available_events.items():
             item = QListWidgetItem(name)
@@ -166,9 +171,12 @@ class CountdownTimerWidget(QWidget):
 
         self.event_config.setVisible(False)
         self.event_data_form_initial_num = self.event_data_form.rowCount()
-        self.event_duration_format.addItem("Hours", "hours")
-        self.event_duration_format.addItem("Minutes", "minutes")
-        self.event_duration_format.addItem("Seconds", "seconds")
+        self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Hours", None),
+                                           "hours")
+        self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None),
+                                           "minutes")
+        self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Seconds", None),
+                                           "seconds")
         self.event_duration_format.setCurrentIndex(self.event_duration_format.findData("seconds"))
 
         # Slot connections
@@ -230,7 +238,7 @@ class CountdownTimerWidget(QWidget):
     # Timer slots
 
     def add_timer_clicked(self):
-        timer = self.data_parent.add_timer("New Timer")
+        timer = self.data_parent.add_timer(QCoreApplication.translate("CountdownTimerCompConfig", "New Timer", None))
         item = self.add_timer(timer)
         self.tab_widget.setCurrentIndex(0)
         self.timers_list.editItem(item)
@@ -248,8 +256,11 @@ class CountdownTimerWidget(QWidget):
     def remove_selected_timer(self):
         selected_item: QListWidgetItem = self.timers_list.selectedItems()[0]
         timer: RewardTimer = selected_item.data(Qt.UserRole)  # type: ignore
-        ret = QMessageBox.question(self, "Remove timer?", f"Do you want to remove the <b>{timer.name}</b> timer?",
-                                   QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+        ret = QMessageBox.question(
+            self, QCoreApplication.translate("CountdownTimerCompConfig", "Remove Timer?", None),
+            QCoreApplication.translate("CountdownTimerCompConfig", "Do you want to remove the <b>{0}</b> timer?",
+                                       None).format(timer.name), QMessageBox.StandardButton.Yes,
+            QMessageBox.StandardButton.No)
         if ret == QMessageBox.StandardButton.Yes:
             self.data_parent.remove_timer(timer.id)
             self.tab_widget.setCurrentIndex(0)
@@ -295,7 +306,9 @@ class CountdownTimerWidget(QWidget):
                 item.setText(name)
                 return
             if not item.text():
-                QMessageBox.critical(self, "Error creating item", "New timer should not be empty")
+                QMessageBox.critical(
+                    self, QCoreApplication.translate("CountdownTimerCompConfig", "Error Creating Timer", None),
+                    QCoreApplication.translate("CountdownTimerCompConfig", "The timer name should not be empty", None))
                 self.timers_list.takeItem(self.timers_list.row(item))
                 return
             timer.name = item.text()
@@ -351,7 +364,8 @@ class CountdownTimerWidget(QWidget):
             self.event_duration_format.setCurrentIndex(self.event_duration_format.findData(event.duration_format))
             if event.type == "reward":
                 name_input = QLineEdit(event.data.get("name", ""))
-                self.event_data_form.insertRow(0, "Reward Name", name_input)
+                self.event_data_form.insertRow(
+                    0, QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None), name_input)
                 name_input.editingFinished.connect(  # type: ignore
                     lambda: self.update_active_event_data("name",
                                                           name_input.text().strip(), True))
@@ -370,7 +384,7 @@ class CountdownTimerWidget(QWidget):
         if self.active_events_list.itemAt(position):
             menu = QMenu()
             delete_action = QAction(
-                QCoreApplication.translate("CountdownTimer", "Delete", None),  # type: ignore
+                QCoreApplication.translate("CountdownTimerCompConfig", "Delete", None),  # type: ignore
                 self.active_events_list)
             menu.addAction(delete_action)
             delete_action.triggered.connect(self.remove_timer_event_clicked)  # type: ignore
@@ -383,7 +397,8 @@ class CountdownTimerWidget(QWidget):
         return selected_item.data(Qt.UserRole)
 
     def __get_event_title(self, event: RewardTimer.Event) -> str:
-        type_name = self.available_events.get(event.type, "Unknown")
+        type_name = self.available_events.get(event.type,
+                                              QCoreApplication.translate("CountdownTimerCompConfig", "Unknown", None))
         event_title = f"{type_name}:"
         for key in event.data:
             event_title += f" {event.data[key]} -"
@@ -393,10 +408,16 @@ class CountdownTimerWidget(QWidget):
 
 class CountdownTimerComponent(ChatComponent):
     @staticmethod
+    def get_id() -> str:
+        return "countdown_timer"
+
+    @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(id="countdown_timer", name="Countdown Timer",
-                                      description="Add a countdown that interacts with Channel Points, Subs or Bits",
-                                      icon=qta.icon("fa5.clock"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("CountdownTimerCompConfig", "Countdown Timer", None),
+            description=QCoreApplication.translate("CountdownTimerCompConfig",
+                                                   "Add a countdown that interacts with Channel Points, Subs or Bits",
+                                                   None), icon=qta.icon("fa5.clock"))
 
     def __init__(self) -> None:
         super().__init__()

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RewardsCountdown</class>
- <widget class="QWidget" name="RewardsCountdown">
+ <class>CountdownTimerCompConfig</class>
+ <widget class="QWidget" name="CountdownTimerCompConfig">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,9 +9,6 @@
     <width>671</width>
     <height>296</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Form</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -112,7 +109,7 @@
        <item>
         <widget class="QTabWidget" name="tab_widget">
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="general_tab">
           <attribute name="title">
@@ -142,7 +139,7 @@
                    </sizepolicy>
                   </property>
                   <property name="placeholderText">
-                   <string>{name}: {time}</string>
+                   <string notr="true">{name}: {time}</string>
                   </property>
                  </widget>
                 </item>
@@ -309,7 +306,7 @@
                      </size>
                     </property>
                     <property name="text">
-                     <string>+</string>
+                     <string notr="true">+</string>
                     </property>
                    </widget>
                   </item>
@@ -328,7 +325,7 @@
                      </size>
                     </property>
                     <property name="text">
-                     <string>-</string>
+                     <string notr="true">-</string>
                     </property>
                    </widget>
                   </item>

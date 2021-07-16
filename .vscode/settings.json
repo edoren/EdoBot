@@ -4,6 +4,9 @@
         "**/*.pyo": true,
         "**/__pycache__": true
     },
+    "files.associations": {
+        "*.ts": "xml"
+    },
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"
     },

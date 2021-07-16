@@ -126,10 +126,15 @@ class SceneChangerComponentConfigWidget(QWidget):
 
 class SceneChangerComponent(ChatComponent):
     @staticmethod
+    def get_id() -> str:
+        return "scene_changer"
+
+    @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(id="scene_changer", name="Scene Changer",
-                                      description="Allows chat to change the OBS scenes",
-                                      icon=qta.icon("fa5s.exchange-alt"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("SceneChangerConfig", "Scene Changer", None),
+            description=QCoreApplication.translate("SceneChangerConfig", "Allows chat to change the current OBS scene",
+                                                   None), icon=qta.icon("fa5s.exchange-alt"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command

@@ -11,7 +11,7 @@ from PySide2.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, Q
 
 from core import ChatComponent
 from model import EventType, User, UserType
-from twitch import RaidEventMessage, ChannelPointsEventMessage
+from twitch import ChannelPointsEventMessage, RaidEventMessage
 
 __all__ = ["AutoShoutOut"]
 
@@ -50,10 +50,15 @@ class AutoShoutOut(ChatComponent):
         self.widget: Optional[QWidget] = None
 
     @staticmethod
+    def get_id() -> str:
+        return "auto_shoutout"
+
+    @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(id="auto_shoutout", name="Auto Shout-Out",
-                                      description="Automatically shout-out streamers in the chat",
-                                      icon=qta.icon("fa5s.bullhorn"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("AutoShoutOut", "Auto Shout-Out", None),
+            description=QCoreApplication.translate("AutoShoutOut", "Automatically shout-out streamers in the chat",
+                                                   None), icon=qta.icon("fa5s.bullhorn"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
@@ -119,9 +124,9 @@ class AutoShoutOut(ChatComponent):
         self.cooldown_enabled_check_box.setChecked(self.cooldown_enabled)
         self.cooldown_spin_box.setValue(self.cooldown)
         self.cooldown_spin_box.setEnabled(self.cooldown_enabled)
-        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", u"Hours", None), "hours")
-        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", u"Minutes", None), "minutes")
-        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", u"Seconds", None), "seconds")
+        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", "Hours", None), "hours")
+        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", "Minutes", None), "minutes")
+        self.cooldown_combo_box.addItem(QCoreApplication.translate("AutoShoutOut", "Seconds", None), "seconds")
         self.cooldown_combo_box.setEnabled(self.cooldown_enabled)
         self.cooldown_combo_box.setCurrentIndex(self.cooldown_combo_box.findData(self.cooldown_format))
         self.message_text_edit.setPlainText(self.message)

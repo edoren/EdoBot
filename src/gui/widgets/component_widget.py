@@ -12,10 +12,10 @@ from core.constants import Constants
 class ComponentWidget(QWidget):
     removeClicked = Signal(str)
 
-    def __init__(self, meta: ChatComponent.Metadata) -> None:
+    def __init__(self, id: str, meta: ChatComponent.Metadata) -> None:
         super().__init__()
 
-        self.id = meta.id
+        self.id = id
         self.name = meta.name
         self.description = meta.description
 

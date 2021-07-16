@@ -23,7 +23,7 @@ parser.add_argument("-O", "--optimized", help="Optimize the compiled python code
 parser.add_argument("--output_dir", help="The folder to output the build", type=str, default="build")
 parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
 parser.add_argument("--console", help="Create a console application", action="store_true")
-parser.add_argument("--localization", help="Build only the localization files", action="store_true")
+parser.add_argument("--localization", "-l", help="Build only the localization files", action="store_true")
 args = parser.parse_args()
 
 ######################################################################

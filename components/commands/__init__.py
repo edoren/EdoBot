@@ -4,7 +4,7 @@ import time
 from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QFile, QRegExp, QSize, Qt
+from PySide2.QtCore import QCoreApplication, QFile, QRegExp, QSize, Qt
 from PySide2.QtGui import QRegExpValidator
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QHeaderView, QLineEdit,
@@ -47,12 +47,12 @@ class CommandsTableWidget(QWidget):
         self.edit_dialog_button_box: QDialogButtonBox = getattr(self.edit_dialog, "button_box")
 
         self.access_levels = {
-            UserType.CHATTER: "Chatter",
-            UserType.SUBSCRIPTOR: "Subscriber",
-            UserType.VIP: "VIP",
-            UserType.MODERATOR: "Moderator",
-            UserType.EDITOR: "Editor",
-            UserType.BROADCASTER: "Broadcaster"
+            UserType.CHATTER: QCoreApplication.translate("Commands", "Chatter", None),
+            UserType.SUBSCRIPTOR: QCoreApplication.translate("Commands", "Subscriber", None),
+            UserType.VIP: QCoreApplication.translate("Commands", "VIP", None),
+            UserType.MODERATOR: QCoreApplication.translate("Commands", "Moderator", None),
+            UserType.EDITOR: QCoreApplication.translate("Commands", "Editor", None),
+            UserType.BROADCASTER: QCoreApplication.translate("Commands", "Broadcaster", None)
         }
 
         self.table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -217,10 +217,15 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
         self.user_cooldown_times: MutableMapping[str, MutableMapping[str, Optional[int]]] = {}
 
     @staticmethod
+    def get_id() -> str:
+        return "commands"
+
+    @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(id="commands", name="Commands",
-                                      description="Add custom commands to interact with the chat",
-                                      icon=qta.icon("fa5.list-alt"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("Commands", "Commands", None),
+            description=QCoreApplication.translate("Commands", "Add custom commands to interact with the chat",
+                                                   None), icon=qta.icon("fa5.list-alt"))
 
     def start(self) -> None:
         self.commands = self.config["commands"].get([])

@@ -271,7 +271,7 @@ class App:
             for class_name, class_type in inspect.getmembers(module, inspect.isclass):
                 try:
                     if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
-                        component_id = class_type.get_metadata().id
+                        component_id = class_type.get_id()
                         if component_id in self.available_components:
                             gLogger.error(f"Error loading component with id '{component_id}' for "
                                           f"class name '{class_name}': another component has the same id")
@@ -339,8 +339,8 @@ class App:
             if self.component_added:
                 self.component_added(instance)
             if self.has_started and self.chat_service is not None and self.host_twitch_service is not None:
-                instance.config_component(config=self.__get_component_config(instance.get_metadata().id),
-                                          obs=self.obs_client, chat=self.chat_service, twitch=self.host_twitch_service)
+                instance.config_component(config=self.__get_component_config(instance.get_id()), obs=self.obs_client,
+                                          chat=self.chat_service, twitch=self.host_twitch_service)
                 succeded = self.__secure_component_method_call(instance, "start")
                 if not succeded:
                     self.__secure_component_method_call(instance, "stop")
@@ -414,7 +414,7 @@ class App:
 
                 with self.components_lock:
                     for instance in self.active_components.values():
-                        instance.config_component(config=self.__get_component_config(instance.get_metadata().id),
+                        instance.config_component(config=self.__get_component_config(instance.get_id()),
                                                   obs=self.obs_client, chat=self.chat_service,
                                                   twitch=self.host_twitch_service)
                         succeded = self.__secure_component_method_call(instance, "start")

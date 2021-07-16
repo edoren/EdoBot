@@ -16,8 +16,7 @@ __all__ = ["ChatComponent"]
 
 class ChatComponent(ABC):
     class Metadata:
-        def __init__(self, id: str, name: str, description: str, icon: Optional[QIcon] = None):
-            self.id = id
+        def __init__(self, name: str, description: str, icon: Optional[QIcon] = None):
             self.name = name
             self.description = description
             self.icon: QIcon = qta.icon("fa5.question-circle") if icon is None else icon
@@ -32,6 +31,11 @@ class ChatComponent(ABC):
         self.obs = obs
         self.chat = chat
         self.twitch = twitch
+
+    @staticmethod
+    @abstractmethod
+    def get_id() -> str:
+        raise NotImplementedError("Please implement this method")
 
     @staticmethod
     @abstractmethod

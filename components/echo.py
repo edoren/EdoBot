@@ -17,7 +17,7 @@ class EchoComponent(ChatComponent):
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(name="Echo", description="Displays the chat in the logs", icon=None)
+        return ChatComponent.Metadata(name="Echo", description="Displays the chat in the logs", icon=None, debug=True)
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering

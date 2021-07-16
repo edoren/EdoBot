@@ -181,7 +181,8 @@ class MainWindow(QMainWindow):
 
         for comp_type in self.app.get_available_components().values():
             comp_metadata = self.__get_translated_component_metadata(comp_type)
-            self.avaiable_comps_widget.add_component(comp_type.get_id(), comp_metadata)
+            if __debug__ or not comp_metadata.debug:
+                self.available_comps_widget.add_component(comp_type.get_id(), comp_metadata)
 
         for comp_instance in self.app.get_active_components().values():
             self.add_component_widget(comp_instance)
@@ -289,8 +290,8 @@ class MainWindow(QMainWindow):
         dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)  # type: ignore
         dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |  # type: ignore
                              Qt.DockWidgetArea.RightDockWidgetArea)
-        self.avaiable_comps_widget = AllComponentsWidget(dock)
-        dock.setWidget(self.avaiable_comps_widget)
+        self.available_comps_widget = AllComponentsWidget(dock)
+        dock.setWidget(self.available_comps_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         dock = QDockWidget(self.tr("Component Configuration"), self)

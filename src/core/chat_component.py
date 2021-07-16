@@ -16,10 +16,11 @@ __all__ = ["ChatComponent"]
 
 class ChatComponent(ABC):
     class Metadata:
-        def __init__(self, name: str, description: str, icon: Optional[QIcon] = None):
+        def __init__(self, name: str, description: str, icon: Optional[QIcon] = None, debug: bool = False):
             self.name = name
             self.description = description
             self.icon: QIcon = qta.icon("fa5.question-circle") if icon is None else icon
+            self.debug = debug
 
     def __init__(self) -> None:
         self.has_started = False

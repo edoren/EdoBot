@@ -25,6 +25,5 @@
     "python.linting.pycodestyleArgs": [
         "--max-line-length=120"
     ],
-    "autoDocstring.docstringFormat": "google",
     "pyright.disableLanguageServices": true
 }

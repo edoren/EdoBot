@@ -2,13 +2,29 @@ from typing import Any, Optional
 
 
 class PrivateMsgTags:
-    def __init__(self, badge_info: str, badges: str, color: str, display_name: str, emotes: str, flags: str, id: str,
-                 mod: str, room_id: str, tmi_sent_ts: str, user_id: str, bits: Optional[str] = None,
-                 client_nonce: Optional[str] = None, emote_only: Optional[str] = None,
-                 custom_reward_id: Optional[str] = None, msg_id: Optional[str] = None,
-                 reply_parent_display_name: Optional[str] = None, reply_parent_msg_body: Optional[str] = None,
-                 reply_parent_msg_id: Optional[str] = None, reply_parent_user_id: Optional[str] = None,
-                 reply_parent_user_login: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(self,
+                 badge_info: str,
+                 badges: str,
+                 color: str,
+                 display_name: str,
+                 emotes: str,
+                 flags: str,
+                 id: str,
+                 mod: str,
+                 room_id: str,
+                 tmi_sent_ts: str,
+                 user_id: str,
+                 bits: Optional[str] = None,
+                 client_nonce: Optional[str] = None,
+                 emote_only: Optional[str] = None,
+                 custom_reward_id: Optional[str] = None,
+                 msg_id: Optional[str] = None,
+                 reply_parent_display_name: Optional[str] = None,
+                 reply_parent_msg_body: Optional[str] = None,
+                 reply_parent_msg_id: Optional[str] = None,
+                 reply_parent_user_id: Optional[str] = None,
+                 reply_parent_user_login: Optional[str] = None,
+                 **kwargs: Any) -> None:
         self.sub_months = 0
         if badge_info:
             self.sub_months = int(badge_info.split("/")[-1])

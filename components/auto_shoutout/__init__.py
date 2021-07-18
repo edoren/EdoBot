@@ -169,7 +169,7 @@ class AutoShoutOut(ChatComponent):
 
     # Shoutouts
     def process_shoutout(self, user: User):
-        if (self.blacklist_enabled and user.login in self.blacklist or user.login in self.bot_blacklist
+        if (self.blacklist_enabled and user.login in self.blacklist or user.login in self.BotBlacklist
                 or user.login == self.twitch.get_user().login):
             return
 

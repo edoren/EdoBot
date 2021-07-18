@@ -222,10 +222,10 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
-            name=QCoreApplication.translate("Commands", "Commands", None),
-            description=QCoreApplication.translate("Commands", "Add custom commands to interact with the chat",
-                                                   None), icon=qta.icon("fa5.list-alt"))
+        return ChatComponent.Metadata(name=QCoreApplication.translate("Commands", "Commands", None),
+                                      description=QCoreApplication.translate(
+                                          "Commands", "Add custom commands to interact with the chat", None),
+                                      icon=qta.icon("fa5.list-alt"))
 
     def start(self) -> None:
         self.commands = self.config["commands"].get([])
@@ -234,7 +234,10 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType],
+    def process_message(self,
+                        message: str,
+                        user: User,
+                        user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
         if not message.startswith("!"):
             return

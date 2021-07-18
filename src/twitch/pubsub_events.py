@@ -85,7 +85,13 @@ class BitsBadgeNotificationMessage:
         time (str):
             Time when the new Bits badge was earned.
     """
-    def __init__(self, user_id: str, user_name: str, channel_id: str, channel_name: str, badge_tier: int, time: str,
+    def __init__(self,
+                 user_id: str,
+                 user_name: str,
+                 channel_id: str,
+                 channel_name: str,
+                 badge_tier: int,
+                 time: str,
                  chat_message: Optional[str] = None) -> None:
         self.user_id = user_id
         self.user_name = user_name
@@ -141,12 +147,24 @@ class ChannelSubscriptionsEventMessage:
             Number of months gifted as part of a single, multi-month gift OR number of months purchased as part of a
             multi-month subscription
     """
-    def __init__(self, channel_id: str, channel_name: str, context: str, sub_plan: str, sub_plan_name: str, time: str,
-                 is_gift: bool, user_id: Optional[str] = None, user_name: Optional[str] = None,
-                 display_name: Optional[str] = None, message: Optional[str] = None,
-                 sub_message: Optional[Mapping[str, Any]] = None, recipient_id: Optional[str] = None,
-                 recipient_user_name: Optional[str] = None, recipient_display_name: Optional[str] = None,
-                 cumulative_months: Optional[int] = None, streak_months: Optional[int] = None,
+    def __init__(self,
+                 channel_id: str,
+                 channel_name: str,
+                 context: str,
+                 sub_plan: str,
+                 sub_plan_name: str,
+                 time: str,
+                 is_gift: bool,
+                 user_id: Optional[str] = None,
+                 user_name: Optional[str] = None,
+                 display_name: Optional[str] = None,
+                 message: Optional[str] = None,
+                 sub_message: Optional[Mapping[str, Any]] = None,
+                 recipient_id: Optional[str] = None,
+                 recipient_user_name: Optional[str] = None,
+                 recipient_display_name: Optional[str] = None,
+                 cumulative_months: Optional[int] = None,
+                 streak_months: Optional[int] = None,
                  multi_month_duration: Optional[int] = None) -> None:
         self.channel_id = channel_id
         self.channel_name = channel_name

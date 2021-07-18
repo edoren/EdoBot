@@ -55,7 +55,8 @@ class Service:
     def get_moderators(self) -> List[model.Moderator]:
         if self.mod_requestor is None:
             user = self.get_user()
-            self.mod_requestor = self.__get_cache_requestor("GET", "/moderation/moderators",
+            self.mod_requestor = self.__get_cache_requestor("GET",
+                                                            "/moderation/moderators",
                                                             params={"broadcaster_id": user.id})
         response = self.__call_endpoint(self.mod_requestor)
         return [model.Moderator(**x) for x in response["data"] or []]
@@ -100,21 +101,24 @@ class Service:
     def get_channel_editors(self) -> List[model.ChannelEditor]:
         if self.channel_editors_cache is None:
             user = self.get_user()
-            self.channel_editors_cache = self.__get_cache_requestor("GET", "/channels/editors",
+            self.channel_editors_cache = self.__get_cache_requestor("GET",
+                                                                    "/channels/editors",
                                                                     params={"broadcaster_id": user.id})
         response = self.__call_endpoint(self.channel_editors_cache)
         editors = [model.ChannelEditor(**x) for x in response["data"] or []]
         return editors
 
     def __get_cache_requestor(self, method, path, params=None):
-        return CacheRequest(
-            method, "https://api.twitch.tv/helix" + path, params=params, headers={
-                "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
-                "Client-Id": Constants.CLIENT_ID
-            })
+        return CacheRequest(method,
+                            "https://api.twitch.tv/helix" + path,
+                            params=params,
+                            headers={
+                                "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
+                                "Client-Id": Constants.CLIENT_ID
+                            })
 
     def stop_(self):
         self.__active = False
 
     def __del__(self):
-        self.__active = False
+        self.stop_()

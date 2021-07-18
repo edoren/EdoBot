@@ -28,10 +28,11 @@ class ChatStoreComponent(ChatComponent):
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
-            name=QCoreApplication.translate("ChatStore", "Chat Store", None),
-            description=QCoreApplication.translate("ChatStore", "Stores the chat in a specific folder",
-                                                   None), icon=qta.icon("fa5s.database"))
+        return ChatComponent.Metadata(name=QCoreApplication.translate("ChatStore", "Chat Store", None),
+                                      description=QCoreApplication.translate("ChatStore",
+                                                                             "Stores the chat in a specific folder",
+                                                                             None),
+                                      icon=qta.icon("fa5s.database"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
@@ -54,7 +55,10 @@ class ChatStoreComponent(ChatComponent):
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType],
+    def process_message(self,
+                        message: str,
+                        user: User,
+                        user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
         full_filename = self.filename.replace("{date}", datetime.now().strftime('%d-%m-%Y'))
         for username in self.ignored_users:

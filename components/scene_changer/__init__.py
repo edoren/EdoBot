@@ -131,10 +131,10 @@ class SceneChangerComponent(ChatComponent):
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
-            name=QCoreApplication.translate("SceneChangerConfig", "Scene Changer", None),
-            description=QCoreApplication.translate("SceneChangerConfig", "Allows chat to change the current OBS scene",
-                                                   None), icon=qta.icon("fa5s.exchange-alt"))
+        return ChatComponent.Metadata(name=QCoreApplication.translate("SceneChangerConfig", "Scene Changer", None),
+                                      description=QCoreApplication.translate(
+                                          "SceneChangerConfig", "Allows chat to change the current OBS scene", None),
+                                      icon=qta.icon("fa5s.exchange-alt"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command
@@ -160,7 +160,10 @@ class SceneChangerComponent(ChatComponent):
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType],
+    def process_message(self,
+                        message: str,
+                        user: User,
+                        user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
         if not self.obs.is_connected():
             return

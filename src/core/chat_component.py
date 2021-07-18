@@ -48,7 +48,10 @@ class ChatComponent(ABC):
         raise NotImplementedError("Please implement this method")
 
     @abstractmethod
-    def process_message(self, message: str, user: User, user_types: Set[UserType],
+    def process_message(self,
+                        message: str,
+                        user: User,
+                        user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
         pass
 

@@ -413,11 +413,12 @@ class CountdownTimerComponent(ChatComponent):
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
-            name=QCoreApplication.translate("CountdownTimerCompConfig", "Countdown Timer", None),
-            description=QCoreApplication.translate("CountdownTimerCompConfig",
-                                                   "Add a countdown that interacts with Channel Points, Subs or Bits",
-                                                   None), icon=qta.icon("fa5.clock"))
+        return ChatComponent.Metadata(name=QCoreApplication.translate("CountdownTimerCompConfig", "Countdown Timer",
+                                                                      None),
+                                      description=QCoreApplication.translate(
+                                          "CountdownTimerCompConfig",
+                                          "Add a countdown that interacts with Channel Points, Subs or Bits", None),
+                                      icon=qta.icon("fa5.clock"))
 
     def __init__(self) -> None:
         super().__init__()
@@ -484,7 +485,10 @@ class CountdownTimerComponent(ChatComponent):
         self.save_timers()
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType],
+    def process_message(self,
+                        message: str,
+                        user: User,
+                        user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
         pass
 

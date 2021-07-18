@@ -95,9 +95,10 @@ class OBSWebSocket(OBSInterface):
         if self.client is not None:
             try:
                 self.client.disconnect()
-                self.client = None
-            except Exception:
+            except AttributeError as e:
                 pass
+            except Exception as e:
+                raise e
 
     def get_scenes(self) -> List[SceneModel]:
         request: obs_requests.GetSceneList = self.client.call(obs_requests.GetSceneList())

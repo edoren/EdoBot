@@ -35,7 +35,7 @@ class PlainTextEdit(QPlainTextEdit):
     def focusOutEvent(self, e: QFocusEvent) -> None:
         if self._changed:
             self.editingFinished.emit()  # type: ignore
-        super().focusInEvent(e)
+        super().focusOutEvent(e)
 
     def _handle_text_changed(self):
         self._changed = True
@@ -45,6 +45,10 @@ class PlainTextEdit(QPlainTextEdit):
 
 
 class AutoShoutOut(ChatComponent):
+    BotBlacklist = [
+        "streamelements", "streamlabs", "nightbot", "moobot", "fossabot", "botisimo", "wizebot", "deepbot", "phantombot"
+    ]
+
     def __init__(self) -> None:
         super().__init__()
         self.widget: Optional[QWidget] = None
@@ -55,35 +59,39 @@ class AutoShoutOut(ChatComponent):
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
-            name=QCoreApplication.translate("AutoShoutOut", "Auto Shout-Out", None),
-            description=QCoreApplication.translate("AutoShoutOut", "Automatically shout-out streamers in the chat",
-                                                   None), icon=qta.icon("fa5s.bullhorn"))
+        return ChatComponent.Metadata(name=QCoreApplication.translate("AutoShoutOut", "Auto Shout-Out", None),
+                                      description=QCoreApplication.translate(
+                                          "AutoShoutOut", "Automatically shout-out streamers in the chat", None),
+                                      icon=qta.icon("fa5s.bullhorn"))
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
 
     def start(self) -> None:
         self.cooldown_enabled = self.config["cooldown_enabled"].setdefault(True)
-        self.cooldown = self.config["cooldown"].setdefault(30)
+        self.cooldown = self.config["cooldown"].setdefault(90)
         self.cooldown_format = self.config["cooldown_format"].setdefault("minutes")
-        self.blacklist = self.config["blacklist"].setdefault(["streamelements", "streamlabs"])
+        self.blacklist = self.config["blacklist"].setdefault([])
         self.blacklist_enabled = self.config["blacklist_enabled"].setdefault(True)
         self.whitelist = self.config["whitelist"].setdefault([])
         self.whitelist_enabled = self.config["whitelist_enabled"].setdefault(False)
         self.message = self.config["message"].setdefault("")
         self.message_alt = self.config["message_alt"].setdefault("")
         self.raids_enabled = self.config["raids_enabled"].setdefault(True)
-        self.raid_min_viewers = self.config["raid_min_viewers"].setdefault(1)
+        self.raid_min_viewers = self.config["raid_min_viewers"].setdefault(2)
         self.affiliate_enabled = self.config["affiliate_enabled"].setdefault(True)
         self.partner_enabled = self.config["partner_enabled"].setdefault(True)
+
         self.last_shoutouts = {}
         super().start()
 
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self, message: str, user: User, user_types: Set[UserType],
+    def process_message(self,
+                        message: str,
+                        user: User,
+                        user_types: Set[UserType],
                         metadata: Optional[Any] = None) -> None:
         self.process_shoutout(user)
 
@@ -161,7 +169,8 @@ class AutoShoutOut(ChatComponent):
 
     # Shoutouts
     def process_shoutout(self, user: User):
-        if self.blacklist_enabled and user.login in self.blacklist or user.login == self.twitch.get_user().login:
+        if (self.blacklist_enabled and user.login in self.blacklist or user.login in self.bot_blacklist
+                or user.login == self.twitch.get_user().login):
             return
 
         broadcaster_types_to_check = []

@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Callable, List, Optional, Type, Union
 
 import arrow
-from PySide2.QtCore import QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
+from PySide2.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
 from PySide2.QtGui import QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
 from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
                                QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
@@ -160,6 +160,7 @@ class MainWindow(QMainWindow):
             gLogger.info(f"Debug info: [PID: {os.getpid()}]")
 
         self.app: App = App()
+
         self.app.started = self.edobotStarted.emit  # type: ignore
         self.edobotStarted.connect(self.edobot_started)  # type: ignore
         self.app.stopped = self.edobotStopped.emit  # type: ignore
@@ -174,7 +175,6 @@ class MainWindow(QMainWindow):
         self.hostDisconnected.connect(self.host_disconnected)  # type: ignore
         self.app.bot_disconnected = self.botDisconnected.emit  # type: ignore
         self.botDisconnected.connect(self.bot_disconnected)  # type: ignore
-        self.app.start()
 
         self.last_clicked_component = None
 
@@ -182,17 +182,18 @@ class MainWindow(QMainWindow):
         self.component_list.componentRemoved.connect(self.remove_component)  # type: ignore
         self.component_list.componentClicked.connect(self.component_clicked)  # type: ignore
 
-        for comp_instance in self.app.get_active_components().values():
-            self.add_component_widget(comp_instance)
-
         for comp_type in self.app.get_available_components().values():
-            comp_metadata = self.__get_translated_component_metadata(comp_type)
+            comp_metadata = self.__get_i18n_component_metadata(comp_type)
             if __debug__ or not comp_metadata.debug:
                 self.available_comps_widget.add_component(comp_type.get_id(), comp_metadata)
 
+        self.app.start()
+
         self.restore_window_settings()
 
-        if not (self.settings_widget.is_system_tray_enabled() and args.background):
+        if self.settings_widget.is_system_tray_enabled() and args.background:
+            self.close()
+        else:
             self.show()
             self.activateWindow()
 
@@ -274,16 +275,16 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(self.tr("Ready"))
 
     def create_dock_windows(self):
-        dock = QDockWidget(self.tr("Logs"), self)
-        dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea |  # type: ignore
-                             Qt.DockWidgetArea.BottomDockWidgetArea)
-        dock.setObjectName("Logs Window")
-        dock.setMinimumHeight(150)
-        self.log_widget = LogWidget(dock)
-        dock.setWidget(self.log_widget)
-        dock.hide()
-        self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, dock)
-        toggle_action = dock.toggleViewAction()
+        self.log_dock = QDockWidget(self.tr("Logs"), self)
+        self.log_dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea |  # type: ignore
+                                      Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.log_dock.setObjectName("Logs Window")
+        self.log_dock.setMinimumHeight(150)
+        self.log_widget = LogWidget(self.log_dock)
+        self.log_dock.setWidget(self.log_widget)
+        self.log_dock.hide()
+        self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.log_dock)
+        toggle_action = self.log_dock.toggleViewAction()
         toggle_action.setStatusTip(self.tr("Toggle the log window"))
         self.view_menu.addAction(toggle_action)
 
@@ -335,9 +336,21 @@ class MainWindow(QMainWindow):
         self.restoreGeometry(self.settings.value("geometry"))  # type: ignore
         self.restoreState(self.settings.value("window_state"))  # type: ignore
         self.move(self.settings.value("pos", self.pos()))  # type: ignore
-        self.resize(self.settings.value("size", QSize(1024, 768)))  # type: ignore
+        self.resize(QSize(800, 600))  # type: ignore
         if self.settings.value("maximized", self.isMaximized(), bool):
             self.showMaximized()
+
+    def shutdown(self) -> None:
+        if getattr(self, "app", None) is not None:
+            self.app.shutdown()
+            self.app.config["components"] = self.component_list.get_component_order()
+        logging.shutdown()
+        log_dir = os.path.dirname(self.log_file_path)
+        zip_file_path = os.path.join(log_dir, self.open_time.strftime("edobot-%d-%m-%Y.zip"))
+        zip_file = zipfile.ZipFile(zip_file_path, mode="a", compression=zipfile.ZIP_BZIP2, compresslevel=9)
+        zip_file.write(self.log_file_path, arcname=self.open_time.strftime("%d-%m-%Y-%H-%M-%S.log"))
+        with open(self.log_file_path, "w"):
+            pass
 
     #################################################################
     # Slots
@@ -446,6 +459,8 @@ class MainWindow(QMainWindow):
         self.activateWindow()
 
     def system_tray_quit(self):
+        if self.log_dock.isFloating():
+            self.log_dock.hide()
         self.hide()
         self.system_tray.hide()
         QApplication.instance().quit()
@@ -466,7 +481,7 @@ class MainWindow(QMainWindow):
             self.active_component_config_widget = None
 
     def add_component_widget(self, component: ChatComponent):
-        comp_metadata = self.__get_translated_component_metadata(component)
+        comp_metadata = self.__get_i18n_component_metadata(component)
         widget = ComponentWidget(component.get_id(), comp_metadata)
         self.component_list.add_component(widget)
 
@@ -487,32 +502,26 @@ class MainWindow(QMainWindow):
     #################################################################
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        self.settings.setValue("geometry", self.saveGeometry())
-        self.settings.setValue("window_state", self.saveState())
-        self.settings.setValue("maximized", self.isMaximized())
-        if not self.isMaximized():
-            self.settings.setValue("pos", self.pos())
-            self.settings.setValue("size", self.size())
+        if self.settings_widget.is_system_tray_enabled() and self.log_dock.isFloating():  # type: ignore
+            self.log_dock.hide()
         event.accept()
 
-    def __del__(self) -> None:
-        if getattr(self, "app", None) is not None:
-            self.app.shutdown()
-            self.app.config["components"] = self.component_list.get_component_order()
-        logging.shutdown()
-        log_dir = os.path.dirname(self.log_file_path)
-        zip_file_path = os.path.join(log_dir, self.open_time.strftime("edobot-%d-%m-%Y.zip"))
-        zip_file = zipfile.ZipFile(zip_file_path, mode="a", compression=zipfile.ZIP_BZIP2, compresslevel=9)
-        zip_file.write(self.log_file_path, arcname=self.open_time.strftime("%d-%m-%Y-%H-%M-%S.log"))
-        with open(self.log_file_path, "w"):
-            pass
+    def event(self, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.WindowDeactivate:
+            self.settings.setValue("geometry", self.saveGeometry())
+            self.settings.setValue("window_state", self.saveState())
+            self.settings.setValue("maximized", self.isMaximized())
+            if not self.isMaximized():
+                self.settings.setValue("pos", self.pos())
+                self.settings.setValue("size", self.size())
+        return super().event(event)
 
     #################################################################
     # Private
     #################################################################
 
-    def __get_translated_component_metadata(
-            self, comp_type: Union[ChatComponent, Type[ChatComponent]]) -> ChatComponent.Metadata:
+    def __get_i18n_component_metadata(self, comp_type: Union[ChatComponent,
+                                                             Type[ChatComponent]]) -> ChatComponent.Metadata:
         component_id = comp_type.get_id()
         component_folder = self.app.get_component_folder(component_id)
         if component_folder is not None:
@@ -547,8 +556,8 @@ def main():
         os.makedirs(Constants.SAVE_DIRECTORY)
 
     try:
-        app = UniqueApplication(sys.argv)
-        app.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
+        qt_app = UniqueApplication(sys.argv)
+        qt_app.setWindowIcon(QIcon(os.path.join(Constants.DATA_DIRECTORY, "icon.ico")))
 
         # QLocale.setDefault(QLocale(QLocale.Language.Spanish, QLocale.Country.Colombia))
         # QLocale.setDefault(QLocale(QLocale.Language.English, QLocale.Country.UnitedStates))
@@ -557,14 +566,14 @@ def main():
         translator.load(QLocale(), "", "", os.path.join(Constants.EXECUTABLE_DIRECTORY, "i18n"), ".qm")
         QApplication.installTranslator(translator)
 
-        if app.is_unique():
-            app.start_listener()
+        if qt_app.is_unique():
+            qt_app.start_listener()
             main_win = MainWindow(args)
-            app.anotherInstance.connect(main_win.system_tray_open)  # type: ignore
-            ret = app.exec_()
+            qt_app.anotherInstance.connect(main_win.system_tray_open)  # type: ignore
+            ret = qt_app.exec_()
+            main_win.shutdown()
             main_win = None
-            app = None
-
+            qt_app = None
             sys.exit(ret)
     except Exception as e:
         traceback_str = ''.join(traceback.format_tb(e.__traceback__))

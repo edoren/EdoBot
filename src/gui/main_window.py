@@ -7,7 +7,7 @@ import traceback
 import webbrowser
 import zipfile
 from datetime import datetime
-from typing import Callable, List, Optional, Type, Union
+from typing import Callable, List, Optional
 
 import arrow
 from PySide2.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
@@ -108,6 +108,13 @@ class MainWindow(QMainWindow):
     def __init__(self, args: argparse.Namespace):
         super().__init__()
 
+        self.translator_units = []
+
+        translator = QTranslator()
+        translator.load(QLocale(), "", "", os.path.join(Constants.EXECUTABLE_DIRECTORY, "i18n"), ".qm")
+        QApplication.installTranslator(translator)
+        self.translator_units.append(translator)
+
         self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren",
                                   Constants.APP_NAME)
 
@@ -183,7 +190,14 @@ class MainWindow(QMainWindow):
         self.component_list.componentClicked.connect(self.component_clicked)  # type: ignore
 
         for comp_type in self.app.get_available_components().values():
-            comp_metadata = self.__get_i18n_component_metadata(comp_type)
+            # Load translation files
+            component_folder = self.app.get_component_folder(comp_type.get_id())
+            if component_folder is not None:
+                translator = QTranslator()
+                translator.load(QLocale(), "", "", os.path.join(component_folder, "i18n"), ".qm")
+                QApplication.installTranslator(translator)
+                self.translator_units.append(translator)
+            comp_metadata = comp_type.get_metadata()
             if __debug__ or not comp_metadata.debug:
                 self.available_comps_widget.add_component(comp_type.get_id(), comp_metadata)
 
@@ -409,11 +423,6 @@ class MainWindow(QMainWindow):
             if not component_instance.has_started:
                 return
             try:
-                component_folder = self.app.get_component_folder(component_id)
-                if component_folder is not None:
-                    translator = QTranslator()
-                    translator.load(QLocale(), "", "", os.path.join(component_folder, "i18n"), ".qm")
-                    QApplication.installTranslator(translator)
                 config_something = component_instance.get_config_ui()
             except Exception as e:
                 gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
@@ -481,8 +490,7 @@ class MainWindow(QMainWindow):
             self.active_component_config_widget = None
 
     def add_component_widget(self, component: ChatComponent):
-        comp_metadata = self.__get_i18n_component_metadata(component)
-        widget = ComponentWidget(component.get_id(), comp_metadata)
+        widget = ComponentWidget(component.get_id(), component.get_metadata())
         self.component_list.add_component(widget)
 
     def host_connected(self, user: model.User):
@@ -520,16 +528,6 @@ class MainWindow(QMainWindow):
     # Private
     #################################################################
 
-    def __get_i18n_component_metadata(self, comp_type: Union[ChatComponent,
-                                                             Type[ChatComponent]]) -> ChatComponent.Metadata:
-        component_id = comp_type.get_id()
-        component_folder = self.app.get_component_folder(component_id)
-        if component_folder is not None:
-            translator = QTranslator()
-            translator.load(QLocale(), "", "", os.path.join(component_folder, "i18n"), ".qm")
-            QApplication.installTranslator(translator)
-        return comp_type.get_metadata()
-
     def __open_url(self, url):
         gLogger.info(f"You will be redirected to the browser to login to {url}")
         try:
@@ -561,10 +559,6 @@ def main():
 
         # QLocale.setDefault(QLocale(QLocale.Language.Spanish, QLocale.Country.Colombia))
         # QLocale.setDefault(QLocale(QLocale.Language.English, QLocale.Country.UnitedStates))
-
-        translator = QTranslator()
-        translator.load(QLocale(), "", "", os.path.join(Constants.EXECUTABLE_DIRECTORY, "i18n"), ".qm")
-        QApplication.installTranslator(translator)
 
         if qt_app.is_unique():
             qt_app.start_listener()

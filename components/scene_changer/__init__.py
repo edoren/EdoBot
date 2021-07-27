@@ -181,7 +181,7 @@ class SceneChangerComponent(ChatComponent):
                 current_scene = self.obs.get_current_scene()
                 if current_scene is not None and current_scene.name in self.transitions:
                     if target_scene in self.transitions[current_scene.name]:
-                        gLogger.info(f"[{user.display_name}] Transitioning: {current_scene} -> {target_scene}")
+                        gLogger.info(f"[{user.display_name}] Transitioning: {current_scene.name} -> {target_scene}")
                         self.obs.set_current_scene(target_scene)
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:

@@ -58,7 +58,7 @@ class CommandsTableWidget(QWidget):
         self.table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        self.edit_dialog_command_input.setValidator(QRegExpValidator(QRegExp("[a-z-A-Z][a-z-A-Z0-9_]+")))
+        self.edit_dialog_command_input.setValidator(QRegExpValidator(QRegExp("[a-z-A-Z0-9_]+")))
         for key, value in self.access_levels.items():
             self.edit_dialog_access_level_input.addItem(value, key)
         self.setMinimumWidth(my_widget.width())
@@ -257,12 +257,11 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
                         self.cooldown_times[command] = current_time + (cmd["cooldown"] * 1000)
                         self.user_cooldown_times[user.login][command] = current_time + (cmd["user_cooldown"] * 1000)
                         self.chat.send_message(cmd["response"])
-                    else:
-                        if global_cooldown_time:
-                            print("Global cooldown:", global_cooldown_time - current_time)
-                        if user_cooldown_time:
-                            print("User cooldown:", user_cooldown_time - current_time)
-                    break
+                    # else:
+                    #     if global_cooldown_time:
+                    #         print("Global cooldown:", global_cooldown_time - current_time)
+                    #     if user_cooldown_time:
+                    #         print("User cooldown:", user_cooldown_time - current_time)
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
         pass

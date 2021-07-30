@@ -74,6 +74,8 @@ class App:
         self.config = Config(os.path.join(Constants.CONFIG_DIRECTORY, "settings.json"))
         self.start_stop_lock = threading.Lock()
 
+        os.makedirs(Constants.TMP_DIRECTORY, exist_ok=True)
+
         self.host_twitch_service = None
         self.bot_twitch_service = None
         self.db = DataBase(Constants.SAVE_DIRECTORY)

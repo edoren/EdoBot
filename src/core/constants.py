@@ -2,6 +2,7 @@ import os
 import os.path
 import platform
 import sys
+import tempfile
 from typing import Final
 
 __all__ = ["Constants"]
@@ -45,4 +46,5 @@ class Constants:
     EXECUTABLE_DIRECTORY: Final[str] = _exe_dir
     SAVE_DIRECTORY: Final[str] = _save_dir
     DATA_DIRECTORY: Final[str] = _data_dir
+    TMP_DIRECTORY: Final[str] = os.path.join(tempfile.gettempdir(), _app_name)
     CONFIG_DIRECTORY: Final[str] = os.path.join(_save_dir, "config")

@@ -1,5 +1,6 @@
 import logging
 import os.path
+import sqlite3
 import time
 from typing import Any, List, Optional, Set, Union
 
@@ -10,6 +11,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
 
 from core import ChatComponent
+from core.constants import Constants
 from model import EventType, User, UserType
 from twitch import ChannelPointsEventMessage, RaidEventMessage
 
@@ -82,7 +84,16 @@ class AutoShoutOut(ChatComponent):
         self.affiliate_enabled = self.config["affiliate_enabled"].setdefault(True)
         self.partner_enabled = self.config["partner_enabled"].setdefault(True)
 
-        self.last_shoutouts = {}
+        self.so_database_path = os.path.join(Constants.TMP_DIRECTORY, "shoutouts.db")
+
+        # Create database table
+        if not os.path.isfile(self.so_database_path):
+            database = sqlite3.connect(self.so_database_path)
+            cur = database.cursor()
+            cur.execute("CREATE TABLE shoutouts(user_id text, time real)")
+            database.commit()
+            database.close()
+
         super().start()
 
     def stop(self) -> None:
@@ -190,7 +201,7 @@ class AutoShoutOut(ChatComponent):
             else:
                 cooldown_time = self.cooldown
 
-            last_shoutout_time = self.last_shoutouts.get(user.id)
+            last_shoutout_time = self.get_last_shoutout_time(user.id)
             if last_shoutout_time is not None:
                 if not self.cooldown_enabled or (current_time - last_shoutout_time) <= cooldown_time:
                     return
@@ -203,7 +214,25 @@ class AutoShoutOut(ChatComponent):
                         final_message = final_message.replace("{game}", channel.game_name)
                         final_message = final_message.replace("{login}", user.login)
                         self.chat.send_message(final_message)
-                        self.last_shoutouts[user.id] = current_time
+                        self.store_last_shoutout_time(user.id, current_time)
+
+    # Database
+    def get_last_shoutout_time(self, user_id: str) -> Optional[float]:
+        database = sqlite3.connect(self.so_database_path)
+        cur = database.cursor()
+        users = list(cur.execute(f"SELECT * FROM shoutouts WHERE user_id = '{user_id}'"))
+        database.close()
+        return users[0][1] if len(users) > 0 else None
+
+    def store_last_shoutout_time(self, user_id: str, time: float):
+        database = sqlite3.connect(self.so_database_path)
+        cur = database.cursor()
+        if self.get_last_shoutout_time(user_id) is None:
+            cur.execute(f"INSERT INTO shoutouts VALUES ({user_id}, {time})")
+        else:
+            cur.execute(f"UPDATE shoutouts SET time = {time} WHERE user_id = '{user_id}'")
+        database.commit()
+        database.close()
 
     # Slots
     def cooldown_enabled_changed(self, state: int):

@@ -18,7 +18,12 @@ from scripts.file_generator import generate_file_version_info, generate_nsis_fil
 ######################################################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-O", "--optimized", help="Optimize the compiled python code", required=False, type=int, default=0,
+parser.add_argument("-O",
+                    "--optimized",
+                    help="Optimize the compiled python code",
+                    required=False,
+                    type=int,
+                    default=0,
                     choices=[0, 1, 2])
 parser.add_argument("--output_dir", help="The folder to output the build", type=str, default="build")
 parser.add_argument("--onefile", help="Generate a onefile executable", action="store_true")
@@ -107,8 +112,13 @@ with open(version_info_file, "w") as f:
     f.write(version_str)
 
 file_version_info_path = os.path.join(build_dir, "file_version_info.txt")
-generate_file_version_info(file_version_info_path, name=APP_NAME, owner=APP_OWNER, file_name=f"{APP_EXECUTABLE}.exe",
-                           file_description=APP_NAME, version=version_str, description=APP_DESCRIPTION,
+generate_file_version_info(file_version_info_path,
+                           name=APP_NAME,
+                           owner=APP_OWNER,
+                           file_name=f"{APP_EXECUTABLE}.exe",
+                           file_description=APP_NAME,
+                           version=version_str,
+                           description=APP_DESCRIPTION,
                            copyright=APP_COPYRIGHT)
 
 logger.info("=================== Creating executable  ===================")
@@ -163,11 +173,17 @@ if result.returncode != 0:
 
 logger.info("=================== Copying data         ===================")
 
-shutil.copytree(components_dir, os.path.join(dist_dir, "components"), dirs_exist_ok=True, copy_function=copy_function,
+shutil.copytree(components_dir,
+                os.path.join(dist_dir, "components"),
+                dirs_exist_ok=True,
+                copy_function=copy_function,
                 ignore=shutil.ignore_patterns("__pycache__", "*.ts"))
 
-shutil.copytree(os.path.join(source_dir, "i18n"), os.path.join(dist_dir, "i18n"), dirs_exist_ok=True,
-                copy_function=copy_function, ignore=shutil.ignore_patterns("*.ts"))
+shutil.copytree(os.path.join(source_dir, "i18n"),
+                os.path.join(dist_dir, "i18n"),
+                dirs_exist_ok=True,
+                copy_function=copy_function,
+                ignore=shutil.ignore_patterns("*.ts"))
 
 logger.info("============== Downloading required modules ================")
 
@@ -188,7 +204,10 @@ if len(requirements_lib_dirs) > 0:
     requirements_lib_dir = requirements_lib_dirs[0]
     compileall.compile_dir(requirements_lib_dir, legacy=True, optimize=args.optimized)
     module_dist_dir = os.path.join(dist_dir, "modules")
-    shutil.copytree(requirements_lib_dir, module_dist_dir, dirs_exist_ok=True, copy_function=copy_function,
+    shutil.copytree(requirements_lib_dir,
+                    module_dist_dir,
+                    dirs_exist_ok=True,
+                    copy_function=copy_function,
                     ignore=shutil.ignore_patterns("tests", "__pycache__", "*.py", "*.dist-info", "*.egg-info"))
 
 logger.info("================= Creating zip package =====================")

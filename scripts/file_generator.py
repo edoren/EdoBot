@@ -25,8 +25,14 @@ def __configure_file(output_file: str, input_str: str, data: Mapping[str, str], 
             f.write(contents)
 
 
-def generate_file_version_info(output_path: str, name: str, owner: str, version: str, description: str = "",
-                               copyright: str = "", file_name: str = "", file_description: str = ""):
+def generate_file_version_info(output_path: str,
+                               name: str,
+                               owner: str,
+                               version: str,
+                               description: str = "",
+                               copyright: str = "",
+                               file_name: str = "",
+                               file_description: str = ""):
     current_dir = os.path.dirname(__file__)
     file_version_template_file = os.path.join(current_dir, "input", "file_version_info.txt.in")
     with open(file_version_template_file, "r") as f:

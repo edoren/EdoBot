@@ -7,3 +7,4 @@ class EventType(IntEnum):
     REWARD_REDEEMED = 1
     BITS = 2
     RAID = 3
+    SUBSCRIPTION = 2

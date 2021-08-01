@@ -8,15 +8,17 @@ from typing import Callable, List, MutableMapping, Optional, Union
 from model import EventType
 from network import WebSocket
 
-from .pubsub_events import (BitsBadgeNotificationMessage, BitsEventMessage, BitsEventMessageMeta,
-                            ChannelPointsEventMessage, ChannelPointsEventMessageMeta, ChannelSubscriptionsEventMessage)
+from .events.bits_badge_event import BitsBadgeEvent
+from .events.bits_event import BitsEvent, BitsEventMeta
+from .events.channel_points_event import ChannelPointsEvent, ChannelPointsEventMeta
+from .events.subscription_event import SubscriptionEvent
 
-__all__ = ["PubSub", "PubSubEvent"]
+__all__ = ["PubSub"]
 
 gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
-class PubSubEvent(Enum):
+class PubSubEventType(Enum):
     BITS_EVENT = "channel-bits-events-v2"
     BITS_BADGE_EVENT = "channel-bits-badge-unlocks"
     CHANNEL_POINTS_EVENT = "channel-points-channel-v1"
@@ -26,8 +28,7 @@ class PubSubEvent(Enum):
 
 
 class PubSub(WebSocket):
-    EventMessages = Union[BitsBadgeNotificationMessage, BitsEventMessage, ChannelPointsEventMessage,
-                          ChannelSubscriptionsEventMessage]
+    EventMessages = Union[BitsBadgeEvent, BitsEvent, ChannelPointsEvent, SubscriptionEvent]
     EventCallable = Callable[[EventType, EventMessages], None]
 
     def __init__(self, broadcaster_id: str, password: str) -> None:
@@ -51,10 +52,10 @@ class PubSub(WebSocket):
             super().connect()
             if self.connected:
                 self.ping()
-                self.listen(PubSubEvent.CHANNEL_POINTS_EVENT)
-                self.listen(PubSubEvent.SUBSCRIPTION_EVENT)
-                self.listen(PubSubEvent.BITS_EVENT)
-                self.listen(PubSubEvent.BITS_BADGE_EVENT)
+                self.listen(PubSubEventType.CHANNEL_POINTS_EVENT)
+                self.listen(PubSubEventType.SUBSCRIPTION_EVENT)
+                self.listen(PubSubEventType.BITS_EVENT)
+                self.listen(PubSubEventType.BITS_BADGE_EVENT)
 
     def subscribe(self, subscriber: EventCallable):
         self.subscribers.append(subscriber)
@@ -66,7 +67,7 @@ class PubSub(WebSocket):
             self.last_ping_time = current_time
             self.send('{"type":"PING"}')
 
-    def listen(self, event: PubSubEvent):
+    def listen(self, event: PubSubEventType):
         new_nonce = ''.join([str(random.randint(0, 9)) for _ in range(8)])
         registered_topics = [f"{event.value}.{self.broadcaster_id}"]
         self.nonce_waiting[new_nonce] = registered_topics
@@ -97,14 +98,16 @@ class PubSub(WebSocket):
                 for sub in self.subscribers:
                     data_topic = data["topic"]
                     data_message = json.loads(data["message"])
-                    if data_topic.startswith(PubSubEvent.CHANNEL_POINTS_EVENT.value):
-                        parsed_message = ChannelPointsEventMessageMeta(**data_message)
+                    if data_topic.startswith(PubSubEventType.CHANNEL_POINTS_EVENT.value):
+                        parsed_message = ChannelPointsEventMeta(**data_message)
                         sub(EventType.REWARD_REDEEMED, parsed_message.data)
-                    elif data_topic.startswith(PubSubEvent.BITS_EVENT.value):
-                        parsed_message = BitsEventMessageMeta(**data_message)
+                    elif data_topic.startswith(PubSubEventType.BITS_EVENT.value):
+                        parsed_message = BitsEventMeta(**data_message)
                         sub(EventType.BITS, parsed_message.data)
-                    elif data_topic.startswith(PubSubEvent.SUBSCRIPTION_EVENT.value):
+                    elif data_topic.startswith(PubSubEventType.SUBSCRIPTION_EVENT.value):
+                        parsed_message = SubscriptionEvent(**data_message)
+                        sub(EventType.SUBSCRIPTION, parsed_message)
                         pass
-                    elif data_topic.startswith(PubSubEvent.BITS_BADGE_EVENT.value):
+                    elif data_topic.startswith(PubSubEventType.BITS_BADGE_EVENT.value):
                         pass
                     gLogger.info(f"PUB_SUB {data_topic} - {json.dumps(data_message)}")

@@ -11,7 +11,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QComboBox, QFormLayout, QGroupBox, QLineEdit, QListWidget, QListWidgetItem,
                                QMenu, QMessageBox, QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
-import twitch
+import twitch.events
 from core import ChatComponent
 from model import EventType, User, UserType
 
@@ -541,7 +541,7 @@ class CountdownTimerComponent(ChatComponent):
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
         if event_type == EventType.REWARD_REDEEMED:
-            event_data: twitch.ChannelPointsEventMessage = metadata
+            event_data: twitch.events.ChannelPointsEvent = metadata
             reward_name = event_data.redemption.reward.title
             with self.timer_thread_lock:
                 for timer in self.__timers:

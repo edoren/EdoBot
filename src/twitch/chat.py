@@ -4,7 +4,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from model import EventType
 from network import WebSocket
-from twitch.chat_events import RaidEventMessage
+from twitch.events import RaidEvent
 from twitch.irc_tags import PrivateMsgTags
 
 __all__ = ["Chat", "PrivateMsgTags"]
@@ -101,7 +101,7 @@ class Chat(WebSocket):
                 tags_dict = process_tags(tags_raw)
                 if tags_dict.get("msg_id") == "raid":
                     for sub in self.subscribers_events:
-                        sub(EventType.RAID, RaidEventMessage(**tags_dict))
+                        sub(EventType.RAID, RaidEvent(**tags_dict))
             else:
                 if line.startswith("PING"):
                     pong_host = line.split(" ")[1]

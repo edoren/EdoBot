@@ -1,7 +1,7 @@
 from typing import Any
 
 
-class RaidEventMessage:
+class RaidEvent:
     """[summary]
 
     Attributes:

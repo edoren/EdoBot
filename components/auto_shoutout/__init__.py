@@ -10,10 +10,9 @@ from PySide2.QtGui import QFocusEvent
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
 
-from core import ChatComponent
-from core.constants import Constants
+from core import ChatComponent, Constants
 from model import EventType, User, UserType
-from twitch import ChannelPointsEventMessage, RaidEventMessage
+from twitch.events import ChannelPointsEvent, RaidEvent
 
 __all__ = ["AutoShoutOut"]
 
@@ -108,12 +107,12 @@ class AutoShoutOut(ChatComponent):
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
         if event_type == EventType.RAID and self.raids_enabled and metadata.viewer_count >= self.raid_min_viewers:
-            raid_data: RaidEventMessage = metadata
+            raid_data: RaidEvent = metadata
             user = self.twitch.get_user(raid_data.login)
             if user is not None:
                 self.process_shoutout(user)
         elif event_type == EventType.REWARD_REDEEMED:
-            channel_points_data: ChannelPointsEventMessage = metadata
+            channel_points_data: ChannelPointsEvent = metadata
             user = self.twitch.get_user(channel_points_data.redemption.user.login)
             if user is not None:
                 self.process_shoutout(user)

@@ -3,12 +3,12 @@
 <context>
     <name>CountdownTimerCompConfig</name>
     <message>
-        <location filename="__init__.py" line="417"/>
+        <location filename="component.py" line="28"/>
         <source>Countdown Timer</source>
         <translation>Temporizador</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="420"/>
+        <location filename="component.py" line="31"/>
         <source>Add a countdown that interacts with Channel Points, Subs or Bits</source>
         <translation>Agrega un temporizador que interactua con Puntos de Canal, Subs o Bits</translation>
     </message>
@@ -148,74 +148,114 @@
         <translation>Configuración del Evento</translation>
     </message>
     <message>
-        <location filename="config.ui" line="510"/>
+        <location filename="config.ui" line="517"/>
         <source>Duration</source>
         <translation>Duración</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="174"/>
+        <location filename="config_widget.py" line="122"/>
         <source>Hours</source>
         <translation>Horas</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="176"/>
+        <location filename="config_widget.py" line="124"/>
         <source>Minutes</source>
         <translation>Minutos</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="178"/>
+        <location filename="config_widget.py" line="126"/>
         <source>Seconds</source>
         <translation>Segundos</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="158"/>
+        <location filename="config_widget.py" line="69"/>
         <source>Automatic</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="387"/>
+        <location filename="config_widget.py" line="338"/>
         <source>Delete</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="368"/>
+        <location filename="config_widget.py" line="112"/>
         <source>Reward Name</source>
         <translation>Nombre del Canje</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="241"/>
+        <location filename="config_widget.py" line="189"/>
         <source>New Timer</source>
         <translation>Nuevo Contador</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="260"/>
+        <location filename="config_widget.py" line="208"/>
         <source>Remove Timer?</source>
         <translation>¿Remover Contador?</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="262"/>
+        <location filename="config_widget.py" line="210"/>
         <source>Do you want to remove the &lt;b&gt;{0}&lt;/b&gt; timer?</source>
         <translation>Quieres remover el contador &lt;b&gt;{0}&lt;/b&gt;?</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="310"/>
+        <location filename="config_widget.py" line="258"/>
         <source>Error Creating Timer</source>
         <translation>Error Creando el Contador</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="311"/>
+        <location filename="config_widget.py" line="259"/>
         <source>The timer name should not be empty</source>
         <translation>El nombre del contador no puede estar vacio</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="401"/>
+        <location filename="config_widget.py" line="352"/>
         <source>Unknown</source>
         <translation>Desconocido</translation>
     </message>
     <message>
-        <location filename="__init__.py" line="166"/>
+        <location filename="config_widget.py" line="105"/>
         <source>Channel Points</source>
         <translation>Puntos de Canal</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="75"/>
+        <source>Subscription</source>
+        <translation>Subscripción</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="81"/>
+        <source>Is Gift?</source>
+        <translation>¿Es Regalo?</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="84"/>
+        <source>Subscription Type</source>
+        <translation>Tipo de Subscripción</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="88"/>
+        <source>Prime</source>
+        <translation>Prime</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="91"/>
+        <source>Tier 1</source>
+        <translation>Nivel 1</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="94"/>
+        <source>Tier 2</source>
+        <translation>Nivel 2</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="97"/>
+        <source>Tier 3</source>
+        <translation>Nivel 3</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="100"/>
+        <source>Any</source>
+        <translation>Cualquiera</translation>
     </message>
 </context>
 </TS>

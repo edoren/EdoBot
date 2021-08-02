@@ -109,7 +109,7 @@
        <item>
         <widget class="QTabWidget" name="tab_widget">
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="general_tab">
           <attribute name="title">
@@ -486,7 +486,7 @@
                <property name="title">
                 <string>Event Config</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_10">
+               <layout class="QVBoxLayout" name="event_config_layout">
                 <property name="spacing">
                  <number>3</number>
                 </property>
@@ -502,6 +502,13 @@
                 <property name="bottomMargin">
                  <number>5</number>
                 </property>
+                <item>
+                 <widget class="Line" name="line">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <layout class="QFormLayout" name="event_data_form">
                   <item row="0" column="0">

@@ -166,10 +166,10 @@ class CountdownTimerComponent(ChatComponent):
 
     def format_time(self, time_ms: int, display_format: str) -> str:
         if display_format == "hours":
-            return "{:02d}:{:02d}:{:02d}".format(int((time_ms / 3600000)), int((time_ms / 60000) % 60),
-                                                 int((time_ms / 1000) % 60))
+            return "{:02d}:{:02d}:{:02d}".format(int((time_ms / 3600000)), int((time_ms/60000) % 60),
+                                                 int((time_ms/1000) % 60))
         elif display_format == "minutes":
-            return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms / 1000) % 60))
+            return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms/1000) % 60))
         elif display_format == "seconds":
             return "{:02d}".format(int((time_ms / 1000)))
         else:  # automatic

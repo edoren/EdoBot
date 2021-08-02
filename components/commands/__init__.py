@@ -203,7 +203,8 @@ class CommandsTableWidget(QWidget):
                 "response": self.table_widget.item(row, 2).text(),
                 "cooldown": int(self.table_widget.item(row, 3).text()),
                 "user_cooldown": int(self.table_widget.item(row, 4).text()),
-                "access_level": self.table_widget.item(row, 5).data(Qt.UserRole).value  # type: ignore
+                "access_level":
+                    self.table_widget.item(row, 5).data(Qt.UserRole).value  # type: ignore
             })
         return result
 

@@ -6,6 +6,8 @@ based_on_style = "pep8"
 column_limit = 120
 arithmetic_precedence_indication = true
 split_before_named_assigns = true
+indent_dictionary_value = true
+allow_split_before_dict_value = false
 
 [tool.isort]
 line_length = 120

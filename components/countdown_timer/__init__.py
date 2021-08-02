@@ -8,8 +8,9 @@ from typing import Any, List, Mapping, MutableMapping, Optional, Set, Tuple, Uni
 import qtawesome as qta
 from PySide2.QtCore import QCoreApplication, QFile, Qt, Signal
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QAction, QComboBox, QFormLayout, QGroupBox, QLineEdit, QListWidget, QListWidgetItem,
-                               QMenu, QMessageBox, QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QFormLayout, QGroupBox, QLineEdit, QListWidget,
+                               QListWidgetItem, QMenu, QMessageBox, QPushButton, QSpinBox, QTabWidget, QVBoxLayout,
+                               QWidget)
 
 import twitch.events
 from core import ChatComponent
@@ -18,20 +19,102 @@ from model import EventType, User, UserType
 gLogger = logging.getLogger("edobot.components.counter")
 
 
+class FormWidget(QWidget):
+    valueChanged = Signal(str, object)
+
+    def __init__(self,
+                 parent: Optional[QWidget],
+                 form: List[Mapping[str, Any]],
+                 data: MutableMapping[str, Any] = {}) -> None:
+        super().__init__(parent=parent)
+
+        self.main_layout = QFormLayout()
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+
+        position = 0
+        for input_meta in form:
+            qt_widget = None
+            title = input_meta["title"]
+            input_type = input_meta["type"]
+            input_key = input_meta["id"]
+            if input_type == "input_box":
+                qt_input = QLineEdit(data.setdefault(input_key, input_meta.get("default", "")))
+                qt_input.setProperty("key", input_key)
+                qt_input.editingFinished.connect(  # type: ignore
+                    lambda: self.valueChanged.emit(qt_input.property("key"),
+                                                   qt_input.text().strip()))
+                qt_widget = qt_input
+            elif input_type == "combo_box":
+                qt_combo_box = QComboBox()
+                qt_combo_box.setProperty("key", input_key)
+                for choice in input_meta["choices"]:
+                    qt_combo_box.addItem(choice["name"], choice["value"])
+                current_key = data.setdefault(input_key, input_meta.get("default", input_meta["choices"][0]["value"]))
+                qt_combo_box.setCurrentIndex(qt_combo_box.findData(current_key))
+                qt_combo_box.activated.connect(lambda i: self.valueChanged.emit(  # type: ignore
+                    qt_combo_box.property("key"), qt_combo_box.itemData(i)))
+                qt_widget = qt_combo_box
+            elif input_type == "check_box":
+                qt_check_box = QCheckBox()
+                qt_check_box.setProperty("key", input_key)
+                qt_check_box.setChecked(data.setdefault(input_key, input_meta.get("default", False)))
+                qt_check_box.stateChanged.connect(lambda state: self.valueChanged.emit(  # type: ignore
+                    qt_check_box.property("key"), state != 0))
+                qt_widget = qt_check_box
+            if qt_widget:
+                self.main_layout.insertRow(position, title, qt_widget)
+                position += 1
+
+        self.setLayout(self.main_layout)
+
+    def set_values(self, data: Mapping[str, Any]) -> None:
+        for i in range(self.main_layout.rowCount()):
+            layoutItem = self.main_layout.itemAt(i, QFormLayout.ItemRole.FieldRole)
+            widget = layoutItem.widget()
+            input_key = widget.property("key")
+            if input_key in data:
+                if isinstance(widget, QLineEdit):
+                    widget.setText(data[input_key])
+                elif isinstance(widget, QComboBox):
+                    widget.setCurrentIndex(widget.findData(data[input_key]))
+                elif isinstance(widget, QCheckBox):
+                    widget.setChecked(data[input_key])
+
+
 class RewardTimer:
     class Event:
         def __init__(self, **kwargs: Any):
-            self.type: str = kwargs["type"]
+            alt_type = kwargs["type"]
+            if isinstance(alt_type, EventType):
+                self.type = alt_type
+            else:
+                if alt_type == "reward":
+                    self.type = EventType.REWARD_REDEEMED
+                elif alt_type == "subscription":
+                    self.type = EventType.SUBSCRIPTION
             self.id: str = kwargs.get("id", uuid.uuid4().hex)
             self.enabled: bool = kwargs.get("enabled", True)
             self.duration: int = kwargs.get("duration", 30)
             self.duration_format: str = kwargs.get("duration_format", "seconds")
-            self.data: MutableMapping[str, Any] = kwargs.get("data", {})
+            if "data" in kwargs:
+                self.data: MutableMapping[str, Any] = kwargs["data"]
+            elif self.type == EventType.REWARD_REDEEMED:
+                self.data: MutableMapping[str, Any] = {"name": ""}
+            elif self.type == EventType.SUBSCRIPTION:
+                self.data: MutableMapping[str, Any] = {"is_gift": False, "type": "prime"}
+            else:
+                self.data: MutableMapping[str, Any] = {}
 
         def serialize(self) -> Mapping[str, Any]:
+            if self.type == EventType.REWARD_REDEEMED:
+                type_name = "reward"
+            elif self.type == EventType.SUBSCRIPTION:
+                type_name = "subscription"
+            else:
+                type_name = "unknown"
             return {
                 "id": self.id,
-                "type": self.type,
+                "type": type_name,
                 "enabled": self.enabled,
                 "duration": self.duration,
                 "duration_format": self.duration_format,
@@ -69,12 +152,12 @@ class RewardTimer:
     def __ne__(self, other: "RewardTimer"):
         return not (self == other)
 
-    def has_event(self, type: str, **kwargs: Any) -> bool:
-        return self.get_event(type, **kwargs) is not None
+    def has_event(self, etype: EventType, **kwargs: Any) -> bool:
+        return self.get_event(etype, **kwargs) is not None
 
-    def get_event(self, type: str, **kwargs: Any) -> Optional["RewardTimer.Event"]:
+    def get_event(self, etype: EventType, **kwargs: Any) -> Optional["RewardTimer.Event"]:
         for event in self.events:
-            if event.type == type:
+            if event.type == etype:
                 if kwargs:
                     if not event.data:
                         return None
@@ -141,9 +224,9 @@ class CountdownTimerWidget(QWidget):
         self.add_event_button: QPushButton = getattr(my_widget, "add_event_button")
 
         self.event_config: QGroupBox = getattr(my_widget, "event_config")
+        self.event_config_layout: QVBoxLayout = getattr(my_widget, "event_config_layout")
         self.event_duration_input: QSpinBox = getattr(my_widget, "event_duration_input")
         self.event_duration_format: QComboBox = getattr(my_widget, "event_duration_format")
-        self.event_data_form: QFormLayout = getattr(my_widget, "event_data_form")
 
         # Default Configs
 
@@ -160,17 +243,54 @@ class CountdownTimerWidget(QWidget):
         self.display_selection.setCurrentIndex(self.display_selection.findData("minutes"))
 
         self.available_events = {
-            "reward": QCoreApplication.translate("CountdownTimerCompConfig", "Channel Points", None)
+            EventType.SUBSCRIPTION: {
+                "name": QCoreApplication.translate("CountdownTimerCompConfig", "Subscription", None),
+                "form": [{
+                    "id": "is_gift",
+                    "type": "check_box",
+                    "default": False,
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Is Gift?", None)
+                }, {
+                    "id": "type",
+                    "type": "combo_box",
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Subscription Type", None),
+                    "default": "prime",
+                    "choices": [{
+                        "value": "prime",
+                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Prime", None),
+                    }, {
+                        "value": "1000",
+                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 1", None),
+                    }, {
+                        "value": "2000",
+                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 2", None),
+                    }, {
+                        "value": "3000",
+                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 3", None),
+                    }, {
+                        "value": "any",
+                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Any", None),
+                    }]
+                }]
+            },
+            EventType.REWARD_REDEEMED: {
+                "name": QCoreApplication.translate("CountdownTimerCompConfig", "Channel Points", None),
+                "form": [{
+                    "id": "name",
+                    "type": "input_box",
+                    "default": "",
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None)
+                }]
+            },
         }
 
-        for key, name in self.available_events.items():
-            item = QListWidgetItem(name)
+        for key, data in self.available_events.items():
+            item = QListWidgetItem(data.get("name", ""))  # type: ignore
             item.setData(Qt.UserRole, key)  # type: ignore
             self.available_events_list.addItem(item)
         self.available_events_list.setCurrentRow(0)
 
         self.event_config.setVisible(False)
-        self.event_data_form_initial_num = self.event_data_form.rowCount()
         self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Hours", None),
                                            "hours")
         self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None),
@@ -322,7 +442,7 @@ class CountdownTimerWidget(QWidget):
     def add_timer_event_clicked(self):
         selected_event = self.available_events_list.selectedItems()[0]
         timer: RewardTimer = self.__get_current_selected_timer()
-        type_: str = selected_event.data(Qt.UserRole)
+        type_: EventType = selected_event.data(Qt.UserRole)
         new_event = self.data_parent.add_timer_event(type_, timer.id)
         if new_event:
             self.add_timer_event(new_event)
@@ -352,8 +472,10 @@ class CountdownTimerWidget(QWidget):
             self.data_parent.save_timers()
 
     def active_events_selection_changed(self, current, previous):
-        for row in range(0, self.event_data_form.rowCount() - self.event_data_form_initial_num):
-            self.event_data_form.removeRow(row)
+        num_elements = self.event_config_layout.count()
+        if num_elements > 2:
+            layout_item = self.event_config_layout.itemAt(0)
+            layout_item.widget().deleteLater()
 
         if current is None:
             self.event_config.setVisible(False)
@@ -362,13 +484,14 @@ class CountdownTimerWidget(QWidget):
             event: RewardTimer.Event = current.data(Qt.UserRole)  # type: ignore
             self.event_duration_input.setValue(event.duration)
             self.event_duration_format.setCurrentIndex(self.event_duration_format.findData(event.duration_format))
-            if event.type == "reward":
-                name_input = QLineEdit(event.data.get("name", ""))
-                self.event_data_form.insertRow(
-                    0, QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None), name_input)
-                name_input.editingFinished.connect(  # type: ignore
-                    lambda: self.update_active_event_data("name",
-                                                          name_input.text().strip(), True))
+            if event.type in self.available_events:
+                data = self.available_events[event.type]
+                form: List[Mapping[str, str]] = data["form"]  # type: ignore
+                widget = FormWidget(None, form, event.data)
+                widget.valueChanged.connect(  # type: ignore
+                    lambda key, val: self.update_active_event_data(key, val, True))
+                self.event_config_layout.insertWidget(0, widget)
+                widget.set_values(event.data)
 
     def update_active_event_data(self, name: str, data: Any, is_custom=False):
         selected_item: QListWidgetItem = self.active_events_list.selectedItems()[0]
@@ -397,8 +520,9 @@ class CountdownTimerWidget(QWidget):
         return selected_item.data(Qt.UserRole)
 
     def __get_event_title(self, event: RewardTimer.Event) -> str:
-        type_name = self.available_events.get(event.type,
-                                              QCoreApplication.translate("CountdownTimerCompConfig", "Unknown", None))
+        type_name = QCoreApplication.translate("CountdownTimerCompConfig", "Unknown", None)
+        if event.type in self.available_events:
+            type_name = self.available_events[event.type]["name"]
         event_title = f"{type_name}:"
         for key in event.data:
             event_title += f" {event.data[key]} -"
@@ -540,13 +664,23 @@ class CountdownTimerComponent(ChatComponent):
                 return self.format_time(time_ms, "seconds")
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
-        if event_type == EventType.REWARD_REDEEMED:
-            event_data: twitch.events.ChannelPointsEvent = metadata
-            reward_name = event_data.redemption.reward.title
-            with self.timer_thread_lock:
-                for timer in self.__timers:
-                    if timer.enabled:
-                        event = timer.get_event("reward", name=reward_name)
+        if event_type not in (EventType.SUBSCRIPTION, EventType.REWARD_REDEEMED):
+            return
+
+        with self.timer_thread_lock:
+            for timer in self.__timers:
+                if timer.enabled:
+                    if event_type == EventType.REWARD_REDEEMED:
+                        points_event: twitch.events.ChannelPointsEvent = metadata
+                        reward_name = points_event.redemption.reward.title
+                        event = timer.get_event(EventType.REWARD_REDEEMED, name=reward_name)
+                        if event is not None and event.enabled:
+                            self.start_timer_for_event(timer, event)
+                    elif event_type == EventType.SUBSCRIPTION:
+                        sub_event: twitch.events.SubscriptionEvent = metadata
+                        event = timer.get_event(EventType.SUBSCRIPTION,
+                                                is_gift=sub_event.is_gift,
+                                                type=sub_event.sub_plan.lower())
                         if event is not None and event.enabled:
                             self.start_timer_for_event(timer, event)
 
@@ -581,14 +715,11 @@ class CountdownTimerComponent(ChatComponent):
                 del self.__timers[index]
                 self.save_timers_no_lock()
 
-    def add_timer_event(self, type_: str, timer_id: str) -> Optional[RewardTimer.Event]:
+    def add_timer_event(self, type_: EventType, timer_id: str) -> Optional[RewardTimer.Event]:
         with self.timer_thread_lock:
             for timer in self.__timers:
                 if timer.id == timer_id:
-                    event_data = None
-                    if type_ == "reward":
-                        event_data = {"name": ""}
-                    event = RewardTimer.Event(type=type_, data=event_data)
+                    event = RewardTimer.Event(type=type_)
                     timer.events.append(event)
                     self.save_timers_no_lock()
                     return event

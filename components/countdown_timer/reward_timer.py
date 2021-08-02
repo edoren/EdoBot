@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, List, Mapping, MutableMapping, Optional
+from typing import Any, List, Mapping, MutableMapping
 
 from model.event_type import EventType
 
@@ -76,22 +76,24 @@ class RewardTimer:
         return not (self == other)
 
     def has_event(self, etype: EventType, **kwargs: Any) -> bool:
-        return self.get_event(etype, **kwargs) is not None
+        return len(self.get_events(etype, **kwargs)) != 0
 
-    def get_event(self, etype: EventType, **kwargs: Any) -> Optional["RewardTimer.Event"]:
+    def get_events(self, etype: EventType, **kwargs: Any) -> List["RewardTimer.Event"]:
+        events = []
         for event in self.events:
             if event.type == etype:
                 if kwargs:
-                    if not event.data:
-                        return None
-                    comp = True
-                    for key in kwargs:
-                        comp = comp and (key in event.data and kwargs[key] == event.data[key])
-                    if comp:
-                        return event
+                    if etype == EventType.REWARD_REDEEMED:
+                        if kwargs["name"] == event.data["name"]:
+                            events.append(event)
+                    elif etype == EventType.SUBSCRIPTION:
+                        ok = kwargs["is_gift"] == event.data["is_gift"]
+                        ok = ok and (kwargs["type"] == event.data["type"] or event.data["type"] == "any")
+                        if ok:
+                            events.append(event)
                 else:
-                    return event
-        return None
+                    events.append(event)
+        return events
 
     def serialize(self) -> Mapping[str, Any]:
         return {

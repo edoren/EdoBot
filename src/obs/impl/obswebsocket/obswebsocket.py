@@ -6,6 +6,7 @@ import obswebsocket.events as obs_events
 import obswebsocket.requests as obs_requests
 from obswebsocket import obsws
 from obswebsocket.exceptions import ConnectionFailure
+from websocket import WebSocketConnectionClosedException
 
 from network import SocketConnector
 
@@ -116,4 +117,7 @@ class OBSWebSocket(OBSInterface):
         self.client.call(obs_requests.SetCurrentScene(scene_name))
 
     def set_text_gdi_plus_properties(self, source: str, **properties: Any) -> None:
-        self.client.call(obs_requests.SetTextGDIPlusProperties(source, **properties))
+        try:
+            self.client.call(obs_requests.SetTextGDIPlusProperties(source, **properties))
+        except WebSocketConnectionClosedException:
+            pass

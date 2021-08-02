@@ -103,6 +103,36 @@ class CountdownTimerComponent(ChatComponent):
                         metadata: Optional[Any] = None) -> None:
         pass
 
+    def process_event(self, event_type: EventType, metadata: Any) -> None:
+        if event_type not in (EventType.SUBSCRIPTION, EventType.REWARD_REDEEMED):
+            return
+
+        with self.timer_thread_lock:
+            for timer in self.__timers:
+                if timer.enabled:
+                    if event_type == EventType.REWARD_REDEEMED:
+                        points_event: twitch.events.ChannelPointsEvent = metadata
+                        reward_name = points_event.redemption.reward.title
+                        events = timer.get_events(EventType.REWARD_REDEEMED, name=reward_name)
+                        for event in events:
+                            if event.enabled:
+                                self.start_timer_for_event(timer, event)
+                    elif event_type == EventType.SUBSCRIPTION:
+                        sub_event: twitch.events.SubscriptionEvent = metadata
+                        events = timer.get_events(EventType.SUBSCRIPTION,
+                                                  is_gift=sub_event.is_gift,
+                                                  type=sub_event.sub_plan.lower())
+                        for event in events:
+                            if event.enabled:
+                                self.start_timer_for_event(timer, event)
+
+    def get_config_ui(self) -> Optional[QWidget]:
+        widget = CountdownTimerWidget(self)
+        widget.addButtonPressed.connect(self.add_time_to_timer)  # type: ignore
+        widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore
+        widget.setButtonPressed.connect(self.set_timer_time)  # type: ignore
+        return widget
+
     def start_timer_for_event(self, timer: RewardTimer, event: RewardTimer.Event):
         self.add_time_to_timer(timer, event.get_duration_ms())
 
@@ -136,10 +166,10 @@ class CountdownTimerComponent(ChatComponent):
 
     def format_time(self, time_ms: int, display_format: str) -> str:
         if display_format == "hours":
-            return "{:02d}:{:02d}:{:02d}".format(int((time_ms / 3600000)), int((time_ms/60000) % 60),
-                                                 int((time_ms/1000) % 60))
+            return "{:02d}:{:02d}:{:02d}".format(int((time_ms / 3600000)), int((time_ms / 60000) % 60),
+                                                 int((time_ms / 1000) % 60))
         elif display_format == "minutes":
-            return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms/1000) % 60))
+            return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms / 1000) % 60))
         elif display_format == "seconds":
             return "{:02d}".format(int((time_ms / 1000)))
         else:  # automatic
@@ -149,34 +179,6 @@ class CountdownTimerComponent(ChatComponent):
                 return self.format_time(time_ms, "minutes")
             else:
                 return self.format_time(time_ms, "seconds")
-
-    def process_event(self, event_type: EventType, metadata: Any) -> None:
-        if event_type not in (EventType.SUBSCRIPTION, EventType.REWARD_REDEEMED):
-            return
-
-        with self.timer_thread_lock:
-            for timer in self.__timers:
-                if timer.enabled:
-                    if event_type == EventType.REWARD_REDEEMED:
-                        points_event: twitch.events.ChannelPointsEvent = metadata
-                        reward_name = points_event.redemption.reward.title
-                        event = timer.get_event(EventType.REWARD_REDEEMED, name=reward_name)
-                        if event is not None and event.enabled:
-                            self.start_timer_for_event(timer, event)
-                    elif event_type == EventType.SUBSCRIPTION:
-                        sub_event: twitch.events.SubscriptionEvent = metadata
-                        event = timer.get_event(EventType.SUBSCRIPTION,
-                                                is_gift=sub_event.is_gift,
-                                                type=sub_event.sub_plan.lower())
-                        if event is not None and event.enabled:
-                            self.start_timer_for_event(timer, event)
-
-    def get_config_ui(self) -> Optional[QWidget]:
-        widget = CountdownTimerWidget(self)
-        widget.addButtonPressed.connect(self.add_time_to_timer)  # type: ignore
-        widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore
-        widget.setButtonPressed.connect(self.set_timer_time)  # type: ignore
-        return widget
 
     def get_timers(self) -> List[RewardTimer]:
         with self.timer_thread_lock:

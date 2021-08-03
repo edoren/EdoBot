@@ -4,8 +4,9 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from model import EventType
 from network import WebSocket
-from twitch.events import RaidEvent
-from twitch.irc_tags import PrivateMsgTags
+
+from .events import RaidEvent
+from .irc_tags import PrivateMsgTags
 
 __all__ = ["Chat", "PrivateMsgTags"]
 

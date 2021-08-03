@@ -8,8 +8,8 @@ from PySide2.QtWidgets import QWidget
 from core.config import Config
 from model import EventType, User, UserType
 from obs import OBSInterface
-from twitch.chat import Chat  # TODO: Replace with ChatWrapper
-from twitch.service import Service as TwitchService
+from services.twitch import Chat  # TODO: Replace with ChatWrapper
+from services.twitch import Service as TwitchService
 
 __all__ = ["ChatComponent"]
 

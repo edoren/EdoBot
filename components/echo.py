@@ -1,9 +1,9 @@
 import logging
 from typing import Any, List, Optional, Set, Union
 
-import twitch.events
 from core import ChatComponent
 from model import EventType, User, UserType
+from services import twitch
 
 __all__ = ["EchoComponent"]
 

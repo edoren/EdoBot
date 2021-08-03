@@ -7,9 +7,9 @@ import qtawesome as qta
 from PySide2.QtCore import QCoreApplication
 from PySide2.QtWidgets import QWidget
 
-import twitch.events
 from core import ChatComponent
 from model import EventType, User, UserType
+from services import twitch
 
 from .config_widget import CountdownTimerWidget
 from .reward_timer import RewardTimer

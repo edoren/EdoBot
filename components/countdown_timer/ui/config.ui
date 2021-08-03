@@ -108,9 +108,6 @@
        </property>
        <item>
         <widget class="QTabWidget" name="tab_widget">
-         <property name="currentIndex">
-          <number>2</number>
-         </property>
          <widget class="QWidget" name="general_tab">
           <attribute name="title">
            <string>General</string>

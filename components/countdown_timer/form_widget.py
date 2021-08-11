@@ -1,7 +1,7 @@
 from typing import Any, List, Mapping, MutableMapping, Optional
 
 from PySide2.QtCore import Signal
-from PySide2.QtWidgets import QCheckBox, QComboBox, QFormLayout, QLineEdit, QWidget
+from PySide2.QtWidgets import QCheckBox, QComboBox, QFormLayout, QLineEdit, QSpinBox, QWidget
 
 
 class FormWidget(QWidget):
@@ -22,13 +22,21 @@ class FormWidget(QWidget):
             title = input_meta["title"]
             input_type = input_meta["type"]
             input_key = input_meta["id"]
-            if input_type == "input_box":
+            if input_type == "text_box":
                 qt_input = QLineEdit(data.setdefault(input_key, input_meta.get("default", "")))
                 qt_input.setProperty("key", input_key)
                 qt_input.editingFinished.connect(  # type: ignore
                     lambda: self.valueChanged.emit(qt_input.property("key"),
                                                    qt_input.text().strip()))
                 qt_widget = qt_input
+            elif input_type == "number_box":
+                qt_spin_box = QSpinBox()
+                qt_spin_box.setMaximum(1000000)
+                qt_spin_box.setValue(data.setdefault(input_key, input_meta.get("default", 0)))
+                qt_spin_box.setProperty("key", input_key)
+                qt_spin_box.valueChanged.connect(  # type: ignore
+                    lambda i: self.valueChanged.emit(qt_spin_box.property("key"), i))
+                qt_widget = qt_spin_box
             elif input_type == "combo_box":
                 qt_combo_box = QComboBox()
                 qt_combo_box.setProperty("key", input_key)

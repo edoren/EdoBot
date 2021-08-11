@@ -153,17 +153,17 @@
         <translation>Duración</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="130"/>
+        <location filename="config_widget.py" line="144"/>
         <source>Hours</source>
         <translation>Horas</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="132"/>
+        <location filename="config_widget.py" line="146"/>
         <source>Minutes</source>
         <translation>Minutos</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="134"/>
+        <location filename="config_widget.py" line="148"/>
         <source>Seconds</source>
         <translation>Segundos</translation>
     </message>
@@ -173,47 +173,47 @@
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="346"/>
+        <location filename="config_widget.py" line="360"/>
         <source>Delete</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="120"/>
+        <location filename="config_widget.py" line="134"/>
         <source>Reward Name</source>
         <translation>Nombre del Canje</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="197"/>
+        <location filename="config_widget.py" line="211"/>
         <source>New Timer</source>
         <translation>Nuevo Contador</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="216"/>
+        <location filename="config_widget.py" line="230"/>
         <source>Remove Timer?</source>
         <translation>¿Remover Contador?</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="218"/>
+        <location filename="config_widget.py" line="232"/>
         <source>Do you want to remove the &lt;b&gt;{0}&lt;/b&gt; timer?</source>
         <translation>Quieres remover el contador &lt;b&gt;{0}&lt;/b&gt;?</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="266"/>
+        <location filename="config_widget.py" line="280"/>
         <source>Error Creating Timer</source>
         <translation>Error Creando el Contador</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="267"/>
+        <location filename="config_widget.py" line="281"/>
         <source>The timer name should not be empty</source>
         <translation>El nombre del contador no puede estar vacio</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="360"/>
+        <location filename="config_widget.py" line="374"/>
         <source>Unknown</source>
         <translation>Desconocido</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="113"/>
+        <location filename="config_widget.py" line="127"/>
         <source>Channel Points</source>
         <translation>Puntos de Canal</translation>
     </message>
@@ -258,9 +258,29 @@
         <translation>Cualquiera</translation>
     </message>
     <message>
-        <location filename="config_widget.py" line="368"/>
+        <location filename="config_widget.py" line="382"/>
         <source>Gift</source>
         <translation>Regalo</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="113"/>
+        <source>Bits</source>
+        <translation>Cheers</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="119"/>
+        <source>Is Exact?</source>
+        <translation>¿Es Exacto?</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="125"/>
+        <source>Number of Bits</source>
+        <translation>Número de Cheers</translation>
+    </message>
+    <message>
+        <location filename="config_widget.py" line="386"/>
+        <source>Exactly</source>
+        <translation>Exactos</translation>
     </message>
 </context>
 </TS>

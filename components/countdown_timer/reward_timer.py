@@ -15,6 +15,8 @@ class RewardTimer:
                     self.type = EventType.REWARD_REDEEMED
                 elif alt_type == "subscription":
                     self.type = EventType.SUBSCRIPTION
+                elif alt_type == "bits":
+                    self.type = EventType.BITS
             self.id: str = kwargs.get("id", uuid.uuid4().hex)
             self.enabled: bool = kwargs.get("enabled", True)
             self.duration: int = kwargs.get("duration", 30)
@@ -25,6 +27,8 @@ class RewardTimer:
                 self.data: MutableMapping[str, Any] = {"name": ""}
             elif self.type == EventType.SUBSCRIPTION:
                 self.data: MutableMapping[str, Any] = {"is_gift": False, "type": "prime"}
+            elif self.type == EventType.BITS:
+                self.data: MutableMapping[str, Any] = {"is_exact": False, "num_bits": 100}
             else:
                 self.data: MutableMapping[str, Any] = {}
 
@@ -33,6 +37,8 @@ class RewardTimer:
                 type_name = "reward"
             elif self.type == EventType.SUBSCRIPTION:
                 type_name = "subscription"
+            elif self.type == EventType.BITS:
+                type_name = "bits"
             else:
                 type_name = "unknown"
             return {

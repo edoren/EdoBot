@@ -104,7 +104,7 @@ class CountdownTimerComponent(ChatComponent):
         pass
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
-        if event_type not in (EventType.SUBSCRIPTION, EventType.REWARD_REDEEMED):
+        if event_type not in (EventType.SUBSCRIPTION, EventType.BITS, EventType.REWARD_REDEEMED):
             return
 
         with self.timer_thread_lock:
@@ -116,7 +116,7 @@ class CountdownTimerComponent(ChatComponent):
                         events = timer.get_events(EventType.REWARD_REDEEMED, name=reward_name)
                         for event in events:
                             if event.enabled:
-                                self.start_timer_for_event(timer, event)
+                                self.add_time_to_timer(timer, event.get_duration_ms())
                     elif event_type == EventType.SUBSCRIPTION:
                         sub_event: twitch.events.SubscriptionEvent = metadata
                         events = timer.get_events(EventType.SUBSCRIPTION,
@@ -124,7 +124,19 @@ class CountdownTimerComponent(ChatComponent):
                                                   type=sub_event.sub_plan.lower())
                         for event in events:
                             if event.enabled:
-                                self.start_timer_for_event(timer, event)
+                                self.add_time_to_timer(timer, event.get_duration_ms())
+                    elif event_type == EventType.BITS:
+                        bits_event: twitch.events.BitsEvent = metadata
+                        events = timer.get_events(EventType.BITS)
+                        nbits = bits_event.total_bits_used
+                        for event in events:
+                            if event.enabled:
+                                if event.data["is_exact"]:
+                                    if event.data["num_bits"] == nbits:
+                                        self.add_time_to_timer(timer, event.get_duration_ms())
+                                else:
+                                    ratio = nbits / event.data["num_bits"]
+                                    self.add_time_to_timer(timer, int(event.get_duration_ms() * ratio))
 
     def get_config_ui(self) -> Optional[QWidget]:
         widget = CountdownTimerWidget(self)
@@ -132,9 +144,6 @@ class CountdownTimerComponent(ChatComponent):
         widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore
         widget.setButtonPressed.connect(self.set_timer_time)  # type: ignore
         return widget
-
-    def start_timer_for_event(self, timer: RewardTimer, event: RewardTimer.Event):
-        self.add_time_to_timer(timer, event.get_duration_ms())
 
     def add_time_to_timer(self, timer: RewardTimer, duration_ms: int):
         if not self.obs.is_connected():

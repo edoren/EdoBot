@@ -109,11 +109,25 @@ class CountdownTimerWidget(QWidget):
                     }]
                 }]
             },
+            EventType.BITS: {
+                "name": QCoreApplication.translate("CountdownTimerCompConfig", "Bits", None),
+                "form": [{
+                    "id": "is_exact",
+                    "type": "check_box",
+                    "default": False,
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Is Exact?", None)
+                }, {
+                    "id": "num_bits",
+                    "type": "number_box",
+                    "default": 100,
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Number of Bits", None)
+                }]
+            },
             EventType.REWARD_REDEEMED: {
                 "name": QCoreApplication.translate("CountdownTimerCompConfig", "Channel Points", None),
                 "form": [{
                     "id": "name",
-                    "type": "input_box",
+                    "type": "text_box",
                     "default": "",
                     "title": QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None)
                 }]
@@ -366,5 +380,9 @@ class CountdownTimerWidget(QWidget):
             event_title += " {} ".format(self.event_type_names[event.data["type"]])
             if event.data["is_gift"]:
                 event_title += "{} ".format(QCoreApplication.translate("CountdownTimerCompConfig", "Gift", None))
+        elif event.type == EventType.BITS:
+            event_title += " {} ".format(event.data["num_bits"])
+            if event.data["is_exact"]:
+                event_title += "{} ".format(QCoreApplication.translate("CountdownTimerCompConfig", "Exactly", None))
         event_title += f"- {event.duration} {event.duration_format}"
         return event_title

@@ -70,6 +70,14 @@ class CountdownTimerWidget(QWidget):
                                        "automatic")
         self.display_selection.setCurrentIndex(self.display_selection.findData("minutes"))
 
+        self.event_type_names = {
+            "prime": QCoreApplication.translate("CountdownTimerCompConfig", "Prime", None),
+            "1000": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 1", None),
+            "2000": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 2", None),
+            "3000": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 3", None),
+            "any": QCoreApplication.translate("CountdownTimerCompConfig", "Any", None),
+        }
+
         self.available_events = {
             EventType.SUBSCRIPTION: {
                 "name": QCoreApplication.translate("CountdownTimerCompConfig", "Subscription", None),
@@ -85,19 +93,19 @@ class CountdownTimerWidget(QWidget):
                     "default": "prime",
                     "choices": [{
                         "value": "prime",
-                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Prime", None),
+                        "name": self.event_type_names["prime"],
                     }, {
                         "value": "1000",
-                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 1", None),
+                        "name": self.event_type_names["1000"],
                     }, {
                         "value": "2000",
-                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 2", None),
+                        "name": self.event_type_names["2000"],
                     }, {
                         "value": "3000",
-                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Tier 3", None),
+                        "name": self.event_type_names["3000"],
                     }, {
                         "value": "any",
-                        "name": QCoreApplication.translate("CountdownTimerCompConfig", "Any", None),
+                        "name": self.event_type_names["any"],
                     }]
                 }]
             },
@@ -352,7 +360,11 @@ class CountdownTimerWidget(QWidget):
         if event.type in self.available_events:
             type_name = self.available_events[event.type]["name"]
         event_title = f"{type_name}:"
-        for key in event.data:
-            event_title += f" {event.data[key]} -"
-        event_title += f" {event.duration} {event.duration_format}"
+        if event.type == EventType.REWARD_REDEEMED:
+            event_title += " {} ".format(event.data["name"])
+        elif event.type == EventType.SUBSCRIPTION:
+            event_title += " {} ".format(self.event_type_names[event.data["type"]])
+            if event.data["is_gift"]:
+                event_title += "{} ".format(QCoreApplication.translate("CountdownTimerCompConfig", "Gift", None))
+        event_title += f"- {event.duration} {event.duration_format}"
         return event_title

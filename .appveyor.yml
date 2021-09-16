@@ -15,7 +15,6 @@ install:
     - C:\Python39-x64\python.exe --version
     - C:\Python39-x64\python.exe getpip.py
     - C:\Python39-x64\python.exe -m pip install -r requirements.txt
-    - C:\Python39-x64\python.exe -m pip install "pyinstaller==4.4"
 
 build_script:
     - C:\Python39-x64\python.exe build.py -O2
@@ -32,7 +31,7 @@ artifacts:
 deploy:
     tag: $(APPVEYOR_REPO_TAG_NAME)
     provider: GitHub
-    release: Release $(APPVEYOR_REPO_TAG_NAME)
+    release: $(APPVEYOR_REPO_TAG_NAME)
     description: |
         Created automatically by AppVeyor.
         https://ci.appveyor.com/project/edoren/edobot/builds/$(APPVEYOR_BUILD_ID)

@@ -11,7 +11,7 @@ platform:
 # Scripts that run after cloning repository
 install:
     - curl https://bootstrap.pypa.io/get-pip.py --output getpip.py
-    - choco install python --version 3.9.5
+    - choco install python --version 3.9.7
     - C:\Python39-x64\python.exe --version
     - C:\Python39-x64\python.exe getpip.py
     - C:\Python39-x64\python.exe -m pip install -r requirements.txt

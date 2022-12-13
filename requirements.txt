@@ -2,7 +2,6 @@ requests==2.25.1
 tinydb==4.4.0
 obs-websocket-py==0.5.3
 arrow==1.0.3
-pyside2==5.15.2
+pyside2==5.15.2.1
 qtawesome==1.0.3
-
 pyinstaller==4.4

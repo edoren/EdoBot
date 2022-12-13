@@ -134,10 +134,10 @@
            <set>Qt::ImhDigitsOnly</set>
           </property>
           <property name="text">
-           <string notr="true">4444</string>
+           <string notr="true">4455</string>
           </property>
           <property name="placeholderText">
-           <string notr="true">4444</string>
+           <string notr="true">4455</string>
           </property>
          </widget>
         </item>

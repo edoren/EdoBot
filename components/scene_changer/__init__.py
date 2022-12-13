@@ -225,6 +225,4 @@ class SceneChangerComponent(ChatComponent):
         self.config["who_can"] = {"editor": editor, "mod": mod, "vip": vip, "sub": sub, "chatter": chatter}
 
     def get_obs_scenes(self):
-        if not self.obs.is_connected():
-            return []
         return self.obs.get_scenes()

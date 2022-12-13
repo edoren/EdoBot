@@ -2,10 +2,7 @@ import logging
 import time
 from typing import Any, List, Mapping, Optional, Union
 
-import obswebsocket.events as obs_events
-import obswebsocket.requests as obs_requests
-from obswebsocket import obsws
-from obswebsocket.exceptions import ConnectionFailure
+import obsws_python as obs
 from websocket import WebSocketConnectionClosedException
 
 from network import SocketConnector
@@ -25,9 +22,8 @@ class OBSWebSocket(OBSInterface):
         self.password = password
         self.exit_requested = False
         self.conected = False
-        self.waiting_password = False
-        self.client: obsws = obsws(self.host, self.port, self.password)
-        self.client.register(self.obs_disconnected, obs_events.Exiting)
+        self.waiting_password = True
+        self.client: Optional[obs.ReqClient] = None
         self.connector: Optional[SocketConnector] = None
 
     def start_obs_connection(self) -> bool:  # Runs in OBSConnector thread
@@ -35,32 +31,30 @@ class OBSWebSocket(OBSInterface):
             return True
         try:
             gLogger.info("Trying to connect to OBS")
-            self.client.password = self.password
-            self.waiting_password = True
-            self.client.connect(self.host, self.port)
-            self.client.thread_recv.name = f"OBSWebSocketThread"  # type: ignore
-            self.conected = True
+            self.client: Optional[obs.ReqClient] = obs.ReqClient(host=self.host, port=self.port, password=self.password)
+            version = self.client.get_version()
+            if not hasattr(version, "obs_version"):
+                return False
             self.waiting_password = False
+            self.conected = True
             gLogger.info("Connected to OBS")
             return True
-        except ConnectionFailure as e:
-            if str(e) == "Authentication Failed.":
-                gLogger.error("Error authenticating to OBS, please check your configuration")
-                while self.waiting_password:
-                    time.sleep(1)
+        except Exception as e:
+            gLogger.error("Error authenticating to OBS, please check your configuration. [" + str(e) + "]")
+            while self.waiting_password:
+                time.sleep(1)
             return self.exit_requested
-        except Exception:
-            time.sleep(1)
-            return False
 
-    def obs_disconnected(self, message):
-        self.conected = False
-        if self.client:
-            try:
-                self.client.disconnect()
-            except Exception:
-                pass
-        self.connect()  # Start retry loop
+    # TODO: Handle random disconnection
+    # def obs_disconnected(self, message):
+    #     self.conected = False
+    #     if self.client:
+    #         try:
+    #             del self.client
+    #             self.client = None
+    #         except Exception:
+    #             pass
+    #     self.connect()  # Start retry loop
 
     def __del__(self):
         if self.connector is not None:
@@ -79,7 +73,18 @@ class OBSWebSocket(OBSInterface):
             self.connector.set_port(self.port)
 
     def is_connected(self) -> bool:
-        return self.client.thread_recv is not None and self.client.thread_recv.running and self.conected
+        if self.client is None:
+            return False
+        try:
+            version = self.client.get_version()
+            if not hasattr(version, "obs_version"):
+                return False
+            return True
+        except Exception:
+            if self.client is not None:
+                self.disconnect()
+                self.connect()
+            return False
 
     def connect(self) -> None:
         self.exit_requested = False
@@ -95,29 +100,51 @@ class OBSWebSocket(OBSInterface):
             self.connector.stop()
         if self.client is not None:
             try:
-                self.client.disconnect()
+                del self.client
+                self.client = None
             except AttributeError as e:
                 pass
             except Exception as e:
                 raise e
 
     def get_scenes(self) -> List[SceneModel]:
-        request: obs_requests.GetSceneList = self.client.call(obs_requests.GetSceneList())
-        return [SceneModel(name=scene["name"]) for scene in request.getScenes()]
+        if not self.is_connected():
+            return []
+        try:
+            response = self.client.get_scene_list()
+            return [SceneModel(name=scene["sceneName"]) for scene in response.scenes]
+        except Exception:
+            pass
+        return []
 
-    def get_current_scene(self) -> Optional[SceneModel]:
-        request: obs_requests.GetCurrentScene = self.client.call(obs_requests.GetCurrentScene())
-        return SceneModel(name=request.getName())
+    def get_current_scene(self) -> Optional[SceneModel]:  # get_current_program_scene
+        if not self.is_connected():
+            return None
+        try:
+            response = self.client.get_current_program_scene()
+            return SceneModel(name=response.currentProgramSceneName)
+        except Exception:
+            pass
+        return None
 
     def set_current_scene(self, scene: Union[SceneModel, str]) -> None:
+        if not self.is_connected():
+            return
         if isinstance(scene, SceneModel):
             scene_name = scene.name
         else:
             scene_name = scene
-        self.client.call(obs_requests.SetCurrentScene(scene_name))
+        try:
+            self.client.set_current_program_scene(scene_name)
+        except Exception:
+            pass
 
     def set_text_gdi_plus_properties(self, source: str, **properties: Any) -> None:
+        if not self.is_connected():
+            return
         try:
-            self.client.call(obs_requests.SetTextGDIPlusProperties(source, **properties))
-        except WebSocketConnectionClosedException:
+            settings = self.client.get_input_settings(source)
+            if settings is not None and settings.input_kind == "text_gdiplus_v2":
+                self.client.set_input_settings(source, {"text": properties["text"]}, True)
+        except Exception:
             pass

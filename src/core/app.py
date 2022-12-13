@@ -115,7 +115,7 @@ class App:
         self.current_components = self.config["components"].setdefault([])
 
         self.obs_choice = self.config["obs_choice"].setdefault("obswebsocket")
-        self.config["obswebsocket"].setdefault({"host": "localhost", "port": 4444, "password": "changeme"})
+        self.config["obswebsocket"].setdefault({"host": "localhost", "port": 4455, "password": "changeme"})
         self.config["slobs"].setdefault({"host": "localhost", "port": 59650, "token": ""})
 
         # Load the components and remove the repeated items mantaining the order

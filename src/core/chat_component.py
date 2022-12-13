@@ -15,7 +15,9 @@ __all__ = ["ChatComponent"]
 
 
 class ChatComponent(ABC):
+
     class Metadata:
+
         def __init__(self, name: str, description: str, icon: Optional[QIcon] = None, debug: bool = False):
             self.name = name
             self.description = description

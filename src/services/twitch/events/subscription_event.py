@@ -46,13 +46,16 @@ class SubscriptionEvent:
             Number of months gifted as part of a single, multi-month gift OR number of months purchased as part of a
             multi-month subscription
     """
+
     class Emote:
+
         def __init__(self, **kwargs: Any):
             self.start: str = kwargs["start"]
             self.end: str = kwargs["end"]
             self.id: str = kwargs["id"]
 
     class SubMessage:
+
         def __init__(self, **kwargs: Any):
             self.message: str = kwargs["message"]
             if kwargs.get("emotes") is not None:

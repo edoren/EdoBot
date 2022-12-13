@@ -14,6 +14,7 @@ class RaidEvent:
         viewer_count (int):
             The amount of viewers that came with the raid
     """
+
     def __init__(self, **kwargs: Any) -> None:
         self.display_name = kwargs["msg_param_displayName"]
         self.login = kwargs["msg_param_login"]

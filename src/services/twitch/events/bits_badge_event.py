@@ -23,6 +23,7 @@ class BitsBadgeEvent:
         time (str):
             Time when the new Bits badge was earned.
     """
+
     def __init__(self, **kwargs: Any) -> None:
         self.user_id: str = kwargs["user_id"]
         self.user_name: str = kwargs["user_name"]

@@ -12,6 +12,7 @@ __all__ = ["AllComponentsWidget"]
 
 
 class AllComponentsWidgetItem(QListWidgetItem):
+
     def __init__(self, id: str, meta: ChatComponent.Metadata):
         super().__init__()
         self.widget = QLabel(meta.name)
@@ -29,6 +30,7 @@ class AllComponentsWidgetItem(QListWidgetItem):
 
 
 class AllComponentsWidget(BaseListWidget):
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setDragDropMode(QListWidget.DragDropMode.DragOnly)

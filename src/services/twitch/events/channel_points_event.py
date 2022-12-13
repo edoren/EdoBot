@@ -13,6 +13,7 @@ class ChannelPointsEvent:
         redemption (ChannelPointsEvent.Redemption):
             Data about the redemption, includes unique id and user that redeemed it
     """
+
     class Redemption:
         """[summary]
 
@@ -31,24 +32,30 @@ class ChannelPointsEvent:
             user_input (Optional[str], optional):
                 A string that the user entered if the reward requires input
         """
+
         class Reward:
+
             class Image:
+
                 def __init__(self, **kwargs: Any):
                     self.url_1x: str = kwargs["url_1x"]
                     self.url_2x: str = kwargs["url_2x"]
                     self.url_4x: str = kwargs["url_4x"]
 
             class MaxPerStream:
+
                 def __init__(self, **kwargs: Any):
                     self.is_enabled: bool = kwargs["is_enabled"]
                     self.max_per_stream: int = kwargs["max_per_stream"]
 
             class MaxPerUserPerStream:
+
                 def __init__(self, **kwargs: Any):
                     self.is_enabled: bool = kwargs["is_enabled"]
                     self.max_per_user_per_stream: int = kwargs["max_per_user_per_stream"]
 
             class GlobalCooldown:
+
                 def __init__(self, **kwargs: Any):
                     self.is_enabled: bool = kwargs["is_enabled"]
                     self.global_cooldown_seconds: int = kwargs["global_cooldown_seconds"]
@@ -81,6 +88,7 @@ class ChannelPointsEvent:
                     kwargs["cooldown_expires_at"]) if kwargs.get("cooldown_expires_at") else None
 
         class User:
+
             def __init__(self, **kwargs: Any):
                 self.id: str = kwargs["id"]
                 self.login: str = kwargs["login"]
@@ -101,6 +109,7 @@ class ChannelPointsEvent:
 
 
 class ChannelPointsEventMeta:
+
     def __init__(self, **kwargs: Any) -> None:
         self.type: str = kwargs["type"]
         self.data = ChannelPointsEvent(**kwargs["data"])

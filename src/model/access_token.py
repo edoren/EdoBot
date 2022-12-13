@@ -4,6 +4,7 @@ __all__ = ["AccessToken"]
 
 
 class AccessToken:
+
     def __init__(self, **kwargs: Any) -> None:
         self.access_token: str = kwargs["access_token"]
         self.scope: List[str] = kwargs["scope"]

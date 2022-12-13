@@ -11,6 +11,7 @@ gLogger = logging.getLogger("edobot.components.echo")
 
 
 class EchoComponent(ChatComponent):
+
     @staticmethod
     def get_id() -> str:
         return "echo"

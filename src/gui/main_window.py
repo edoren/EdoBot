@@ -25,6 +25,7 @@ gLogger = logging.getLogger(f"edobot.main")
 
 
 class CallbackHandler(logging.Handler):
+
     def __init__(self, msg_callback: Optional[Callable[[logging.LogRecord], None]] = None):
         super().__init__()
         self.msg_callback = msg_callback
@@ -537,6 +538,7 @@ class MainWindow(QMainWindow):
 
 
 class TimeFormatter(logging.Formatter):
+
     def formatTime(self, record, datefmt=None):
         locale = arrow.now()
         if datefmt:

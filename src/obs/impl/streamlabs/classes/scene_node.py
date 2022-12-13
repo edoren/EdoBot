@@ -4,6 +4,7 @@ from ..base.slobs_base import SLOBSBase
 
 
 class SceneNode(SLOBSBase):
+
     def __init__(self, client, **kwargs: Any) -> None:
         super().__init__(client, **kwargs)
         self.id: str = kwargs["id"]

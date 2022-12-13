@@ -16,6 +16,7 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class OBSWebSocket(OBSInterface):
+
     def __init__(self, host: str, port: int, password: str):
         self.host = host
         self.port = port

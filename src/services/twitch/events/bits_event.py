@@ -32,6 +32,7 @@ class BitsEvent:
         user_name (Optional[str]):
             Login name of the person who used the Bits - if the cheer was not anonymous. None if anonymous
     """
+
     def __init__(self, **kwargs: Any) -> None:
         self.bits_used: int = kwargs["bits_used"]
         self.channel_id: str = kwargs["channel_id"]
@@ -59,6 +60,7 @@ class BitsEventMeta:
         data (BitsEvent):
             The data containing the
     """
+
     def __init__(self, **kwargs: Any):
         self.version: str = kwargs["version"]
         self.message_type: str = kwargs["message_type"]

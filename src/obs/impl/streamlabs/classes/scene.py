@@ -5,6 +5,7 @@ from .scene_item import SceneItem
 
 
 class Scene(SLOBSBase):
+
     def __init__(self, client, **kwargs: Any) -> None:
         super().__init__(client, **kwargs)
         self.id: str = kwargs["id"]

@@ -33,6 +33,7 @@ class TokenRedirectWebServer(threading.Thread):
     port: int = 3506
 
     class RequestHandler(SimpleHTTPRequestHandler):
+
         def __init__(self, *args, **kwargs):
             self.token_received = kwargs["token_received"]
             del kwargs["token_received"]
@@ -68,6 +69,7 @@ class TokenRedirectWebServer(threading.Thread):
 
 
 class App:
+
     def __init__(self):
         self.is_running = False
         self.has_started = False
@@ -363,6 +365,7 @@ class App:
             del self.active_components[component_id]
 
     def start(self):
+
         def __run(self: App):
             for component_id in self.current_components:
                 self.add_component(component_id)

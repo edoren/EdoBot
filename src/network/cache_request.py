@@ -5,6 +5,7 @@ import requests
 
 
 class CacheRequest:
+
     def __init__(self, method: str, url: str, timeout_seconds: int = 5 * 60, **kwargs: Any):
         self.method = method
         self.url = url

@@ -5,6 +5,7 @@ from ..classes.scene import Scene
 
 
 class ScenesService(SLOBSBase):
+
     def __init__(self, client) -> None:
         super().__init__(client, resourceId="ScenesService")
 

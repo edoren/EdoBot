@@ -9,6 +9,7 @@ __all__ = ["DataBase"]
 
 
 class DataBasePrivate:
+
     def __init__(self, store_dir):
         self.db = TinyDB(os.path.join(store_dir, "db.json"), indent=4)
 

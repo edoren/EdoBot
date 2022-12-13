@@ -18,6 +18,7 @@ __all__ = ["SceneChangerComponent"]
 
 
 class SceneChangerComponentConfigWidget(QWidget):
+
     def __init__(self, data_parent: "SceneChangerComponent") -> None:
         super().__init__()
 
@@ -125,6 +126,7 @@ class SceneChangerComponentConfigWidget(QWidget):
 
 
 class SceneChangerComponent(ChatComponent):
+
     @staticmethod
     def get_id() -> str:
         return "scene_changer"

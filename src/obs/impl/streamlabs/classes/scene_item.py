@@ -5,6 +5,7 @@ from .source import Source
 
 
 class SceneItem(SceneNode):
+
     def __init__(self, client, **kwargs: Any) -> None:
         super().__init__(client, **kwargs)
 

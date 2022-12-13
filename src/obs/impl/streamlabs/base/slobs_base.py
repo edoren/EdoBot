@@ -6,6 +6,7 @@ T = TypeVar("T", bound="SLOBSBase")
 
 
 class SLOBSBase:
+
     def __init__(self, client, **kwargs: Any) -> None:
         self._client = client
         self.resourceId: str = kwargs["resourceId"]

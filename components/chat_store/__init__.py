@@ -18,6 +18,7 @@ gLogger = logging.getLogger("edobot.components.chat_store")
 
 
 class ChatStoreComponent(ChatComponent):
+
     def __init__(self) -> None:
         super().__init__()
         self.widget: Optional[QWidget] = None

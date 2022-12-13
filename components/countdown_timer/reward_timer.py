@@ -5,7 +5,9 @@ from model.event_type import EventType
 
 
 class RewardTimer:
+
     class Event:
+
         def __init__(self, **kwargs: Any):
             alt_type = kwargs["type"]
             if isinstance(alt_type, EventType):

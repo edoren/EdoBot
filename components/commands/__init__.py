@@ -20,6 +20,7 @@ gLogger = logging.getLogger("edobot.components.commands")
 
 
 class CommandsTableWidget(QWidget):
+
     def __init__(self, data_parent: "CommandsComponent") -> None:
         super().__init__()
 
@@ -210,6 +211,7 @@ class CommandsTableWidget(QWidget):
 
 
 class CommandsComponent(ChatComponent):  # TODO: Change to chat store
+
     def __init__(self) -> None:
         super().__init__()
         # command_name: last_called_time

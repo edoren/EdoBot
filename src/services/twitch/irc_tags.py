@@ -2,6 +2,7 @@ from typing import Any, Optional
 
 
 class PrivateMsgTags:
+
     def __init__(self,
                  badge_info: str,
                  badges: str,

@@ -3,6 +3,7 @@ from typing import Any, Callable, Set
 
 
 class Signal:
+
     def __init__(self, *types: type) -> None:
         self.types = list(types)
         self.connection_id = 0

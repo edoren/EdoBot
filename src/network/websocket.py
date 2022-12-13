@@ -15,6 +15,7 @@ gWebSocketRegex = re.compile(r"^(wss?:\/\/)([0-9]{1,3}(?:\.[0-9]{1,3}){3}|[a-zA-
 
 
 class WebSocket(threading.Thread, abc.ABC):
+
     def __init__(self, url: str, timeout: Optional[float] = None) -> None:
         super().__init__(name=f"{self.__class__.__name__}Thread")
 

@@ -14,6 +14,7 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class Config:
+
     @staticmethod
     def __create_if_not_exist(file_path: str) -> None:
         if not os.path.exists(file_path):

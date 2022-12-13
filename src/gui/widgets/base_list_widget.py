@@ -6,6 +6,7 @@ from PySide2.QtWidgets import QListWidget
 
 
 class BaseListWidget(QListWidget):
+
     def startDrag(self, supportedActions: Qt.DropActions) -> None:
         drag, painter, pixmap = self.start_drag_base()
         drag.exec_(supportedActions, Qt.DropAction.MoveAction)

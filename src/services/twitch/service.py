@@ -17,6 +17,7 @@ class UnauthenticatedException(Exception):
 
 
 class Service:
+
     def __init__(self, token: AccessToken):
         self.token = token
 

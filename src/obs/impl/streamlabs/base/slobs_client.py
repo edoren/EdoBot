@@ -14,6 +14,7 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class SLOBSClient(WebSocket):
+
     def __init__(self, host: str, port: int, token: str) -> None:
         super().__init__(f"ws://{host}:{port}/api/websocket", 10)
 

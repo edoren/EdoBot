@@ -18,6 +18,7 @@ gLogger = logging.getLogger("edobot.components.counter")
 
 
 class CountdownTimerComponent(ChatComponent):
+
     @staticmethod
     def get_id() -> str:
         return "countdown_timer"

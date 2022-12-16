@@ -12,8 +12,8 @@ from typing import Callable, List, Optional
 import arrow
 from PySide6.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
 from PySide6.QtGui import QAction, QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
-from PySide6.QtWidgets import (QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
-                               QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
+from PySide6.QtWidgets import (QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu, QMessageBox,
+                               QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
 
 import model
 from core import App, ChatComponent, Constants

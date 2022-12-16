@@ -160,10 +160,7 @@ if args.console:
     pyinstaller_args.append("--console")
 else:
     pyinstaller_args.append("--windowed")
-pyinstaller_args += [
-    f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}",  # "--noupx",
-    os.path.join(source_dir, "src", "main.py")
-]
+pyinstaller_args += [f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}", os.path.join(source_dir, "src", "main.py")]
 my_env = os.environ.copy()
 if args.optimized:
     my_env["PYTHONOPTIMIZE"] = str(args.optimized)

@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import Any, List, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QCoreApplication, QFile, QUrl
-from PySide2.QtGui import QDesktopServices
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QFileDialog, QWidget
+from PySide6.QtCore import QCoreApplication, QFile, QUrl
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QFileDialog, QWidget
 
 from core import ChatComponent
 from model import EventType, User, UserType

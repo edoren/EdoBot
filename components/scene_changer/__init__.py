@@ -3,10 +3,10 @@ import os.path
 from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QCoreApplication, QFile
-from PySide2.QtGui import QShowEvent
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QAction, QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+from PySide6.QtCore import QCoreApplication, QFile
+from PySide6.QtGui import QAction, QShowEvent
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
                                QListWidgetItem, QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 from core import ChatComponent

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Set, Union, final
 
 import qtawesome as qta
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QWidget
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QWidget
 
 from core.config import Config
 from model import EventType, User, UserType

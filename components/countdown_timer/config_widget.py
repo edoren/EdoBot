@@ -1,10 +1,11 @@
 import os.path
 from typing import Any, List, Mapping
 
-from PySide2.QtCore import QCoreApplication, QFile, Qt, Signal
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QAction, QComboBox, QGroupBox, QLineEdit, QListWidget, QListWidgetItem, QMenu,
-                               QMessageBox, QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+from PySide6.QtCore import QCoreApplication, QFile, Qt, Signal
+from PySide6.QtGui import QAction
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import (QComboBox, QGroupBox, QLineEdit, QListWidget, QListWidgetItem, QMenu, QMessageBox,
+                               QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 from model import EventType
 
@@ -371,7 +372,7 @@ class CountdownTimerWidget(QWidget):
 
     def __get_event_title(self, event: RewardTimer.Event) -> str:
         type_name = QCoreApplication.translate("CountdownTimerCompConfig", "Unknown", None)
-        if event.type in self.available_events:
+        if event.type is not None and event.type in self.available_events:
             type_name = self.available_events[event.type]["name"]
         event_title = f"{type_name}:"
         if event.type == EventType.REWARD_REDEEMED:

@@ -4,8 +4,8 @@ import time
 from typing import Any, List, MutableMapping, Optional, Set, Tuple, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QCoreApplication
-from PySide2.QtWidgets import QWidget
+from PySide6.QtCore import QCoreApplication
+from PySide6.QtWidgets import QWidget
 
 from core import ChatComponent
 from model import EventType, User, UserType

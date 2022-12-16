@@ -2,6 +2,6 @@ requests==2.25.1
 tinydb==4.4.0
 obsws_python==1.4.0
 arrow==1.0.3
-pyside2==5.15.2.1
+PySide6-Essentials==6.4.1
 qtawesome==1.0.3
-pyinstaller==4.4
+pyinstaller==5.7

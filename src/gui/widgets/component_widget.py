@@ -1,9 +1,9 @@
 import os.path
 
 import qtawesome as qta
-from PySide2.QtCore import QFile, QSize, Signal
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtCore import QFile, QSize, Signal
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 from core.chat_component import ChatComponent
 from core.constants import Constants

@@ -12,13 +12,13 @@ platform:
 install:
     - curl https://bootstrap.pypa.io/get-pip.py --output getpip.py
     # - choco install python --version 3.9.7
-    - C:\Python39-x64\python.exe --version
-    - C:\Python39-x64\python.exe getpip.py
-    - C:\Python39-x64\python.exe -m pip install -r requirements.txt
+    - C:\Python311-x64\python.exe --version
+    - C:\Python311-x64\python.exe getpip.py
+    - C:\Python311-x64\python.exe -m pip install -r requirements.txt
 
 build_script:
-    - C:\Python39-x64\python.exe build.py -O2
-    - C:\Python39-x64\python.exe build.py -O2 --onefile --output_dir build_onefile
+    - C:\Python311-x64\python.exe build.py -O2
+    - C:\Python311-x64\python.exe build.py -O2 --onefile --output_dir build_onefile
 
 artifacts:
     - path: build\bin\*.exe

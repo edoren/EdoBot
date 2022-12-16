@@ -1,6 +1,6 @@
-from PySide2.QtCore import Signal
-from PySide2.QtNetwork import QLocalServer, QLocalSocket
-from PySide2.QtWidgets import QApplication
+from PySide6.QtCore import Signal
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
+from PySide6.QtWidgets import QApplication
 
 from core import Constants
 

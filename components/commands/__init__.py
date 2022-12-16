@@ -4,10 +4,10 @@ import time
 from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QCoreApplication, QFile, QRegExp, QSize, Qt
-from PySide2.QtGui import QRegExpValidator
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QHeaderView, QLineEdit,
+from PySide6.QtCore import QCoreApplication, QFile, QRegularExpression, QSize, Qt
+from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QHeaderView, QLineEdit,
                                QMessageBox, QPlainTextEdit, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem,
                                QToolButton, QVBoxLayout, QWidget)
 
@@ -59,7 +59,7 @@ class CommandsTableWidget(QWidget):
         self.table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        self.edit_dialog_command_input.setValidator(QRegExpValidator(QRegExp("[a-z-A-Z0-9_]+")))
+        self.edit_dialog_command_input.setValidator(QRegularExpressionValidator(QRegularExpression("[a-z-A-Z0-9_]+")))
         for key, value in self.access_levels.items():
             self.edit_dialog_access_level_input.addItem(value, key)
         self.setMinimumWidth(my_widget.width())

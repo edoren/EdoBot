@@ -2,10 +2,10 @@ import os.path
 import winreg
 from typing import Optional
 
-from PySide2.QtCore import QCoreApplication, QFile, QSettings, Qt, Signal
-from PySide2.QtGui import QIntValidator, QShowEvent
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtCore import QCoreApplication, QFile, QSettings, Qt, Signal
+from PySide6.QtGui import QIntValidator, QShowEvent
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 from core.constants import Constants
 

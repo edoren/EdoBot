@@ -19,6 +19,8 @@ class RewardTimer:
                     self.type = EventType.SUBSCRIPTION
                 elif alt_type == "bits":
                     self.type = EventType.BITS
+                else:
+                    self.type = None
             self.id: str = kwargs.get("id", uuid.uuid4().hex)
             self.enabled: bool = kwargs.get("enabled", True)
             self.duration: int = kwargs.get("duration", 30)

@@ -1,8 +1,8 @@
 import json
 from typing import Optional
 
-from PySide2.QtCore import QByteArray, QMimeData, Qt
-from PySide2.QtWidgets import QLabel, QListWidget, QListWidgetItem, QWidget
+from PySide6.QtCore import QByteArray, QMimeData, Qt
+from PySide6.QtWidgets import QLabel, QListWidget, QListWidgetItem, QWidget
 
 from core.chat_component import ChatComponent
 

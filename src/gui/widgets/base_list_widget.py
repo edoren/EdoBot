@@ -1,8 +1,8 @@
 from typing import Tuple
 
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QColor, QCursor, QDrag, QPainter, QPixmap
-from PySide2.QtWidgets import QListWidget
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QCursor, QDrag, QPainter, QPixmap
+from PySide6.QtWidgets import QListWidget
 
 
 class BaseListWidget(QListWidget):

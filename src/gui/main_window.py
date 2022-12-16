@@ -10,9 +10,9 @@ from datetime import datetime
 from typing import Callable, List, Optional
 
 import arrow
-from PySide2.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
-from PySide2.QtGui import QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
-from PySide2.QtWidgets import (QAction, QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
+from PySide6.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
+from PySide6.QtGui import QAction, QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
+from PySide6.QtWidgets import (QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu,
                                QMessageBox, QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
 
 import model

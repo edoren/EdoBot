@@ -1,9 +1,9 @@
 import json
 from typing import Optional
 
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
-from PySide2.QtWidgets import QAbstractItemView, QListWidget, QListWidgetItem, QWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
+from PySide6.QtWidgets import QAbstractItemView, QListWidget, QListWidgetItem, QWidget
 
 from .all_components_widget import AllComponentsWidget
 from .base_list_widget import BaseListWidget

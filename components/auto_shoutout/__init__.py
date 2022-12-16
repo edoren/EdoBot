@@ -5,10 +5,10 @@ import time
 from typing import Any, List, Optional, Set, Union
 
 import qtawesome as qta
-from PySide2.QtCore import QCoreApplication, QFile, Signal
-from PySide2.QtGui import QFocusEvent
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
+from PySide6.QtCore import QCoreApplication, QFile, Signal
+from PySide6.QtGui import QFocusEvent
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
 
 from core import ChatComponent, Constants
 from model import EventType, User, UserType

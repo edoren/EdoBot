@@ -10,7 +10,7 @@ import subprocess
 import sys
 from typing import List
 
-import PySide2.QtCore
+import PySide6.QtCore
 
 import scripts.constants as constants  # type: ignore
 from scripts.file_generator import generate_file_version_info, generate_nsis_file  # type: ignore
@@ -78,7 +78,7 @@ def copy_function(src: str, dst: str):
 
 logger.info("=================== Building localization files =====================")
 
-pyside_dir = os.path.dirname(os.path.abspath(PySide2.QtCore.__file__))
+pyside_dir = os.path.dirname(os.path.abspath(PySide6.QtCore.__file__))
 lrelease_exe = os.path.join(pyside_dir, "lrelease.exe")
 
 if os_name == "windows" and os.path.isfile(lrelease_exe):
@@ -136,7 +136,7 @@ if not args.onefile:
 os.chdir(build_dir)
 pyinstaller_exec = [python_exe, "-m", "PyInstaller"]
 pyinstaller_args: List[str] = []
-hidden_imports: List[str] = constants.python_std_lib_list + ["PySide2.QtXml", "qtawesome"]
+hidden_imports: List[str] = constants.python_std_lib_list + ["PySide6.QtXml", "qtawesome"]
 excluded_modules: List[str] = ["tkinter"]
 if not args.optimized:
     pyinstaller_args.append("--debug=noarchive")
@@ -161,7 +161,7 @@ if args.console:
 else:
     pyinstaller_args.append("--windowed")
 pyinstaller_args += [
-    f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}", "--noupx",
+    f"--name={APP_NAME.lower()}", f"--icon={APP_ICON}",  # "--noupx",
     os.path.join(source_dir, "src", "main.py")
 ]
 my_env = os.environ.copy()

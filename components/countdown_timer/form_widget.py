@@ -1,7 +1,7 @@
 from typing import Any, List, Mapping, MutableMapping, Optional
 
-from PySide2.QtCore import Signal
-from PySide2.QtWidgets import QCheckBox, QComboBox, QFormLayout, QLineEdit, QSpinBox, QWidget
+from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QCheckBox, QComboBox, QFormLayout, QLineEdit, QSpinBox, QWidget
 
 
 class FormWidget(QWidget):

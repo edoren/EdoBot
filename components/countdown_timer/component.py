@@ -111,7 +111,7 @@ class CountdownTimerComponent(ChatComponent):
         pass
 
     def process_event(self, event_type: EventType, metadata: Optional[Any] = None) -> None:
-        if event_type not in (EventType.SUBSCRIPTION, EventType.BITS, EventType.REWARD_REDEEMED):
+        if event_type not in (EventType.SUBSCRIPTION, EventType.BITS, EventType.REWARD_REDEEMED, EventType.RAID):
             return
 
         with self.timer_thread_lock:

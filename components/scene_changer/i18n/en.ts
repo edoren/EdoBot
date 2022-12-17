@@ -1,57 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="es">
+<TS version="2.1" language="en">
 <context>
     <name>SceneChangerConfig</name>
     <message>
+        <location filename="../__init__.py" line="98"/>
+        <source>Delete</source>
+        <translation>Delete</translation>
+    </message>
+    <message>
         <location filename="../__init__.py" line="136"/>
         <source>Scene Changer</source>
-        <translation>Cambiador de Escenas</translation>
+        <translation>Scene Changer</translation>
     </message>
     <message>
         <location filename="../__init__.py" line="138"/>
         <source>Allows chat to change the current OBS scene</source>
-        <translation>Permite al chat cambiar la escena actual de OBS</translation>
+        <translation>Allows chat to change the current OBS scene</translation>
     </message>
     <message>
         <location filename="../config.ui" line="27"/>
         <source>Add Transition</source>
-        <translation>Agregar Transición</translation>
+        <translation>Add Transition</translation>
     </message>
     <message>
         <location filename="../config.ui" line="33"/>
         <source>From</source>
-        <translation>Desde</translation>
+        <translation>From</translation>
     </message>
     <message>
         <location filename="../config.ui" line="50"/>
         <source>To</source>
-        <translation>Hacia</translation>
+        <translation>To</translation>
     </message>
     <message>
         <location filename="../config.ui" line="67"/>
         <source>Add</source>
-        <translation>Agregar</translation>
+        <translation>Add</translation>
     </message>
     <message>
         <location filename="../config.ui" line="80"/>
         <source>Command</source>
-        <translation>Comando</translation>
+        <translation>Command</translation>
     </message>
     <message>
         <location filename="../config.ui" line="105"/>
         <source>Who Can Use It?</source>
-        <translation>¿Quien Puede Usarlo?</translation>
+        <translation>Who Can Use It?</translation>
     </message>
     <message>
         <location filename="../config.ui" line="113"/>
         <source>Chatter</source>
-        <translation>Chateador</translation>
+        <translation>Chatter</translation>
     </message>
     <message>
         <location filename="../config.ui" line="120"/>
         <source>Subscriber</source>
-        <translation>Subscriptor</translation>
+        <translation>Subscriber</translation>
     </message>
     <message>
         <location filename="../config.ui" line="127"/>
@@ -66,17 +71,12 @@
     <message>
         <location filename="../config.ui" line="141"/>
         <source>Moderator</source>
-        <translation>Moderador</translation>
+        <translation>Moderator</translation>
     </message>
     <message>
         <location filename="../config.ui" line="158"/>
         <source>Transitions</source>
-        <translation>Transiciones</translation>
-    </message>
-    <message>
-        <location filename="../__init__.py" line="98"/>
-        <source>Delete</source>
-        <translation>Eliminar</translation>
+        <translation>Transitions</translation>
     </message>
 </context>
 </TS>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="es">
+<TS version="2.1" language="en">
 <context>
     <name>AutoShoutOut</name>
     <message>
@@ -11,32 +11,47 @@
     <message>
         <location filename="../__init__.py" line="65"/>
         <source>Automatically shout-out streamers in the chat</source>
-        <translation>Envia shout-outs automaticamente a los streamers del chat</translation>
+        <translation>Automatically shout-out streamers in the chat</translation>
+    </message>
+    <message>
+        <location filename="../__init__.py" line="145"/>
+        <source>Hours</source>
+        <translation>Hours</translation>
+    </message>
+    <message>
+        <location filename="../__init__.py" line="146"/>
+        <source>Minutes</source>
+        <translation>Minutes</translation>
+    </message>
+    <message>
+        <location filename="../__init__.py" line="147"/>
+        <source>Seconds</source>
+        <translation>Seconds</translation>
     </message>
     <message>
         <location filename="../config.ui" line="25"/>
         <source>Configuration</source>
-        <translation>Configuración</translation>
+        <translation>Configuration</translation>
     </message>
     <message>
         <location filename="../config.ui" line="54"/>
         <source>Message</source>
-        <translation>Mensaje</translation>
+        <translation>Message</translation>
     </message>
     <message>
         <location filename="../config.ui" line="79"/>
         <source>Follow {name}, last game played was {game}. https://twitch.tv/{login}</source>
-        <translation>Sigue a {name}, el último juego que jugó {game}. https://twitch.tv/{login}</translation>
+        <translation>Follow {name}, last game played was {game}. https://twitch.tv/{login}</translation>
     </message>
     <message>
         <location filename="../config.ui" line="86"/>
         <source>Message Alt</source>
-        <translation>Mensaje Alt</translation>
+        <translation>Message Alt</translation>
     </message>
     <message>
         <location filename="../config.ui" line="115"/>
         <source>Cooldown</source>
-        <translation>Tiempo de Refresco</translation>
+        <translation>Cooldown</translation>
     </message>
     <message>
         <location filename="../config.ui" line="132"/>
@@ -46,17 +61,17 @@
     <message>
         <location filename="../config.ui" line="138"/>
         <source>Enable Raids</source>
-        <translation>Habilitar Raids</translation>
+        <translation>Enable Raids</translation>
     </message>
     <message>
         <location filename="../config.ui" line="147"/>
         <source>Min Viewers</source>
-        <translation>Min Espectadores</translation>
+        <translation>Min Viewers</translation>
     </message>
     <message>
         <location filename="../config.ui" line="176"/>
         <source>Filtering</source>
-        <translation>Filtrado</translation>
+        <translation>Filtering</translation>
     </message>
     <message>
         <location filename="../config.ui" line="184"/>
@@ -71,32 +86,17 @@
     <message>
         <location filename="../config.ui" line="215"/>
         <source>Enable For</source>
-        <translation>Habilitar Para</translation>
+        <translation>Enable For</translation>
     </message>
     <message>
         <location filename="../config.ui" line="224"/>
         <source>Affiliate</source>
-        <translation>Afiliado</translation>
+        <translation>Affiliate</translation>
     </message>
     <message>
         <location filename="../config.ui" line="231"/>
         <source>Partner</source>
         <translation>Partner</translation>
-    </message>
-    <message>
-        <location filename="../__init__.py" line="145"/>
-        <source>Hours</source>
-        <translation>Horas</translation>
-    </message>
-    <message>
-        <location filename="../__init__.py" line="146"/>
-        <source>Minutes</source>
-        <translation>Minutos</translation>
-    </message>
-    <message>
-        <location filename="../__init__.py" line="147"/>
-        <source>Seconds</source>
-        <translation>Segundos</translation>
     </message>
 </context>
 </TS>

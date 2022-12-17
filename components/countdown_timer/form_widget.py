@@ -25,17 +25,14 @@ class FormWidget(QWidget):
             if input_type == "text_box":
                 qt_input = QLineEdit(data.setdefault(input_key, input_meta.get("default", "")))
                 qt_input.setProperty("key", input_key)
-                qt_input.editingFinished.connect(  # type: ignore
-                    lambda: self.valueChanged.emit(qt_input.property("key"),
-                                                   qt_input.text().strip()))
+                qt_input.editingFinished.connect(self.__input_receiver)  # type: ignore
                 qt_widget = qt_input
             elif input_type == "number_box":
                 qt_spin_box = QSpinBox()
                 qt_spin_box.setMaximum(1000000)
                 qt_spin_box.setValue(data.setdefault(input_key, input_meta.get("default", 0)))
                 qt_spin_box.setProperty("key", input_key)
-                qt_spin_box.valueChanged.connect(  # type: ignore
-                    lambda i: self.valueChanged.emit(qt_spin_box.property("key"), i))
+                qt_spin_box.valueChanged.connect(self.__spin_box_receiver)  # type: ignore
                 qt_widget = qt_spin_box
             elif input_type == "combo_box":
                 qt_combo_box = QComboBox()
@@ -44,21 +41,35 @@ class FormWidget(QWidget):
                     qt_combo_box.addItem(choice["name"], choice["value"])
                 current_key = data.setdefault(input_key, input_meta.get("default", input_meta["choices"][0]["value"]))
                 qt_combo_box.setCurrentIndex(qt_combo_box.findData(current_key))
-                qt_combo_box.activated.connect(lambda i: self.valueChanged.emit(  # type: ignore
-                    qt_combo_box.property("key"), qt_combo_box.itemData(i)))
+                qt_combo_box.activated.connect(self.__combo_box_receiver)  # type: ignore
                 qt_widget = qt_combo_box
             elif input_type == "check_box":
                 qt_check_box = QCheckBox()
                 qt_check_box.setProperty("key", input_key)
                 qt_check_box.setChecked(data.setdefault(input_key, input_meta.get("default", False)))
-                qt_check_box.stateChanged.connect(lambda state: self.valueChanged.emit(  # type: ignore
-                    qt_check_box.property("key"), state != 0))
+                qt_check_box.stateChanged.connect(self.__check_box_receiver)  # type: ignore
                 qt_widget = qt_check_box
             if qt_widget:
                 self.main_layout.insertRow(position, title, qt_widget)
                 position += 1
 
         self.setLayout(self.main_layout)
+
+    def __input_receiver(self):
+        input_box: QLineEdit = self.sender()  # type: ignore
+        self.valueChanged.emit(input_box.property("key"), input_box.text().strip())
+
+    def __spin_box_receiver(self, i: int):
+        spin_box: QSpinBox = self.sender()  # type: ignore
+        self.valueChanged.emit(spin_box.property("key"), i)
+
+    def __combo_box_receiver(self, i: int):
+        combo_box: QComboBox = self.sender()  # type: ignore
+        self.valueChanged.emit(combo_box.property("key"), combo_box.itemData(i))
+
+    def __check_box_receiver(self, state: int):
+        check_box: QCheckBox = self.sender()  # type: ignore
+        self.valueChanged.emit(check_box.property("key"), state != 0)
 
     def set_values(self, data: Mapping[str, Any]) -> None:
         for i in range(self.main_layout.rowCount()):

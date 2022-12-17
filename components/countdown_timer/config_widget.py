@@ -5,7 +5,7 @@ from PySide6.QtCore import QCoreApplication, QFile, Qt, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (QComboBox, QGroupBox, QLineEdit, QListWidget, QListWidgetItem, QMenu, QMessageBox,
-                               QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+                               QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget, QLabel)
 
 from model import EventType
 
@@ -47,6 +47,7 @@ class CountdownTimerWidget(QWidget):
         self.set_time_input: QSpinBox = getattr(my_widget, "set_time_input")
         self.set_time_button: QPushButton = getattr(my_widget, "set_time_button")
         self.clear_time_button: QPushButton = getattr(my_widget, "clear_time_button")
+        self.current_time_label: QLabel = getattr(my_widget, "current_time_label")
 
         self.active_events_list: QListWidget = getattr(my_widget, "active_events_list")
         self.available_events_list: QListWidget = getattr(my_widget, "available_events_list")
@@ -131,6 +132,20 @@ class CountdownTimerWidget(QWidget):
                     "type": "text_box",
                     "default": "",
                     "title": QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None)
+                }]
+            },
+            EventType.RAID: {
+                "name": QCoreApplication.translate("CountdownTimerCompConfig", "Raid", None),
+                "form": [{
+                    "id": "min_people",
+                    "type": "number_box",
+                    "default": 2,
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Minimum People", None)
+                }, {
+                    "id": "num_people",
+                    "type": "number_box",
+                    "default": 10,
+                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Number of People", None)
                 }]
             },
         }
@@ -385,5 +400,7 @@ class CountdownTimerWidget(QWidget):
             event_title += " {} ".format(event.data["num_bits"])
             if event.data["is_exact"]:
                 event_title += "{} ".format(QCoreApplication.translate("CountdownTimerCompConfig", "Exactly", None))
+        elif event.type == EventType.RAID:
+            event_title += " {} ".format(event.data["num_people"])
         event_title += f"- {event.duration} {event.duration_format}"
         return event_title

@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
     def create_actions(self):
         self.settings_action = QAction("&Settings", self)
         self.settings_action.setText(self.tr("Settings"))
-        self.settings_action.setShortcut(QKeySequence.Preferences)
+        self.settings_action.setShortcut(QKeySequence.StandardKey.Preferences)
         self.settings_action.setStatusTip(self.tr("Application settings"))
         self.settings_action.triggered.connect(self.open_settings)  # type: ignore
 
@@ -233,7 +233,7 @@ class MainWindow(QMainWindow):
 
         self.close_action = QAction("&Close", self)
         self.close_action.setText(self.tr("Close"))
-        self.close_action.setShortcut(QKeySequence.Quit)
+        self.close_action.setShortcut(QKeySequence.StandardKey.Quit)
         self.close_action.setStatusTip(self.tr("Close the application"))
         self.close_action.triggered.connect(self.close)  # type: ignore
 
@@ -473,7 +473,7 @@ class MainWindow(QMainWindow):
             self.log_dock.hide()
         self.hide()
         self.system_tray.hide()
-        QApplication.instance().quit()
+        QApplication.quit()
 
     #################################################################
     # EdoBot Listeners

@@ -38,6 +38,7 @@ class CountdownTimerComponent(ChatComponent):
         self.active_sources_thread_lock = threading.Lock()  # TODO: add timer and event locks
         self.active_sources: MutableMapping[str, MutableMapping[str, Tuple[RewardTimer, int]]] = {}
         self.counter_thread: Optional[threading.Thread] = None
+        self.widget: Optional[CountdownTimerWidget] = None
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
@@ -66,6 +67,9 @@ class CountdownTimerComponent(ChatComponent):
                                 timers_to_delete.append(timer_id)
                                 continue
                             time_str = self.format_time(tmleft, timer.display)
+                            if self.widget:
+                                self.widget.current_time_label.setText(
+                                    self.format_time(tmleft, "hours") if timer.display != "hours" else time_str)
                             source_text += timer.format.replace("{name}", timer.name).replace("{time}", time_str)
                             source_text += separator
                         source_text = source_text.strip(separator)
@@ -81,6 +85,8 @@ class CountdownTimerComponent(ChatComponent):
                         with self.active_sources_thread_lock:
                             del self.active_sources[source_name]
                         self.obs.set_text_gdi_plus_properties(source_name, text="")
+                        if self.widget:
+                            self.widget.current_time_label.setText("00:00:00")
                     sources_to_hide.clear()
                 time.sleep(0.1)
 
@@ -104,23 +110,23 @@ class CountdownTimerComponent(ChatComponent):
                         metadata: Optional[Any] = None) -> None:
         pass
 
-    def process_event(self, event_type: EventType, metadata: Any) -> None:
+    def process_event(self, event_type: EventType, metadata: Optional[Any] = None) -> None:
         if event_type not in (EventType.SUBSCRIPTION, EventType.BITS, EventType.REWARD_REDEEMED):
             return
 
         with self.timer_thread_lock:
             for timer in self.__timers:
-                if timer.enabled:
+                if timer.enabled and metadata is not None:
                     if event_type == EventType.REWARD_REDEEMED:
                         points_event: twitch.events.ChannelPointsEvent = metadata
                         reward_name = points_event.redemption.reward.title
-                        events = timer.get_events(EventType.REWARD_REDEEMED, name=reward_name)
+                        events = timer.get_events(event_type, name=reward_name)
                         for event in events:
                             if event.enabled:
                                 self.add_time_to_timer(timer, event.get_duration_ms())
                     elif event_type == EventType.SUBSCRIPTION:
                         sub_event: twitch.events.SubscriptionEvent = metadata
-                        events = timer.get_events(EventType.SUBSCRIPTION,
+                        events = timer.get_events(event_type,
                                                   is_gift=sub_event.is_gift,
                                                   type=sub_event.sub_plan.lower())
                         for event in events:
@@ -128,7 +134,7 @@ class CountdownTimerComponent(ChatComponent):
                                 self.add_time_to_timer(timer, event.get_duration_ms())
                     elif event_type == EventType.BITS:
                         bits_event: twitch.events.BitsEvent = metadata
-                        events = timer.get_events(EventType.BITS)
+                        events = timer.get_events(event_type)
                         nbits = bits_event.total_bits_used
                         for event in events:
                             if event.enabled:
@@ -138,17 +144,30 @@ class CountdownTimerComponent(ChatComponent):
                                 else:
                                     ratio = nbits / event.data["num_bits"]
                                     self.add_time_to_timer(timer, int(event.get_duration_ms() * ratio))
+                    elif event_type == EventType.RAID:
+                        raid_event: twitch.events.RaidEvent = metadata
+                        events = timer.get_events(event_type)
+                        viewer_count = raid_event.viewer_count
+                        for event in events:
+                            if event.enabled:
+                                if viewer_count >= event.data["min_people"]:
+                                    ratio = viewer_count / event.data["num_people"]
+                                    self.add_time_to_timer(timer, int(event.get_duration_ms() * ratio))
 
     def get_config_ui(self) -> Optional[QWidget]:
-        widget = CountdownTimerWidget(self)
-        widget.addButtonPressed.connect(self.add_time_to_timer)  # type: ignore
-        widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore
-        widget.setButtonPressed.connect(self.set_timer_time)  # type: ignore
-        return widget
+        self.widget = CountdownTimerWidget(self)
+        self.widget.addButtonPressed.connect(self.add_time_to_timer)  # type: ignore
+        self.widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore
+        self.widget.setButtonPressed.connect(self.set_timer_time)  # type: ignore
+
+        def clean_widget(_):
+            with self.active_sources_thread_lock:
+                self.widget = None
+
+        self.widget.destroyed.connect(clean_widget)  # type: ignore
+        return self.widget
 
     def add_time_to_timer(self, timer: RewardTimer, duration_ms: int):
-        if not self.obs.is_connected():
-            return
         with self.active_sources_thread_lock:
             source_name = timer.source
             if source_name in self.active_sources and timer.id in self.active_sources[source_name]:
@@ -163,8 +182,6 @@ class CountdownTimerComponent(ChatComponent):
                     self.chat.send_message(timer.start_msg.replace("{name}", timer.name))
 
     def set_timer_time(self, timer: RewardTimer, duration_ms: int):
-        if not self.obs.is_connected():
-            return
         if duration_ms < 0:
             duration_ms = 0
         with self.active_sources_thread_lock:

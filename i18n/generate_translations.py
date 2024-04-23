@@ -10,7 +10,7 @@ import PySide6.QtCore
 ######################################################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--components", "-c", help="Components folder to update", nargs='+', type=str)
+parser.add_argument("--components", "-c", help="Components folder to update", nargs="+", type=str)
 args = parser.parse_args()
 
 ######################################################################

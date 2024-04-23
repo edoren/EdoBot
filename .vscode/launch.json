@@ -6,16 +6,16 @@
     "configurations": [
         {
             "name": "Project",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
+            "module": "edobot.main",
             "args": [],
             "console": "integratedTerminal",
             "justMyCode": false
         },
         {
             "name": "Build Onedir",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/build.py",
             "args": [],
@@ -23,7 +23,7 @@
         },
         {
             "name": "Build Onefile",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/build.py",
             "args": [
@@ -33,14 +33,14 @@
         },
         {
             "name": "Attach PID",
-            "type": "python",
+            "type": "debugpy",
             "request": "attach",
             "processId": "${command:pickProcess}",
             "justMyCode": false
         },
         {
             "name": "Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"

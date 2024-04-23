@@ -25,14 +25,16 @@ def __configure_file(output_file: str, input_str: str, data: Mapping[str, str], 
             f.write(contents)
 
 
-def generate_file_version_info(output_path: str,
-                               name: str,
-                               owner: str,
-                               version: str,
-                               description: str = "",
-                               copyright: str = "",
-                               file_name: str = "",
-                               file_description: str = ""):
+def generate_file_version_info(
+    output_path: str,
+    name: str,
+    owner: str,
+    version: str,
+    description: str = "",
+    copyright: str = "",
+    file_name: str = "",
+    file_description: str = "",
+):
     current_dir = os.path.dirname(__file__)
     file_version_template_file = os.path.join(current_dir, "input", "file_version_info.txt.in")
     with open(file_version_template_file, "r") as f:
@@ -45,7 +47,7 @@ def generate_file_version_info(output_path: str,
         "PRODUCT_FILE_NAME": file_name if file_name else f"{name.lower()}.exe",
         "PRODUCT_FILE_DESCRIPTION": file_description if file_description else name,
         "PRODUCT_DESCRIPTION": description,
-        "PRODUCT_COPYRIGHT": copyright
+        "PRODUCT_COPYRIGHT": copyright,
     }
 
     semver_regex = r"^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$"
@@ -67,8 +69,16 @@ def generate_file_version_info(output_path: str,
     __configure_file(output_path, file_version_template, values)
 
 
-def generate_nsis_file(output_path: str, app_name: str, app_owner: str, app_executable: str, app_version: str,
-                       installer_name: str, output_folder: str, dist_folder: str):
+def generate_nsis_file(
+    output_path: str,
+    app_name: str,
+    app_owner: str,
+    app_executable: str,
+    app_version: str,
+    installer_name: str,
+    output_folder: str,
+    dist_folder: str,
+):
     current_dir = os.path.dirname(__file__)
     nsis_script_template_file = os.path.join(current_dir, "input", "edobot.nsi.in")
     with open(nsis_script_template_file, "r") as f:
@@ -81,7 +91,7 @@ def generate_nsis_file(output_path: str, app_name: str, app_owner: str, app_exec
         "APP_VERSION": app_version,
         "INSTALLER_NAME": installer_name,
         "OUTPUT_FOLDER": output_folder,
-        "DIST_FOLDER": dist_folder
+        "DIST_FOLDER": dist_folder,
     }
 
     __configure_file(output_path, nsis_script_template, values, "%")

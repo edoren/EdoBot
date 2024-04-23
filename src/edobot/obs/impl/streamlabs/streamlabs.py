@@ -14,7 +14,6 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class StreamlabsOBS(OBSInterface):
-
     def __init__(self, host: str, port: int, token: str) -> None:
         self.host = host
         self.port = port

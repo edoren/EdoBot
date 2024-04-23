@@ -68,16 +68,13 @@ class PubSub(WebSocket):
             self.send('{"type":"PING"}')
 
     def listen(self, event: PubSubEventType):
-        new_nonce = ''.join([str(random.randint(0, 9)) for _ in range(8)])
+        new_nonce = "".join([str(random.randint(0, 9)) for _ in range(8)])
         registered_topics = [f"{event.value}.{self.broadcaster_id}"]
         self.nonce_waiting[new_nonce] = registered_topics
         listen_request = {
             "type": "LISTEN",
             "nonce": new_nonce,
-            "data": {
-                "topics": registered_topics,
-                "auth_token": self.password
-            }
+            "data": {"topics": registered_topics, "auth_token": self.password},
         }
         self.send(json.dumps(listen_request))
 
@@ -90,7 +87,7 @@ class PubSub(WebSocket):
             nonce = result["nonce"]
             if result["error"] != "":
                 for listener in self.nonce_waiting[nonce]:
-                    gLogger.info("Error '" + result['error'] + "' when registering listener for: {}".format(listener))
+                    gLogger.info("Error '" + result["error"] + "' when registering listener for: {}".format(listener))
             del self.nonce_waiting[nonce]
         if result["type"] == "MESSAGE":
             data = result["data"]

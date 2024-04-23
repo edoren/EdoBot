@@ -8,11 +8,9 @@ python_std_lib_list = [
     "stringprep",
     "readline",
     "rlcompleter",
-
     # Binary Data Services
     "struct",
     "codecs",
-
     # Data Types
     "datetime",
     "zoneinfo",
@@ -29,7 +27,6 @@ python_std_lib_list = [
     "reprlib",
     "enum",
     "graphlib",
-
     # Numeric and Mathematical Modules
     "numbers",
     "math",
@@ -38,12 +35,10 @@ python_std_lib_list = [
     "fractions",
     "random",
     "statistics",
-
     # Functional Programming Modules
     "itertools",
     "functools",
     "operator",
-
     # File and Directory Access
     "pathlib",
     "os.path",
@@ -55,7 +50,6 @@ python_std_lib_list = [
     "fnmatch",
     "linecache",
     "shutil",
-
     # Data Persistence
     "pickle",
     "copyreg",
@@ -63,7 +57,6 @@ python_std_lib_list = [
     "marshal",
     "dbm",
     "sqlite3",
-
     # Data Compression and Archiving
     "zlib",
     "gzip",
@@ -71,19 +64,16 @@ python_std_lib_list = [
     "lzma",
     "zipfile",
     "tarfile",
-
     # File Formats
     "csv",
     "configparser",
     "netrc",
     "xdrlib",
     "plistlib",
-
     # Cryptographic Services
     "hashlib",
     "hmac",
     "secrets",
-
     # Generic Operating System Services
     "os",
     "io",
@@ -101,7 +91,6 @@ python_std_lib_list = [
     "platform",
     "errno",
     "ctypes",
-
     # Concurrent Execution
     "threading",
     "multiprocessing",
@@ -113,7 +102,6 @@ python_std_lib_list = [
     "queue",
     "contextvars",
     "_thread",
-
     # Networking and Interprocess Communication
     "asyncio",
     "socket",
@@ -124,7 +112,6 @@ python_std_lib_list = [
     "asynchat",
     "signal",
     "mmap",
-
     # Internet Data Handling
     "email",
     "json",
@@ -136,7 +123,6 @@ python_std_lib_list = [
     "binascii",
     "quopri",
     "uu",
-
     # Structured Markup Processing Tools
     "html",
     "html.parser",
@@ -150,7 +136,6 @@ python_std_lib_list = [
     "xml.sax.saxutils",
     "xml.sax.xmlreader",
     "xml.parsers.expat",
-
     # Internet Protocols and Support
     "webbrowser",
     "cgi",
@@ -180,7 +165,6 @@ python_std_lib_list = [
     "xmlrpc.client",
     "xmlrpc.server",
     "ipaddress",
-
     # Multimedia Services
     "audioop",
     "aifc",
@@ -191,19 +175,15 @@ python_std_lib_list = [
     "imghdr",
     "sndhdr",
     "ossaudiodev",
-
     # Internationalization
     "gettext",
     "locale",
-
     # Program Frameworks
     "turtle",
     "cmd",
     "shlex",
-
     # Development Tools
     "typing",
-
     # Debugging and Profiling
     "bdb",
     "faulthandler",
@@ -213,13 +193,11 @@ python_std_lib_list = [
     "timeit",
     "trace",
     "tracemalloc",
-
     # Software Packaging and Distribution
     "distutils",
     "ensurepip",
     "venv",
     "zipapp",
-
     # Python Runtime Services
     "sys",
     "sysconfig",
@@ -235,15 +213,12 @@ python_std_lib_list = [
     "gc",
     "inspect",
     "site",
-
     # Custom Python Interpreters
     "code",
     "codeop",
-
     # Importing Modules
     "importlib",
     "importlib.metadata",
-
     # Python Language Services
     "parser",
     "ast",
@@ -258,16 +233,13 @@ python_std_lib_list = [
     "compileall",
     "dis",
     "pickletools",
-
     # Miscellaneous Services
     "formatter",
-
     # MS Windows Specific Services
     "msilib",
     "msvcrt",
     "winreg",
     "winsound",
-
     # Unix Specific Services
     "posix",
     "pwd",
@@ -281,5 +253,5 @@ python_std_lib_list = [
     "pipes",
     "resource",
     "nis",
-    "syslog"
+    "syslog",
 ]

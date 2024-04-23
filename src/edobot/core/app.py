@@ -33,7 +33,6 @@ class TokenRedirectWebServer(threading.Thread):
     port: int = 3506
 
     class RequestHandler(SimpleHTTPRequestHandler):
-
         def __init__(self, *args, **kwargs):
             self.token_received = kwargs["token_received"]
             del kwargs["token_received"]
@@ -69,7 +68,6 @@ class TokenRedirectWebServer(threading.Thread):
 
 
 class App:
-
     def __init__(self):
         self.is_running = False
         self.has_started = False
@@ -93,8 +91,14 @@ class App:
         self.update_available_components()
 
         self.host_scope = [
-            "bits:read", "channel:moderate", "channel:read:editors", "channel:read:redemptions",
-            "channel:read:subscriptions", "moderation:read", "user:read:email", "whispers:read"
+            "bits:read",
+            "channel:moderate",
+            "channel:read:editors",
+            "channel:read:redemptions",
+            "channel:read:subscriptions",
+            "moderation:read",
+            "user:read:email",
+            "whispers:read",
         ]
         self.bot_scope = ["channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"]
         self.host_scope.sort()
@@ -194,8 +198,9 @@ class App:
                         command_pack = text.lstrip("!").split(" ", 1)
                         command = command_pack[0]
                         message = command_pack[1] if len(command_pack) > 1 else ""
-                        if ((isinstance(comp_command, str) and command.lower() == comp_command.lower())
-                                or (isinstance(comp_command, list) and command in comp_command)):
+                        if (isinstance(comp_command, str) and command.lower() == comp_command.lower()) or (
+                            isinstance(comp_command, list) and command in comp_command
+                        ):
                             self.__secure_component_method_call(component, "process_message", message, user, user_types)
                 else:
                     self.__secure_component_method_call(component, "process_message", text, user, user_types)
@@ -261,7 +266,7 @@ class App:
 
         search_folders = [
             os.path.join(Constants.EXECUTABLE_DIRECTORY, "components"),
-            os.path.join(Constants.SAVE_DIRECTORY, "components")
+            os.path.join(Constants.SAVE_DIRECTORY, "components"),
         ]
 
         def import_component(file_path: str, module_name: str, component_folder: Optional[str] = None) -> bool:
@@ -277,15 +282,19 @@ class App:
                     if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
                         component_id = class_type.get_id()
                         if component_id in self.available_components:
-                            gLogger.error(f"Error loading component with id '{component_id}' for "
-                                          f"class name '{class_name}': another component has the same id")
+                            gLogger.error(
+                                f"Error loading component with id '{component_id}' for "
+                                f"class name '{class_name}': another component has the same id"
+                            )
                         self.available_components[component_id] = class_type
                         self.available_components_folders[component_id] = component_folder
                         return True
                 except NotImplementedError:
                     class_abstract_methods = [a for a in class_type.__abstractmethods__]  # type: ignore
-                    gLogger.error(f"Error in file '{file_path}' class '{class_name}' does not "
-                                  f"implement all abstract methods: {class_abstract_methods}")
+                    gLogger.error(
+                        f"Error in file '{file_path}' class '{class_name}' does not "
+                        f"implement all abstract methods: {class_abstract_methods}"
+                    )
             return False
 
         for components_folder in search_folders:
@@ -343,10 +352,12 @@ class App:
             if self.component_added:
                 self.component_added(instance)
             if self.has_started and self.chat_service is not None and self.host_twitch_service is not None:
-                instance.config_component(config=self.__get_component_config(instance.get_id()),
-                                          obs=self.obs_client,
-                                          chat=self.chat_service,
-                                          twitch=self.host_twitch_service)
+                instance.config_component(
+                    config=self.__get_component_config(instance.get_id()),
+                    obs=self.obs_client,
+                    chat=self.chat_service,
+                    twitch=self.host_twitch_service,
+                )
                 succeded = self.__secure_component_method_call(instance, "start")
                 if not succeded:
                     self.__secure_component_method_call(instance, "stop")
@@ -356,8 +367,10 @@ class App:
         with self.components_lock:
             component = self.active_components[component_id]
             self.__secure_component_method_call(component, "stop")
-            gLogger.info(f"Removing component '{component.get_metadata().name}' with class name "
-                         f"'{component.__class__.__name__}'.")
+            gLogger.info(
+                f"Removing component '{component.get_metadata().name}' with class name "
+                f"'{component.__class__.__name__}'."
+            )
             self.current_components.remove(component_id)
             self.config["components"] = self.current_components
             if self.component_removed:
@@ -365,7 +378,6 @@ class App:
             del self.active_components[component_id]
 
     def start(self):
-
         def __run(self: App):
             for component_id in self.current_components:
                 self.add_component(component_id)
@@ -388,7 +400,7 @@ class App:
                 except twitch.service.UnauthenticatedException:
                     self.db.remove_user("host")
                 except Exception as e:
-                    gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
+                    gLogger.error("".join(traceback.format_tb(e.__traceback__)))
 
             if self.is_running and bot_token is not None and bot_token.scope == self.bot_scope:
                 try:
@@ -398,7 +410,7 @@ class App:
                 except twitch.service.UnauthenticatedException:
                     self.db.remove_user("bot")
                 except Exception as e:
-                    gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
+                    gLogger.error("".join(traceback.format_tb(e.__traceback__)))
 
             # Waiting for tokens available
             gLogger.info("Waiting for tokens available to start Services")
@@ -413,20 +425,26 @@ class App:
                 return
 
             with self.start_stop_lock:
-                self.chat_service = twitch.Chat(self.bot_twitch_service.get_user().display_name,
-                                                self.bot_twitch_service.token.access_token,
-                                                self.host_twitch_service.get_user().login)
-                self.pubsub_service = twitch.PubSub(self.host_twitch_service.get_user().id,
-                                                    self.host_twitch_service.token.access_token)
-                self.eventsub_service = twitch.EventSub(self.host_twitch_service.get_user().id,
-                                                        self.host_twitch_service)
+                self.chat_service = twitch.Chat(
+                    self.bot_twitch_service.get_user().display_name,
+                    self.bot_twitch_service.token.access_token,
+                    self.host_twitch_service.get_user().login,
+                )
+                self.pubsub_service = twitch.PubSub(
+                    self.host_twitch_service.get_user().id, self.host_twitch_service.token.access_token
+                )
+                self.eventsub_service = twitch.EventSub(
+                    self.host_twitch_service.get_user().id, self.host_twitch_service
+                )
 
                 with self.components_lock:
                     for instance in self.active_components.values():
-                        instance.config_component(config=self.__get_component_config(instance.get_id()),
-                                                  obs=self.obs_client,
-                                                  chat=self.chat_service,
-                                                  twitch=self.host_twitch_service)
+                        instance.config_component(
+                            config=self.__get_component_config(instance.get_id()),
+                            obs=self.obs_client,
+                            chat=self.chat_service,
+                            twitch=self.host_twitch_service,
+                        )
                         succeded = self.__secure_component_method_call(instance, "start")
                         if not succeded:
                             self.__secure_component_method_call(instance, "stop")
@@ -514,13 +532,15 @@ class App:
 
     @staticmethod
     def __get_auth_url(scope: List[str], state: str, force_verify=True) -> str:
-        return (f"https://id.twitch.tv/oauth2/authorize"
-                f"?client_id={Constants.CLIENT_ID}"
-                f"&redirect_uri=http://localhost:3506"
-                f"&response_type=token"
-                f"&scope={'+'.join(scope)}"
-                f"&force_verify={str(force_verify).lower()}"
-                f"&state={state}")
+        return (
+            f"https://id.twitch.tv/oauth2/authorize"
+            f"?client_id={Constants.CLIENT_ID}"
+            f"&redirect_uri=http://localhost:3506"
+            f"&response_type=token"
+            f"&scope={'+'.join(scope)}"
+            f"&force_verify={str(force_verify).lower()}"
+            f"&state={state}"
+        )
 
     @staticmethod
     def __get_component_config(component_id: str) -> Config:
@@ -534,6 +554,6 @@ class App:
             method(*args, **kwargs)
             return True
         except Exception as e:
-            traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+            traceback_str = "".join(traceback.format_tb(e.__traceback__))
             gLogger.error(f"Error in component '{component.get_metadata().name}': {e}\n{traceback_str}")
         return False

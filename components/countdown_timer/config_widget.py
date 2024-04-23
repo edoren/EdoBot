@@ -77,12 +77,15 @@ class CountdownTimerWidget(QWidget):
         self.remove_timer_button.setEnabled(False)
 
         self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Hours", None), "hours")
-        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None),
-                                       "minutes")
-        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Seconds", None),
-                                       "seconds")
-        self.display_selection.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Automatic", None),
-                                       "automatic")
+        self.display_selection.addItem(
+            QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None), "minutes"
+        )
+        self.display_selection.addItem(
+            QCoreApplication.translate("CountdownTimerCompConfig", "Seconds", None), "seconds"
+        )
+        self.display_selection.addItem(
+            QCoreApplication.translate("CountdownTimerCompConfig", "Automatic", None), "automatic"
+        )
         self.display_selection.setCurrentIndex(self.display_selection.findData("minutes"))
 
         self.event_type_names = {
@@ -96,70 +99,87 @@ class CountdownTimerWidget(QWidget):
         self.available_events = {
             EventType.SUBSCRIPTION: {
                 "name": QCoreApplication.translate("CountdownTimerCompConfig", "Subscription", None),
-                "form": [{
-                    "id": "is_gift",
-                    "type": "check_box",
-                    "default": False,
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Is Gift?", None)
-                }, {
-                    "id": "type",
-                    "type": "combo_box",
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Subscription Type", None),
-                    "default": "prime",
-                    "choices": [{
-                        "value": "prime",
-                        "name": self.event_type_names["prime"],
-                    }, {
-                        "value": "1000",
-                        "name": self.event_type_names["1000"],
-                    }, {
-                        "value": "2000",
-                        "name": self.event_type_names["2000"],
-                    }, {
-                        "value": "3000",
-                        "name": self.event_type_names["3000"],
-                    }, {
-                        "value": "any",
-                        "name": self.event_type_names["any"],
-                    }]
-                }]
+                "form": [
+                    {
+                        "id": "is_gift",
+                        "type": "check_box",
+                        "default": False,
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Is Gift?", None),
+                    },
+                    {
+                        "id": "type",
+                        "type": "combo_box",
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Subscription Type", None),
+                        "default": "prime",
+                        "choices": [
+                            {
+                                "value": "prime",
+                                "name": self.event_type_names["prime"],
+                            },
+                            {
+                                "value": "1000",
+                                "name": self.event_type_names["1000"],
+                            },
+                            {
+                                "value": "2000",
+                                "name": self.event_type_names["2000"],
+                            },
+                            {
+                                "value": "3000",
+                                "name": self.event_type_names["3000"],
+                            },
+                            {
+                                "value": "any",
+                                "name": self.event_type_names["any"],
+                            },
+                        ],
+                    },
+                ],
             },
             EventType.BITS: {
                 "name": QCoreApplication.translate("CountdownTimerCompConfig", "Bits", None),
-                "form": [{
-                    "id": "is_exact",
-                    "type": "check_box",
-                    "default": False,
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Is Exact?", None)
-                }, {
-                    "id": "num_bits",
-                    "type": "number_box",
-                    "default": 100,
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Number of Bits", None)
-                }]
+                "form": [
+                    {
+                        "id": "is_exact",
+                        "type": "check_box",
+                        "default": False,
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Is Exact?", None),
+                    },
+                    {
+                        "id": "num_bits",
+                        "type": "number_box",
+                        "default": 100,
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Number of Bits", None),
+                    },
+                ],
             },
             EventType.REWARD_REDEEMED: {
                 "name": QCoreApplication.translate("CountdownTimerCompConfig", "Channel Points", None),
-                "form": [{
-                    "id": "name",
-                    "type": "text_box",
-                    "default": "",
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None)
-                }]
+                "form": [
+                    {
+                        "id": "name",
+                        "type": "text_box",
+                        "default": "",
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Reward Name", None),
+                    }
+                ],
             },
             EventType.RAID: {
                 "name": QCoreApplication.translate("CountdownTimerCompConfig", "Raid", None),
-                "form": [{
-                    "id": "min_people",
-                    "type": "number_box",
-                    "default": 2,
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Minimum People", None)
-                }, {
-                    "id": "num_people",
-                    "type": "number_box",
-                    "default": 10,
-                    "title": QCoreApplication.translate("CountdownTimerCompConfig", "Number of People", None)
-                }]
+                "form": [
+                    {
+                        "id": "min_people",
+                        "type": "number_box",
+                        "default": 2,
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Minimum People", None),
+                    },
+                    {
+                        "id": "num_people",
+                        "type": "number_box",
+                        "default": 10,
+                        "title": QCoreApplication.translate("CountdownTimerCompConfig", "Number of People", None),
+                    },
+                ],
             },
         }
 
@@ -170,12 +190,15 @@ class CountdownTimerWidget(QWidget):
         self.available_events_list.setCurrentRow(0)
 
         self.event_config.setVisible(False)
-        self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Hours", None),
-                                           "hours")
-        self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None),
-                                           "minutes")
-        self.event_duration_format.addItem(QCoreApplication.translate("CountdownTimerCompConfig", "Seconds", None),
-                                           "seconds")
+        self.event_duration_format.addItem(
+            QCoreApplication.translate("CountdownTimerCompConfig", "Hours", None), "hours"
+        )
+        self.event_duration_format.addItem(
+            QCoreApplication.translate("CountdownTimerCompConfig", "Minutes", None), "minutes"
+        )
+        self.event_duration_format.addItem(
+            QCoreApplication.translate("CountdownTimerCompConfig", "Seconds", None), "seconds"
+        )
         self.event_duration_format.setCurrentIndex(self.event_duration_format.findData("seconds"))
 
         # Slot connections
@@ -186,42 +209,56 @@ class CountdownTimerWidget(QWidget):
         self.remove_timer_button.clicked.connect(lambda _: self.remove_selected_timer())  # type: ignore
 
         self.format_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("format",
-                                           self.format_input.text().strip()))
+            lambda: self.update_timer_data("format", self.format_input.text().strip())
+        )
         self.source_name_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("source",
-                                           self.source_name_input.text().strip()))
+            lambda: self.update_timer_data("source", self.source_name_input.text().strip())
+        )
         self.display_selection.activated.connect(  # type: ignore
-            lambda index: self.update_timer_data("display", self.display_selection.itemData(index)))
+            lambda index: self.update_timer_data("display", self.display_selection.itemData(index))
+        )
         self.start_message_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("start_msg",
-                                           self.start_message_input.text().strip()))
+            lambda: self.update_timer_data("start_msg", self.start_message_input.text().strip())
+        )
         self.finish_message_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_timer_data("finish_msg",
-                                           self.finish_message_input.text().strip()))
+            lambda: self.update_timer_data("finish_msg", self.finish_message_input.text().strip())
+        )
 
-        self.add_time_button.clicked.connect(lambda _: self.addButtonPressed.emit(  # type: ignore
-            self.__get_current_selected_timer(),
-            self.add_sub_time_input.value() * 1000))
-        self.sub_time_button.clicked.connect(lambda _: self.subButtonPressed.emit(  # type: ignore
-            self.__get_current_selected_timer(), -self.add_sub_time_input.value() * 1000))
-        self.set_time_button.clicked.connect(lambda _: self.setButtonPressed.emit(  # type: ignore
-            self.__get_current_selected_timer(),
-            self.set_time_input.value() * 1000))
-        self.clear_time_button.clicked.connect(lambda _: self.setButtonPressed.emit(  # type: ignore
-            self.__get_current_selected_timer(), 0))
+        self.add_time_button.clicked.connect(
+            lambda _: self.addButtonPressed.emit(  # type: ignore
+                self.__get_current_selected_timer(), self.add_sub_time_input.value() * 1000
+            )
+        )
+        self.sub_time_button.clicked.connect(
+            lambda _: self.subButtonPressed.emit(  # type: ignore
+                self.__get_current_selected_timer(), -self.add_sub_time_input.value() * 1000
+            )
+        )
+        self.set_time_button.clicked.connect(
+            lambda _: self.setButtonPressed.emit(  # type: ignore
+                self.__get_current_selected_timer(), self.set_time_input.value() * 1000
+            )
+        )
+        self.clear_time_button.clicked.connect(
+            lambda _: self.setButtonPressed.emit(  # type: ignore
+                self.__get_current_selected_timer(), 0
+            )
+        )
 
         self.event_duration_format.activated.connect(  # type: ignore
-            lambda index: self.update_active_event_data("duration_format", self.event_duration_format.itemData(index)))
+            lambda index: self.update_active_event_data("duration_format", self.event_duration_format.itemData(index))
+        )
 
         self.add_event_button.clicked.connect(lambda _: self.add_timer_event_clicked())  # type: ignore
         self.active_events_list.itemChanged.connect(self.active_events_item_changed)  # type: ignore
         self.active_events_list.currentItemChanged.connect(self.active_events_selection_changed)  # type: ignore
         self.active_events_list.customContextMenuRequested.connect(self.open_active_events_context_menu)  # type: ignore
         self.event_duration_input.editingFinished.connect(  # type: ignore
-            lambda: self.update_active_event_data("duration", self.event_duration_input.value()))
+            lambda: self.update_active_event_data("duration", self.event_duration_input.value())
+        )
         self.event_duration_format.activated.connect(  # type: ignore
-            lambda index: self.update_active_event_data("duration_format", self.event_duration_format.itemData(index)))
+            lambda index: self.update_active_event_data("duration_format", self.event_duration_format.itemData(index))
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(my_widget)
@@ -256,10 +293,14 @@ class CountdownTimerWidget(QWidget):
         selected_item: QListWidgetItem = self.timers_list.selectedItems()[0]
         timer: RewardTimer = selected_item.data(Qt.UserRole)  # type: ignore
         ret = QMessageBox.question(
-            self, QCoreApplication.translate("CountdownTimerCompConfig", "Remove Timer?", None),
-            QCoreApplication.translate("CountdownTimerCompConfig", "Do you want to remove the <b>{0}</b> timer?",
-                                       None).format(timer.name), QMessageBox.StandardButton.Yes,
-            QMessageBox.StandardButton.No)
+            self,
+            QCoreApplication.translate("CountdownTimerCompConfig", "Remove Timer?", None),
+            QCoreApplication.translate(
+                "CountdownTimerCompConfig", "Do you want to remove the <b>{0}</b> timer?", None
+            ).format(timer.name),
+            QMessageBox.StandardButton.Yes,
+            QMessageBox.StandardButton.No,
+        )
         if ret == QMessageBox.StandardButton.Yes:
             self.data_parent.remove_timer(timer.id)
             self.tab_widget.setCurrentIndex(0)
@@ -294,7 +335,7 @@ class CountdownTimerWidget(QWidget):
         timer_has_changes = False
         timer: RewardTimer = item.data(Qt.UserRole)  # type: ignore
 
-        enabled = (item.checkState() == Qt.CheckState.Checked)
+        enabled = item.checkState() == Qt.CheckState.Checked
         if timer.enabled != enabled:
             timer.enabled = enabled
             timer_has_changes = True
@@ -306,8 +347,10 @@ class CountdownTimerWidget(QWidget):
                 return
             if not item.text():
                 QMessageBox.critical(
-                    self, QCoreApplication.translate("CountdownTimerCompConfig", "Error Creating Timer", None),
-                    QCoreApplication.translate("CountdownTimerCompConfig", "The timer name should not be empty", None))
+                    self,
+                    QCoreApplication.translate("CountdownTimerCompConfig", "Error Creating Timer", None),
+                    QCoreApplication.translate("CountdownTimerCompConfig", "The timer name should not be empty", None),
+                )
                 self.timers_list.takeItem(self.timers_list.row(item))
                 return
             timer.name = item.text()
@@ -345,7 +388,7 @@ class CountdownTimerWidget(QWidget):
 
     def active_events_item_changed(self, item):
         event: RewardTimer.Event = item.data(Qt.UserRole)  # type: ignore
-        enabled = (item.checkState() == Qt.CheckState.Checked)
+        enabled = item.checkState() == Qt.CheckState.Checked
         if event.enabled != enabled:
             event.enabled = enabled
             self.data_parent.save_timers()
@@ -368,7 +411,8 @@ class CountdownTimerWidget(QWidget):
                 form: List[Mapping[str, str]] = data["form"]  # type: ignore
                 widget = FormWidget(None, form, event.data)
                 widget.valueChanged.connect(  # type: ignore
-                    lambda key, val: self.update_active_event_data(key, val, True))
+                    lambda key, val: self.update_active_event_data(key, val, True)
+                )
                 self.event_config_layout.insertWidget(0, widget)
                 widget.set_values(event.data)
 
@@ -387,7 +431,8 @@ class CountdownTimerWidget(QWidget):
             menu = QMenu()
             delete_action = QAction(
                 QCoreApplication.translate("CountdownTimerCompConfig", "Delete", None),  # type: ignore
-                self.active_events_list)
+                self.active_events_list,
+            )
             menu.addAction(delete_action)
             delete_action.triggered.connect(self.remove_timer_event_clicked)  # type: ignore
             menu.exec_(self.active_events_list.mapToGlobal(position))

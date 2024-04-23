@@ -5,7 +5,6 @@ import requests
 
 
 class CacheRequest:
-
     def __init__(self, method: str, url: str, timeout_seconds: int = 5 * 60, **kwargs: Any):
         self.method = method
         self.url = url
@@ -14,7 +13,7 @@ class CacheRequest:
         self.cached_response: Optional[requests.Response] = None
         self.request_kargs = kwargs
         if method == "GET":
-            self.request_kargs.setdefault('allow_redirects', True)
+            self.request_kargs.setdefault("allow_redirects", True)
         self.request_kargs.setdefault("params", None)
 
     def set_timeout(self, timeout_seconds: int):

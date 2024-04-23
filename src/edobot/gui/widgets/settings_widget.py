@@ -24,8 +24,12 @@ class SettingsWidget(QWidget):
         self.app_settings = app_settings
 
         self.setWindowTitle(self.tr("Settings"))
-        self.overrideWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.CustomizeWindowHint |  # type: ignore
-                                 Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
+        self.overrideWindowFlags(
+            Qt.WindowType.Dialog
+            | Qt.WindowType.CustomizeWindowHint  # type: ignore
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowCloseButtonHint
+        )
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         file = QFile(os.path.join(Constants.DATA_DIRECTORY, "designer", "settings.ui"))
@@ -64,9 +68,11 @@ class SettingsWidget(QWidget):
         self.port_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.password_line_edit.editingFinished.connect(self.obs_config_changed)  # type: ignore
         self.system_startup_check_box.stateChanged.connect(  # type: ignore
-            lambda state: self.open_on_startup_enabled_changed(state == Qt.CheckState.Checked))
+            lambda state: self.open_on_startup_enabled_changed(state == Qt.CheckState.Checked)
+        )
         self.system_tray_check_box.stateChanged.connect(  # type: ignore
-            lambda state: self.system_tray_enabled_changed(state == Qt.CheckState.Checked))
+            lambda state: self.system_tray_enabled_changed(state == Qt.CheckState.Checked)
+        )
         self.set_host_account(None)
         self.set_bot_account(None)
 
@@ -76,11 +82,13 @@ class SettingsWidget(QWidget):
         self.setFixedSize(self.sizeHint())
 
     def obs_config_changed(self):
-        self.obsConfigChanged.emit({  # type: ignore
-            "host": self.host_line_edit.text(),
-            "port": int(self.port_line_edit.text()),
-            "password": self.password_line_edit.text()
-        })
+        self.obsConfigChanged.emit(
+            {  # type: ignore
+                "host": self.host_line_edit.text(),
+                "port": int(self.port_line_edit.text()),
+                "password": self.password_line_edit.text(),
+            }
+        )
 
     def set_host_account(self, name: Optional[str]):
         try:
@@ -123,8 +131,9 @@ class SettingsWidget(QWidget):
         if not Constants.IS_FROZEN:
             return False
         try:
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0,
-                                winreg.KEY_READ) as registry_key:
+            with winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, winreg.KEY_READ
+            ) as registry_key:
                 # TODO: Check same executable
                 value, regtype = winreg.QueryValueEx(registry_key, "EdoBot")  # type: ignore
             return True
@@ -152,6 +161,10 @@ class SettingsWidget(QWidget):
 
     def showEvent(self, event: QShowEvent) -> None:
         r = self.parentWidget().geometry()
-        self.setGeometry(r.left() + int((r.width() - self.width()) / 2),
-                         r.top() + int((r.height() - self.height()) / 2), self.width(), self.height())
+        self.setGeometry(
+            r.left() + int((r.width() - self.width()) / 2),
+            r.top() + int((r.height() - self.height()) / 2),
+            self.width(),
+            self.height(),
+        )
         event.accept()

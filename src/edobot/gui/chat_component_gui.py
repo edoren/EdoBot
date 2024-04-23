@@ -11,7 +11,6 @@ __all__ = ["ChatComponentGUI"]
 
 
 class ChatComponentMetadata:
-
     def __init__(self, name: str, description: str, icon: Optional[QIcon] = None, debug: bool = False):
         self.name = name
         self.description = description
@@ -20,7 +19,6 @@ class ChatComponentMetadata:
 
 
 class ChatComponentGUI(ChatComponent):
-
     def __init__(self) -> None:
         super().__init__()
 

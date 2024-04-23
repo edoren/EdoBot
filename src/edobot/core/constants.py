@@ -9,7 +9,7 @@ __all__ = ["Constants"]
 
 _app_name = "EdoBot"
 
-_is_frozen = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+_is_frozen = getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
 if _is_frozen:
     _exe_dir = os.path.dirname(sys.executable)
     _data_dir = os.path.join(sys._MEIPASS, "data")  # type: ignore
@@ -22,6 +22,7 @@ else:
     _app_version = "unknown"
     if __debug__:
         import subprocess
+
         try:
             _app_version = subprocess.check_output(["git", "describe", "--tags"]).decode("utf-8").strip()
             _app_version += "-"

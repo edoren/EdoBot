@@ -5,7 +5,6 @@ from .model import SceneModel
 
 
 class OBSInterface(abc.ABC):
-
     def __init__(self) -> None:
         pass
 

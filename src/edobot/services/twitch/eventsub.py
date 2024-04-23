@@ -64,10 +64,9 @@ class EventSub(WebSocket):
     def create_subscription(self, name: str, condition: dict[str, Any], version: str = "1"):
         if self.session_id is None:
             return
-        self.service.create_eventsub_subscription(name, version, condition, {
-            "method": "websocket",
-            "session_id": self.session_id
-        })
+        self.service.create_eventsub_subscription(
+            name, version, condition, {"method": "websocket", "session_id": self.session_id}
+        )
 
     def handle_message(self, message: str):
         print(message)
@@ -82,8 +81,9 @@ class EventSub(WebSocket):
             self.session_id = payload["session"]["id"]
             self.has_started = True
 
-            self.create_subscription("channel.channel_points_custom_reward_redemption.add",
-                                     {"broadcaster_user_id": self.broadcaster_id})
+            self.create_subscription(
+                "channel.channel_points_custom_reward_redemption.add", {"broadcaster_user_id": self.broadcaster_id}
+            )
             self.create_subscription("channel.subscribe", {"broadcaster_user_id": self.broadcaster_id})
             self.create_subscription("channel.subscription.gift", {"broadcaster_user_id": self.broadcaster_id})
             self.create_subscription("channel.subscription.message", {"broadcaster_user_id": self.broadcaster_id})

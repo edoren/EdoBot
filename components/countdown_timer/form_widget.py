@@ -7,10 +7,9 @@ from PySide6.QtWidgets import QCheckBox, QComboBox, QFormLayout, QLineEdit, QSpi
 class FormWidget(QWidget):
     valueChanged = Signal(str, object)
 
-    def __init__(self,
-                 parent: Optional[QWidget],
-                 form: List[Mapping[str, Any]],
-                 data: MutableMapping[str, Any] = {}) -> None:
+    def __init__(
+        self, parent: Optional[QWidget], form: List[Mapping[str, Any]], data: MutableMapping[str, Any] = {}
+    ) -> None:
         super().__init__(parent=parent)
 
         self.main_layout = QFormLayout()

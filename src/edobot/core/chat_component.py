@@ -15,9 +15,7 @@ __all__ = ["ChatComponent"]
 
 
 class ChatComponent(ABC):
-
     class Metadata:
-
         def __init__(self, name: str, description: str, icon: QIcon | None = None, debug: bool = False):
             self.name = name
             self.description = description
@@ -49,11 +47,7 @@ class ChatComponent(ABC):
         raise NotImplementedError("Please implement this method")
 
     @abstractmethod
-    def process_message(self,
-                        message: str,
-                        user: User,
-                        user_types: Set[UserType],
-                        metadata: Any | None = None) -> None:
+    def process_message(self, message: str, user: User, user_types: Set[UserType], metadata: Any | None = None) -> None:
         pass
 
     @abstractmethod

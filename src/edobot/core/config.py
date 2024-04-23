@@ -14,17 +14,16 @@ gLogger = logging.getLogger(f"edobot.{__name__}")
 
 
 class Config:
-
     @staticmethod
     def __create_if_not_exist(file_path: str) -> None:
         if not os.path.exists(file_path):
             file_dir = os.path.dirname(file_path)
             if not os.path.isdir(file_dir):
                 os.makedirs(file_dir)
-            with open(file_path, 'w', encoding="utf-8") as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write("{}")
         elif os.stat(file_path).st_size == 0:
-            with open(file_path, 'w', encoding="utf-8") as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write("{}")
 
     @staticmethod
@@ -54,7 +53,7 @@ class Config:
             with open(file, "w", encoding="utf-8") as f:
                 json.dump(config_root, f, indent=4)
         except Exception as e:
-            traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+            traceback_str = "".join(traceback.format_tb(e.__traceback__))
             gLogger.critical(f"Critical error: {e}\n{traceback_str}")
             with open(file, "w", encoding="utf-8") as f:
                 f.write(initial_file_contents)

@@ -34,28 +34,23 @@ class ChannelPointsEvent:
         """
 
         class Reward:
-
             class Image:
-
                 def __init__(self, **kwargs: Any):
                     self.url_1x: str = kwargs["url_1x"]
                     self.url_2x: str = kwargs["url_2x"]
                     self.url_4x: str = kwargs["url_4x"]
 
             class MaxPerStream:
-
                 def __init__(self, **kwargs: Any):
                     self.is_enabled: bool = kwargs["is_enabled"]
                     self.max_per_stream: int = kwargs["max_per_stream"]
 
             class MaxPerUserPerStream:
-
                 def __init__(self, **kwargs: Any):
                     self.is_enabled: bool = kwargs["is_enabled"]
                     self.max_per_user_per_stream: int = kwargs["max_per_user_per_stream"]
 
             class GlobalCooldown:
-
                 def __init__(self, **kwargs: Any):
                     self.is_enabled: bool = kwargs["is_enabled"]
                     self.global_cooldown_seconds: int = kwargs["global_cooldown_seconds"]
@@ -68,8 +63,9 @@ class ChannelPointsEvent:
                 self.cost: int = kwargs["cost"]
                 self.is_user_input_required: bool = kwargs["is_user_input_required"]
                 self.is_sub_only: bool = kwargs["is_sub_only"]
-                self.image: Optional[__class__.Image] = __class__.Image(
-                    **kwargs["image"]) if kwargs.get("image") else None
+                self.image: Optional[__class__.Image] = (
+                    __class__.Image(**kwargs["image"]) if kwargs.get("image") else None
+                )
                 self.default_image: __class__.Image = kwargs["default_image"]
                 self.background_color: str = kwargs["background_color"]
                 self.is_enabled: bool = kwargs["is_enabled"]
@@ -79,16 +75,20 @@ class ChannelPointsEvent:
                 self.should_redemptions_skip_request_queue: bool = kwargs["should_redemptions_skip_request_queue"]
                 self.template_id: Optional[str] = kwargs["template_id"]
                 self.updated_for_indicator_at: datetime.datetime = dateutil.parser.isoparse(
-                    kwargs["updated_for_indicator_at"])
+                    kwargs["updated_for_indicator_at"]
+                )
                 self.max_per_user_per_stream: __class__.MaxPerUserPerStream = __class__.MaxPerUserPerStream(
-                    **kwargs["max_per_user_per_stream"])
+                    **kwargs["max_per_user_per_stream"]
+                )
                 self.global_cooldown: __class__.GlobalCooldown = __class__.GlobalCooldown(**kwargs["global_cooldown"])
                 self.redemptions_redeemed_current_stream: Optional[int] = kwargs["redemptions_redeemed_current_stream"]
-                self.cooldown_expires_at: Optional[datetime.datetime] = dateutil.parser.isoparse(
-                    kwargs["cooldown_expires_at"]) if kwargs.get("cooldown_expires_at") else None
+                self.cooldown_expires_at: Optional[datetime.datetime] = (
+                    dateutil.parser.isoparse(kwargs["cooldown_expires_at"])
+                    if kwargs.get("cooldown_expires_at")
+                    else None
+                )
 
         class User:
-
             def __init__(self, **kwargs: Any):
                 self.id: str = kwargs["id"]
                 self.login: str = kwargs["login"]
@@ -109,7 +109,6 @@ class ChannelPointsEvent:
 
 
 class ChannelPointsEventMeta:
-
     def __init__(self, **kwargs: Any) -> None:
         self.type: str = kwargs["type"]
         self.data = ChannelPointsEvent(**kwargs["data"])

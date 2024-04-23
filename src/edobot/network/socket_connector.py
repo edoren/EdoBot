@@ -10,7 +10,6 @@ __all__ = ["SocketConnector"]
 
 
 class SocketConnector(threading.Thread):
-
     def __init__(self, host: str, port: int, retry_connection_cb: Callable[[], bool]):
         super().__init__(name=f"{self.__class__.__name__}Thread")
         self.host = host

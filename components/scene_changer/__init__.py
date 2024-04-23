@@ -30,7 +30,6 @@ __all__ = ["SceneChangerComponent"]
 
 
 class SceneChangerComponentConfigWidget(QWidget):
-
     def __init__(self, data_parent: "SceneChangerComponent") -> None:
         super().__init__()
 
@@ -108,7 +107,8 @@ class SceneChangerComponentConfigWidget(QWidget):
             menu = QMenu()
             delete_action = QAction(
                 QCoreApplication.translate("SceneChangerConfig", "Delete", None),  # type: ignore
-                self.scene_changes_widget)
+                self.scene_changes_widget,
+            )
             menu.addAction(delete_action)
             delete_action.triggered.connect(self.delete_item_selection)  # type: ignore
             menu.exec_(self.scene_changes_widget.mapToGlobal(position))
@@ -123,9 +123,13 @@ class SceneChangerComponentConfigWidget(QWidget):
         self.data_parent.set_command(self.command_line_edit.text())
 
     def who_can_use_changed(self):
-        self.data_parent.update_who_can(self.editor_check_box.isChecked(), self.mod_check_box.isChecked(),
-                                        self.vip_check_box.isChecked(), self.sub_check_box.isChecked(),
-                                        self.chatter_check_box.isChecked())
+        self.data_parent.update_who_can(
+            self.editor_check_box.isChecked(),
+            self.mod_check_box.isChecked(),
+            self.vip_check_box.isChecked(),
+            self.sub_check_box.isChecked(),
+            self.chatter_check_box.isChecked(),
+        )
 
     def showEvent(self, event: QShowEvent) -> None:
         scene_list = self.data_parent.get_obs_scenes()
@@ -138,17 +142,19 @@ class SceneChangerComponentConfigWidget(QWidget):
 
 
 class SceneChangerComponent(ChatComponent):
-
     @staticmethod
     def get_id() -> str:
         return "scene_changer"
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(name=QCoreApplication.translate("SceneChangerConfig", "Scene Changer", None),
-                                      description=QCoreApplication.translate(
-                                          "SceneChangerConfig", "Allows chat to change the current OBS scene", None),
-                                      icon=qta.icon("fa5s.exchange-alt"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("SceneChangerConfig", "Scene Changer", None),
+            description=QCoreApplication.translate(
+                "SceneChangerConfig", "Allows chat to change the current OBS scene", None
+            ),
+            icon=qta.icon("fa5s.exchange-alt"),
+        )
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return self.command
@@ -161,8 +167,13 @@ class SceneChangerComponent(ChatComponent):
             self.config["command"] = self.command
 
         who_can = self.config["who_can"].setdefault({})
-        self.update_who_can(who_can.get("editor", True), who_can.get("mod", True), who_can.get("vip", False),
-                            who_can.get("sub", False), who_can.get("chatter", False))
+        self.update_who_can(
+            who_can.get("editor", True),
+            who_can.get("mod", True),
+            who_can.get("vip", False),
+            who_can.get("sub", False),
+            who_can.get("chatter", False),
+        )
 
         self.transitions: MutableMapping[str, List[str]] = ~self.config["transitions"]
         if self.command is None or not isinstance(self.transitions, dict):
@@ -174,11 +185,9 @@ class SceneChangerComponent(ChatComponent):
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self,
-                        message: str,
-                        user: User,
-                        user_types: Set[UserType],
-                        metadata: Optional[Any] = None) -> None:
+    def process_message(
+        self, message: str, user: User, user_types: Set[UserType], metadata: Optional[Any] = None
+    ) -> None:
         if not self.obs.is_connected():
             return
 

@@ -6,7 +6,6 @@ T = TypeVar("T", bound="SLOBSBase")
 
 
 class SLOBSBase:
-
     def __init__(self, client, **kwargs: Any) -> None:
         self._client = client
         self.resourceId: str = kwargs["resourceId"]
@@ -24,7 +23,6 @@ class SLOBSBase:
         return instance_type(self._client, **result) if result is not None else None
 
     def _call_method(self, method: str, args: List[Any] = [], optional: bool = True) -> Any:
-        return self._client.send_and_wait_jsonrpc(JSONRPCMessage(method, {
-            "resource": self.resourceId,
-            "args": args
-        }), optional)
+        return self._client.send_and_wait_jsonrpc(
+            JSONRPCMessage(method, {"resource": self.resourceId, "args": args}), optional
+        )

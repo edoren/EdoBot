@@ -48,14 +48,12 @@ class SubscriptionEvent:
     """
 
     class Emote:
-
         def __init__(self, **kwargs: Any):
             self.start: str = kwargs["start"]
             self.end: str = kwargs["end"]
             self.id: str = kwargs["id"]
 
     class SubMessage:
-
         def __init__(self, **kwargs: Any):
             self.message: str = kwargs["message"]
             if kwargs.get("emotes") is not None:
@@ -72,8 +70,9 @@ class SubscriptionEvent:
         self.user_id: Optional[str] = kwargs.get("user_id")
         self.user_name: Optional[str] = kwargs.get("user_name")
         self.display_name: Optional[str] = kwargs.get("display_name")
-        self.sub_message: Optional[SubscriptionEvent.SubMessage] = SubscriptionEvent.SubMessage(
-            **kwargs["sub_message"]) if kwargs.get("sub_message") else None
+        self.sub_message: Optional[SubscriptionEvent.SubMessage] = (
+            SubscriptionEvent.SubMessage(**kwargs["sub_message"]) if kwargs.get("sub_message") else None
+        )
         self.recipient_id: Optional[str] = kwargs.get("recipient_id")
         self.recipient_user_name: Optional[str] = kwargs.get("recipient_user_name")
         self.recipient_display_name: Optional[str] = kwargs.get("recipient_display_name")

@@ -4,7 +4,6 @@ from typing import Any, Optional
 
 
 class User:
-
     def __init__(self, **kwargs: Any) -> None:
         self.broadcaster_type: str = kwargs["broadcaster_type"]
         self.description: str = kwargs["description"]

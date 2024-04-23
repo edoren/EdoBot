@@ -35,7 +35,6 @@ gLogger = logging.getLogger("edobot.components.commands")
 
 
 class CommandsTableWidget(QWidget):
-
     def __init__(self, data_parent: "CommandsComponent") -> None:
         super().__init__()
 
@@ -68,7 +67,7 @@ class CommandsTableWidget(QWidget):
             UserType.VIP: QCoreApplication.translate("Commands", "VIP", None),
             UserType.MODERATOR: QCoreApplication.translate("Commands", "Moderator", None),
             UserType.EDITOR: QCoreApplication.translate("Commands", "Editor", None),
-            UserType.BROADCASTER: QCoreApplication.translate("Commands", "Broadcaster", None)
+            UserType.BROADCASTER: QCoreApplication.translate("Commands", "Broadcaster", None),
         }
 
         self.table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -98,8 +97,15 @@ class CommandsTableWidget(QWidget):
                     access_level = user_type
             if access_level is not None:
                 self.table_widget.insertRow(row_pos)
-                self.add_command(row_pos, comm["enabled"], comm["command"], comm["response"], comm["cooldown"],
-                                 comm["user_cooldown"], access_level)
+                self.add_command(
+                    row_pos,
+                    comm["enabled"],
+                    comm["command"],
+                    comm["response"],
+                    comm["cooldown"],
+                    comm["user_cooldown"],
+                    access_level,
+                )
 
     def add_command_button_clicked(self):
         self.edit_dialog.setWindowTitle("New Command")
@@ -160,14 +166,23 @@ class CommandsTableWidget(QWidget):
             QMessageBox.critical(self.edit_dialog, "Error", f"Command '{command_text}' already exists.")
             return
 
-        self.add_command(row_pos, True, command_text, response_text, cooldown_value, user_cooldown_value,
-                         access_level_key)
+        self.add_command(
+            row_pos, True, command_text, response_text, cooldown_value, user_cooldown_value, access_level_key
+        )
 
         self.edit_dialog.accept()
         self.data_parent.store_commands(self.create_save_data())
 
-    def add_command(self, row: int, enabled: bool, command: str, response: str, cooldown: int, user_cooldown: int,
-                    access_level_key: UserType):
+    def add_command(
+        self,
+        row: int,
+        enabled: bool,
+        command: str,
+        response: str,
+        cooldown: int,
+        user_cooldown: int,
+        access_level_key: UserType,
+    ):
         self.table_widget.setSortingEnabled(False)
         enabled_cb = QCheckBox()
         enabled_cb.setChecked(enabled)
@@ -213,20 +228,20 @@ class CommandsTableWidget(QWidget):
     def create_save_data(self) -> List[Mapping[str, Any]]:
         result: List[Mapping[str, Any]] = []
         for row in range(self.table_widget.rowCount()):
-            result.append({
-                "enabled": self.table_widget.cellWidget(row, 0).isChecked(),  # type: ignore
-                "command": self.table_widget.item(row, 1).text(),
-                "response": self.table_widget.item(row, 2).text(),
-                "cooldown": int(self.table_widget.item(row, 3).text()),
-                "user_cooldown": int(self.table_widget.item(row, 4).text()),
-                "access_level":
-                    self.table_widget.item(row, 5).data(Qt.UserRole).value  # type: ignore
-            })
+            result.append(
+                {
+                    "enabled": self.table_widget.cellWidget(row, 0).isChecked(),  # type: ignore
+                    "command": self.table_widget.item(row, 1).text(),
+                    "response": self.table_widget.item(row, 2).text(),
+                    "cooldown": int(self.table_widget.item(row, 3).text()),
+                    "user_cooldown": int(self.table_widget.item(row, 4).text()),
+                    "access_level": self.table_widget.item(row, 5).data(Qt.UserRole).value,  # type: ignore
+                }
+            )
         return result
 
 
 class CommandsComponent(ChatComponent):  # TODO: Change to chat store
-
     def __init__(self) -> None:
         super().__init__()
         # command_name: last_called_time
@@ -240,10 +255,11 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(name=QCoreApplication.translate("Commands", "Commands", None),
-                                      description=QCoreApplication.translate(
-                                          "Commands", "Add custom commands to interact with the chat", None),
-                                      icon=qta.icon("fa5.list-alt"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("Commands", "Commands", None),
+            description=QCoreApplication.translate("Commands", "Add custom commands to interact with the chat", None),
+            icon=qta.icon("fa5.list-alt"),
+        )
 
     def start(self) -> None:
         self.commands = self.config["commands"].get([])
@@ -252,11 +268,9 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
 
-    def process_message(self,
-                        message: str,
-                        user: User,
-                        user_types: Set[UserType],
-                        metadata: Optional[Any] = None) -> None:
+    def process_message(
+        self, message: str, user: User, user_types: Set[UserType], metadata: Optional[Any] = None
+    ) -> None:
         if not message.startswith("!"):
             return
 
@@ -270,8 +284,9 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
                 if is_enabled and user_type in user_types and cmd["command"] == command:
                     global_cooldown_time = self.cooldown_times.get(command)
                     user_cooldown_time = self.user_cooldown_times.setdefault(user.login, {}).get(command)
-                    if ((global_cooldown_time is None or global_cooldown_time < current_time)
-                            and (user_cooldown_time is None or user_cooldown_time < current_time)):
+                    if (global_cooldown_time is None or global_cooldown_time < current_time) and (
+                        user_cooldown_time is None or user_cooldown_time < current_time
+                    ):
                         self.cooldown_times[command] = current_time + (cmd["cooldown"] * 1000)
                         self.user_cooldown_times[user.login][command] = current_time + (cmd["user_cooldown"] * 1000)
                         self.chat.send_message(cmd["response"])

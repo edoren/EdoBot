@@ -4,7 +4,6 @@ from ..base.slobs_base import SLOBSBase
 
 
 class Source(SLOBSBase):
-
     def __init__(self, client, **kwargs: Any) -> None:
         super().__init__(client, **kwargs)
         self.name = kwargs["name"]

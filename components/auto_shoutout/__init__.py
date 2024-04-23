@@ -47,7 +47,15 @@ class PlainTextEdit(QPlainTextEdit):
 
 class AutoShoutOut(ChatComponent):
     BotBlacklist = [
-        "streamelements", "streamlabs", "nightbot", "moobot", "fossabot", "botisimo", "wizebot", "deepbot", "phantombot"
+        "streamelements",
+        "streamlabs",
+        "nightbot",
+        "moobot",
+        "fossabot",
+        "botisimo",
+        "wizebot",
+        "deepbot",
+        "phantombot",
     ]
 
     def __init__(self) -> None:
@@ -60,10 +68,13 @@ class AutoShoutOut(ChatComponent):
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(name=QCoreApplication.translate("AutoShoutOut", "Auto Shout-Out", None),
-                                      description=QCoreApplication.translate(
-                                          "AutoShoutOut", "Automatically shout-out streamers in the chat", None),
-                                      icon=qta.icon("fa5s.bullhorn"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("AutoShoutOut", "Auto Shout-Out", None),
+            description=QCoreApplication.translate(
+                "AutoShoutOut", "Automatically shout-out streamers in the chat", None
+            ),
+            icon=qta.icon("fa5s.bullhorn"),
+        )
 
     def get_command(self) -> Optional[Union[str, List[str]]]:
         return None  # To get all the messages without command filtering
@@ -98,11 +109,9 @@ class AutoShoutOut(ChatComponent):
     def stop(self) -> None:
         super().stop()
 
-    def process_message(self,
-                        message: str,
-                        user: User,
-                        user_types: Set[UserType],
-                        metadata: Optional[Any] = None) -> None:
+    def process_message(
+        self, message: str, user: User, user_types: Set[UserType], metadata: Optional[Any] = None
+    ) -> None:
         self.process_shoutout(user)
 
     def process_event(self, event_type: EventType, metadata: Any) -> None:
@@ -179,8 +188,12 @@ class AutoShoutOut(ChatComponent):
 
     # Shoutouts
     def process_shoutout(self, user: User):
-        if (self.blacklist_enabled and user.login in self.blacklist or user.login in self.BotBlacklist
-                or user.login == self.twitch.get_user().login):
+        if (
+            self.blacklist_enabled
+            and user.login in self.blacklist
+            or user.login in self.BotBlacklist
+            or user.login == self.twitch.get_user().login
+        ):
             return
 
         broadcaster_types_to_check = []
@@ -189,8 +202,9 @@ class AutoShoutOut(ChatComponent):
         if self.partner_enabled:
             broadcaster_types_to_check.append("partner")
 
-        if user.broadcaster_type in broadcaster_types_to_check or (self.whitelist_enabled
-                                                                   and user.login in self.whitelist):
+        if user.broadcaster_type in broadcaster_types_to_check or (
+            self.whitelist_enabled and user.login in self.whitelist
+        ):
             current_time = time.time()
 
             if self.cooldown_format == "hours":

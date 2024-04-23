@@ -11,7 +11,6 @@ class SuscriptionTier(IntEnum):
 
 
 class Suscription:
-
     def __init__(self, **kwargs: Any) -> None:
         self.broadcaster_id: str = kwargs["broadcaster_id"]
         self.broadcaster_login: str = kwargs["broadcaster_login"]

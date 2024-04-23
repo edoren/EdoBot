@@ -20,7 +20,6 @@ class UnauthenticatedException(Exception):
 
 
 class Service:
-
     def __init__(self, token: AccessToken):
         self.token = token
 
@@ -59,9 +58,9 @@ class Service:
     def get_moderators(self) -> List[model.Moderator]:
         if self.mod_requestor is None:
             user = self.get_user()
-            self.mod_requestor = self.__get_cache_requestor("GET",
-                                                            "/moderation/moderators",
-                                                            params={"broadcaster_id": user.id})
+            self.mod_requestor = self.__get_cache_requestor(
+                "GET", "/moderation/moderators", params={"broadcaster_id": user.id}
+            )
         response = self.__call_endpoint(self.mod_requestor)
         return [model.Moderator(**x) for x in response["data"] or []]
 
@@ -73,19 +72,18 @@ class Service:
         return [model.Suscription(**x) for x in response["data"] or []]
 
     @overload
-    def get_user(self) -> model.User:
-        ...
+    def get_user(self) -> model.User: ...
 
     @overload
-    def get_user(self, login: str) -> Optional[model.User]:
-        ...
+    def get_user(self, login: str) -> Optional[model.User]: ...
 
     def get_user(self, login: Optional[str] = None):
         if login is None:
             requestor = self.users_cache.setdefault("$", self.__get_cache_requestor("GET", "/users"))
         else:
             requestor = self.users_cache.setdefault(
-                login, self.__get_cache_requestor("GET", "/users", params={"login": login}))
+                login, self.__get_cache_requestor("GET", "/users", params={"login": login})
+            )
         response = self.__call_endpoint(requestor)
         users = [model.User(**x) for x in response["data"] or []]
         if login is None:
@@ -96,7 +94,8 @@ class Service:
 
     def get_channel(self, broadcaster_id: str) -> Optional[model.Channel]:
         requestor = self.channel_cache.setdefault(
-            broadcaster_id, self.__get_cache_requestor("GET", "/channels", params={"broadcaster_id": broadcaster_id}))
+            broadcaster_id, self.__get_cache_requestor("GET", "/channels", params={"broadcaster_id": broadcaster_id})
+        )
         response = self.__call_endpoint(requestor)
         channels = [model.Channel(**x) for x in response["data"] or []]
         channel = None if len(channels) == 0 else channels[0]
@@ -105,34 +104,39 @@ class Service:
     def get_channel_editors(self) -> List[model.ChannelEditor]:
         if self.channel_editors_cache is None:
             user = self.get_user()
-            self.channel_editors_cache = self.__get_cache_requestor("GET",
-                                                                    "/channels/editors",
-                                                                    params={"broadcaster_id": user.id})
+            self.channel_editors_cache = self.__get_cache_requestor(
+                "GET", "/channels/editors", params={"broadcaster_id": user.id}
+            )
         response = self.__call_endpoint(self.channel_editors_cache)
         editors = [model.ChannelEditor(**x) for x in response["data"] or []]
         return editors
 
-    def create_eventsub_subscription(self, type: str, version: str, condition: dict[str, Any],
-                                     transport: dict[str, str]) -> List[model.ChannelEditor]:
+    def create_eventsub_subscription(
+        self, type: str, version: str, condition: dict[str, Any], transport: dict[str, str]
+    ) -> List[model.ChannelEditor]:
         data = {"type": type, "version": version, "condition": condition, "transport": transport}
-        response = requests.request("POST",
-                                    "https://api.twitch.tv/helix" + "/eventsub/subscriptions",
-                                    headers={
-                                        "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
-                                        "Client-Id": Constants.CLIENT_ID,
-                                        "Content-Type": "application/json"
-                                    },
-                                    data=json.dumps(data))
+        response = requests.request(
+            "POST",
+            "https://api.twitch.tv/helix" + "/eventsub/subscriptions",
+            headers={
+                "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
+                "Client-Id": Constants.CLIENT_ID,
+                "Content-Type": "application/json",
+            },
+            data=json.dumps(data),
+        )
         return response.json()
 
     def __get_cache_requestor(self, method: str, path: str, **kwargs: Any):
-        return CacheRequest(method,
-                            "https://api.twitch.tv/helix" + path,
-                            headers={
-                                "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
-                                "Client-Id": Constants.CLIENT_ID
-                            },
-                            **kwargs)
+        return CacheRequest(
+            method,
+            "https://api.twitch.tv/helix" + path,
+            headers={
+                "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
+                "Client-Id": Constants.CLIENT_ID,
+            },
+            **kwargs,
+        )
 
     def stop_(self):
         self.__active = False

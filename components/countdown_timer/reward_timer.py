@@ -5,9 +5,7 @@ from edobot.model.event_type import EventType
 
 
 class RewardTimer:
-
     class Event:
-
         def __init__(self, **kwargs: Any):
             alt_type = kwargs["type"]
             if isinstance(alt_type, EventType):
@@ -57,7 +55,7 @@ class RewardTimer:
                 "enabled": self.enabled,
                 "duration": self.duration,
                 "duration_format": self.duration_format,
-                "data": self.data
+                "data": self.data,
             }
 
         def get_duration_ms(self) -> int:
@@ -121,5 +119,5 @@ class RewardTimer:
             "source": self.source,
             "start_msg": self.start_msg,
             "finish_msg": self.finish_msg,
-            "events": [x.serialize() for x in self.events]
+            "events": [x.serialize() for x in self.events],
         }

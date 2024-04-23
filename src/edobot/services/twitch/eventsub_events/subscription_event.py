@@ -2,7 +2,6 @@ from typing import Any
 
 
 class Emotes:
-
     def __init__(self, **kwargs: Any) -> None:
         self.id: str = kwargs.get("id", "")
         self.begin: int = kwargs.get("begin", 0)
@@ -10,9 +9,7 @@ class Emotes:
 
 
 class SubscriptionEvent:
-
     class Message:
-
         def __init__(self, **kwargs: Any) -> None:
             self.text: str = kwargs["text"]
             if "emotes" in kwargs:

@@ -18,19 +18,19 @@ gLogger = logging.getLogger("edobot.components.counter")
 
 
 class CountdownTimerComponent(ChatComponent):
-
     @staticmethod
     def get_id() -> str:
         return "countdown_timer"
 
     @staticmethod
     def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(name=QCoreApplication.translate("CountdownTimerCompConfig", "Countdown Timer",
-                                                                      None),
-                                      description=QCoreApplication.translate(
-                                          "CountdownTimerCompConfig",
-                                          "Add a countdown that interacts with Channel Points, Subs or Bits", None),
-                                      icon=qta.icon("fa5.clock"))
+        return ChatComponent.Metadata(
+            name=QCoreApplication.translate("CountdownTimerCompConfig", "Countdown Timer", None),
+            description=QCoreApplication.translate(
+                "CountdownTimerCompConfig", "Add a countdown that interacts with Channel Points, Subs or Bits", None
+            ),
+            icon=qta.icon("fa5.clock"),
+        )
 
     def __init__(self) -> None:
         super().__init__()
@@ -69,7 +69,8 @@ class CountdownTimerComponent(ChatComponent):
                             time_str = self.format_time(tmleft, timer.display)
                             if self.widget:
                                 self.widget.current_time_label.setText(
-                                    self.format_time(tmleft, "hours") if timer.display != "hours" else time_str)
+                                    self.format_time(tmleft, "hours") if timer.display != "hours" else time_str
+                                )
                             source_text += timer.format.replace("{name}", timer.name).replace("{time}", time_str)
                             source_text += separator
                         source_text = source_text.strip(separator)
@@ -103,11 +104,9 @@ class CountdownTimerComponent(ChatComponent):
         self.save_timers()
         super().stop()
 
-    def process_message(self,
-                        message: str,
-                        user: User,
-                        user_types: Set[UserType],
-                        metadata: Optional[Any] = None) -> None:
+    def process_message(
+        self, message: str, user: User, user_types: Set[UserType], metadata: Optional[Any] = None
+    ) -> None:
         pass
 
     def process_event(self, event_type, metadata: Optional[Any] = None) -> None:
@@ -126,9 +125,9 @@ class CountdownTimerComponent(ChatComponent):
                                 self.add_time_to_timer(timer, event.get_duration_ms())
                     elif event_type == EventType.SUBSCRIPTION:
                         sub_event: twitch.events.SubscriptionEvent = metadata
-                        events = timer.get_events(event_type,
-                                                  is_gift=sub_event.is_gift,
-                                                  type=sub_event.sub_plan.lower())
+                        events = timer.get_events(
+                            event_type, is_gift=sub_event.is_gift, type=sub_event.sub_plan.lower()
+                        )
                         for event in events:
                             if event.enabled:
                                 self.add_time_to_timer(timer, event.get_duration_ms())
@@ -193,10 +192,11 @@ class CountdownTimerComponent(ChatComponent):
 
     def format_time(self, time_ms: int, display_format: str) -> str:
         if display_format == "hours":
-            return "{:02d}:{:02d}:{:02d}".format(int((time_ms / 3600000)), int((time_ms/60000) % 60),
-                                                 int((time_ms/1000) % 60))
+            return "{:02d}:{:02d}:{:02d}".format(
+                int((time_ms / 3600000)), int((time_ms / 60000) % 60), int((time_ms / 1000) % 60)
+            )
         elif display_format == "minutes":
-            return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms/1000) % 60))
+            return "{:02d}:{:02d}".format(int((time_ms / 60000)), int((time_ms / 1000) % 60))
         elif display_format == "seconds":
             return "{:02d}".format(int((time_ms / 1000)))
         else:  # automatic

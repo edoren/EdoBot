@@ -12,7 +12,6 @@ __all__ = ["AllComponentsWidget"]
 
 
 class AllComponentsWidgetItem(QListWidgetItem):
-
     def __init__(self, id: str, meta: ChatComponent.Metadata):
         super().__init__()
         self.widget = QLabel(meta.name)
@@ -30,15 +29,16 @@ class AllComponentsWidgetItem(QListWidgetItem):
 
 
 class AllComponentsWidget(BaseListWidget):
-
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setDragDropMode(QAbstractItemView.DragDropMode.DragOnly)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setSortingEnabled(True)
-        self.setStyleSheet("QListWidget::item { background: transparent; }\n"
-                           "QListWidget::item:hover { background: rgba(0,0,0,0.2); }")
+        self.setStyleSheet(
+            "QListWidget::item { background: transparent; }\n"
+            "QListWidget::item:hover { background: rgba(0,0,0,0.2); }"
+        )
         # self.setStyleSheet("QListWidget::item:hover,\n"
         #                    "QListWidget::item:disabled,\n"
         #                    "QListWidget::item:disabled:hover,\n"

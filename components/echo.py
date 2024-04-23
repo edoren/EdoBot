@@ -11,7 +11,6 @@ gLogger = logging.getLogger("edobot.components.echo")
 
 
 class EchoComponent(ChatComponent):
-
     @staticmethod
     @override
     def get_id() -> str:
@@ -37,24 +36,29 @@ class EchoComponent(ChatComponent):
         super().stop()
 
     @override
-    def process_message(self,
-                        message: str,
-                        user: User,
-                        user_types: Set[UserType],
-                        metadata: Optional[Any] = None) -> None:
+    def process_message(
+        self, message: str, user: User, user_types: Set[UserType], metadata: Optional[Any] = None
+    ) -> None:
         gLogger.info((f"[{user.display_name}] {message}"))
 
     @override
     def process_event(self, event_type: EventType, metadata: Any) -> None:
         if event_type == event_type.REWARD_REDEEMED:
             points_event: twitch.events.ChannelPointsEvent = metadata
-            gLogger.info((f"[{points_event.redemption.user.display_name}] {event_type}: "
-                          f"{points_event.redemption.reward.title}"))
+            gLogger.info(
+                (
+                    f"[{points_event.redemption.user.display_name}] {event_type}: "
+                    f"{points_event.redemption.reward.title}"
+                )
+            )
         if event_type == event_type.SUBSCRIPTION:
             sub_event: twitch.events.SubscriptionEvent = metadata
             if sub_event.is_gift:
-                gLogger.info(f"[{sub_event.display_name}]: Sub Gift to {sub_event.recipient_display_name} - "
-                             f"{sub_event.sub_plan_name} ({sub_event.sub_plan})")
+                gLogger.info(
+                    f"[{sub_event.display_name}]: Sub Gift to {sub_event.recipient_display_name} - "
+                    f"{sub_event.sub_plan_name} ({sub_event.sub_plan})"
+                )
             else:
                 gLogger.info(
-                    f"[{sub_event.display_name}]: Subscribed - {sub_event.sub_plan_name} ({sub_event.sub_plan})")
+                    f"[{sub_event.display_name}]: Subscribed - {sub_event.sub_plan_name} ({sub_event.sub_plan})"
+                )

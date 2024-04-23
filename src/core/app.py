@@ -78,8 +78,8 @@ class App:
 
         os.makedirs(Constants.TMP_DIRECTORY, exist_ok=True)
 
-        self.host_twitch_service = None
-        self.bot_twitch_service = None
+        self.host_twitch_service: twitch.Service | None = None
+        self.bot_twitch_service: twitch.Service | None = None
         self.db = DataBase(Constants.SAVE_DIRECTORY)
 
         self.chat_service = None
@@ -418,6 +418,8 @@ class App:
                                                 self.host_twitch_service.get_user().login)
                 self.pubsub_service = twitch.PubSub(self.host_twitch_service.get_user().id,
                                                     self.host_twitch_service.token.access_token)
+                self.eventsub_service = twitch.EventSub(self.host_twitch_service.get_user().id,
+                                                        self.host_twitch_service)
 
                 with self.components_lock:
                     for instance in self.active_components.values():
@@ -436,6 +438,8 @@ class App:
             self.chat_service.subscribe_events(self.handle_event)
             self.pubsub_service.start()
             self.pubsub_service.subscribe(self.handle_event)
+            self.eventsub_service.start()
+            self.eventsub_service.subscribe(self.handle_event)
 
             self.has_started = True
             if self.started:
@@ -467,10 +471,13 @@ class App:
                     self.chat_service.stop()
                 if self.pubsub_service is not None:
                     self.pubsub_service.stop()
+                if self.eventsub_service is not None:
+                    self.eventsub_service.stop()
                 if self.stopped:
                     self.stopped()
                 self.chat_service = None
                 self.pubsub_service = None
+                self.eventsub_service = None
                 gLogger.info("Bot stopped")
             self.has_started = False
 

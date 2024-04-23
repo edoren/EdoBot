@@ -110,7 +110,7 @@ class CountdownTimerComponent(ChatComponent):
                         metadata: Optional[Any] = None) -> None:
         pass
 
-    def process_event(self, event_type: EventType, metadata: Optional[Any] = None) -> None:
+    def process_event(self, event_type, metadata: Optional[Any] = None) -> None:
         if event_type not in (EventType.SUBSCRIPTION, EventType.BITS, EventType.REWARD_REDEEMED, EventType.RAID):
             return
 
@@ -154,7 +154,7 @@ class CountdownTimerComponent(ChatComponent):
                                     ratio = viewer_count / event.data["num_people"]
                                     self.add_time_to_timer(timer, int(event.get_duration_ms() * ratio))
 
-    def get_config_ui(self) -> Optional[QWidget]:
+    def get_config_ui(self) -> QWidget | dict[str, Any] | None:
         self.widget = CountdownTimerWidget(self)
         self.widget.addButtonPressed.connect(self.add_time_to_timer)  # type: ignore
         self.widget.subButtonPressed.connect(self.add_time_to_timer)  # type: ignore

@@ -47,7 +47,7 @@ class AllComponentsWidget(BaseListWidget):
         # self.setStyleSheet("QListWidget::item:selected { background: rgb(128,128,255); }")
         # self.log_widget.model().rowsInserted.connect(self.log_widget.scrollToBottom)  # type: ignore
 
-    def startDrag(self, supportedActions: Qt.DropActions) -> None:
+    def startDrag(self, supportedActions: Qt.DropAction) -> None:
         drag, painter, pixmap = self.start_drag_base()
         components = [item.data(Qt.UserRole) for item in self.selectedItems()]  # type: ignore
         mime_data = QMimeData()

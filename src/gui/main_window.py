@@ -7,13 +7,25 @@ import traceback
 import webbrowser
 import zipfile
 from datetime import datetime
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Any
 
 import arrow
 from PySide6.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
 from PySide6.QtGui import QAction, QCloseEvent, QDesktopServices, QFont, QIcon, QKeySequence, QResizeEvent
-from PySide6.QtWidgets import (QApplication, QDockWidget, QFrame, QHBoxLayout, QLayout, QMainWindow, QMenu, QMessageBox,
-                               QSizePolicy, QSystemTrayIcon, QTextBrowser, QWidget)
+from PySide6.QtWidgets import (
+    QApplication,
+    QDockWidget,
+    QFrame,
+    QHBoxLayout,
+    QLayout,
+    QMainWindow,
+    QMenu,
+    QMessageBox,
+    QSizePolicy,
+    QSystemTrayIcon,
+    QTextBrowser,
+    QWidget,
+)
 
 import model
 from core import App, ChatComponent, Constants
@@ -21,11 +33,10 @@ from core import App, ChatComponent, Constants
 from .unique_application import UniqueApplication
 from .widgets import ActiveComponentsWidget, AllComponentsWidget, ComponentWidget, SettingsWidget
 
-gLogger = logging.getLogger(f"edobot.main")
+gLogger = logging.getLogger("edobot.main")
 
 
 class CallbackHandler(logging.Handler):
-
     def __init__(self, msg_callback: Optional[Callable[[logging.LogRecord], None]] = None):
         super().__init__()
         self.msg_callback = msg_callback
@@ -53,11 +64,11 @@ class LogWidget(QTextBrowser):
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
-        self.logRecordReceived.connect(self.append_record)  # type: ignore
+        self.logRecordReceived.connect(self.append_record)
         self.setLineWrapMode(QTextBrowser.LineWrapMode.NoWrap)
-        self.horizontalScrollBar().sliderReleased.connect(self.hscroll_bar_released)  # type: ignore
-        self.verticalScrollBar().sliderReleased.connect(self.vscroll_bar_released)  # type: ignore
-        self.textChanged.connect(self.scroll_to_hstart)  # type: ignore
+        self.horizontalScrollBar().sliderReleased.connect(self.hscroll_bar_released)
+        self.verticalScrollBar().sliderReleased.connect(self.vscroll_bar_released)
+        self.textChanged.connect(self.scroll_to_hstart)
         self.setFont(QFont("Segoe UI", 9))
         self.user_set_hpos = 0
         self.attach_to_bottom = True
@@ -100,11 +111,11 @@ class LogWidget(QTextBrowser):
 class MainWindow(QMainWindow):
     edobotStarted = Signal()
     edobotStopped = Signal()
-    hostConnected = Signal(model.User)
-    botConnected = Signal(model.User)
-    hostDisconnected = Signal()
-    botDisconnected = Signal()
-    componentAdded = Signal(ChatComponent)
+    edobotHostConnected = Signal(model.User)
+    edobotBotConnected = Signal(model.User)
+    edobotHostDisconnected = Signal()
+    edobotBotDisconnected = Signal()
+    edobotComponentAdded = Signal(ChatComponent)
 
     def __init__(self, args: argparse.Namespace):
         super().__init__()
@@ -116,8 +127,9 @@ class MainWindow(QMainWindow):
         QApplication.installTranslator(translator)
         self.translator_units.append(translator)
 
-        self.settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren",
-                                  Constants.APP_NAME)
+        self.settings = QSettings(
+            QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "Edoren", Constants.APP_NAME
+        )
 
         self.setWindowTitle(f"{Constants.APP_NAME} {Constants.APP_VERSION}")
 
@@ -155,10 +167,11 @@ class MainWindow(QMainWindow):
         file_handler = logging.FileHandler(self.log_file_path, "a", "utf-8")
         file_handler.setLevel(default_level)
         file_handler.setFormatter(
-            TimeFormatter("[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s"))
+            TimeFormatter("[%(asctime)s] %(process)s %(threadName)s %(levelname)s %(name)s - %(message)s")
+        )
         handlers.append(file_handler)
 
-        stream_handler = CallbackHandler(self.log_widget.logRecordReceived.emit)  # type: ignore
+        stream_handler = CallbackHandler(self.log_widget.logRecordReceived.emit)
         stream_handler.setLevel(logging.INFO)
         handlers.append(stream_handler)
 
@@ -169,26 +182,28 @@ class MainWindow(QMainWindow):
 
         self.app: App = App()
 
-        self.app.started = self.edobotStarted.emit  # type: ignore
-        self.edobotStarted.connect(self.edobot_started)  # type: ignore
-        self.app.stopped = self.edobotStopped.emit  # type: ignore
-        self.edobotStopped.connect(self.edobot_stopped)  # type: ignore
-        self.app.component_added = self.componentAdded.emit  # type: ignore
-        self.componentAdded.connect(self.add_component_widget)  # type: ignore
-        self.app.host_connected = self.hostConnected.emit  # type: ignore
-        self.hostConnected.connect(self.host_connected)  # type: ignore
-        self.app.bot_connected = self.botConnected.emit  # type: ignore
-        self.botConnected.connect(self.bot_connected)  # type: ignore
-        self.app.host_disconnected = self.hostDisconnected.emit  # type: ignore
-        self.hostDisconnected.connect(self.host_disconnected)  # type: ignore
-        self.app.bot_disconnected = self.botDisconnected.emit  # type: ignore
-        self.botDisconnected.connect(self.bot_disconnected)  # type: ignore
+        self.app.started = self.edobotStarted.emit
+        self.edobotStarted.connect(self.edobot_started)
+        self.app.stopped = self.edobotStopped.emit
+        self.edobotStopped.connect(self.edobot_stopped)
+        self.app.component_added = self.edobotComponentAdded.emit
+        self.edobotComponentAdded.connect(self.edobot_component_added)
+        self.app.host_connected = self.edobotHostConnected.emit
+        self.edobotHostConnected.connect(self.edobot_host_connected)
+        self.app.bot_connected = self.edobotBotConnected.emit
+        self.edobotBotConnected.connect(self.edobot_bot_connected)
+        self.app.host_disconnected = self.edobotHostDisconnected.emit
+        self.edobotHostDisconnected.connect(self.edobot_host_disconnected)
+        self.app.bot_disconnected = self.edobotBotDisconnected.emit
+        self.edobotBotDisconnected.connect(self.edobot_bot_disconnected)
 
+        self.host_connected: bool = False
+        self.bot_connected: bool = False
         self.last_clicked_component = None
 
-        self.component_list.componentDropped.connect(self.add_component)  # type: ignore
-        self.component_list.componentRemoved.connect(self.remove_component)  # type: ignore
-        self.component_list.componentClicked.connect(self.component_clicked)  # type: ignore
+        self.component_list.componentDropped.connect(self.add_component)
+        self.component_list.componentRemoved.connect(self.remove_component)
+        self.component_list.componentClicked.connect(self.component_clicked)
 
         for comp_type in self.app.get_available_components().values():
             # Load translation files
@@ -213,11 +228,15 @@ class MainWindow(QMainWindow):
             self.activateWindow()
 
     def about(self):
-        text = ("EdoBot is an open source tool to create Twitch components that interacts with the chat."
-                "<br><br>"
-                "Please go to <a href='https://github.com/edoren/EdoBot'>github.com/edoren/EdoBot</a> for more info."
-                "<br><br>"
-                "Download latest release <a href='https://github.com/edoren/edobot/releases/latest'>here</a>.")
+        website = "https://github.com/edoren/EdoBot"
+        latest_release = "https://github.com/edoren/edobot/releases/latest"
+        text = (
+            "EdoBot is an open source tool to create Twitch components that interacts with the chat."
+            "<br><br>"
+            f"Please go to <a href='{website}'>github.com/edoren/EdoBot</a> for more info."
+            "<br><br>"
+            f"Download latest release <a href='{latest_release}'>here</a>."
+        )
         QMessageBox.about(self, self.tr("About {0}").format(Constants.APP_NAME), text)
 
     def create_actions(self):
@@ -225,26 +244,26 @@ class MainWindow(QMainWindow):
         self.settings_action.setText(self.tr("Settings"))
         self.settings_action.setShortcut(QKeySequence.StandardKey.Preferences)
         self.settings_action.setStatusTip(self.tr("Application settings"))
-        self.settings_action.triggered.connect(self.open_settings)  # type: ignore
+        self.settings_action.triggered.connect(self.open_settings)
 
         self.open_user_folder_action = QAction(self.tr("Open User Folder"), self)
         self.open_user_folder_action.setStatusTip(self.tr("Open the user's folder"))
-        self.open_user_folder_action.triggered.connect(self.open_user_folder)  # type: ignore
+        self.open_user_folder_action.triggered.connect(self.open_user_folder)
 
         self.close_action = QAction("&Close", self)
         self.close_action.setText(self.tr("Close"))
         self.close_action.setShortcut(QKeySequence.StandardKey.Quit)
         self.close_action.setStatusTip(self.tr("Close the application"))
-        self.close_action.triggered.connect(self.close)  # type: ignore
+        self.close_action.triggered.connect(self.close)
 
         self.about_action = QAction("&About", self)
         self.about_action.setText(self.tr("About"))
         self.about_action.setStatusTip(self.tr("Show the application's About box"))
-        self.about_action.triggered.connect(self.about)  # type: ignore
+        self.about_action.triggered.connect(self.about)
 
         self.about_qt_action = QAction(self.tr("About {0}").format("&Qt"), self)
         self.about_qt_action.setStatusTip(self.tr("Show the Qt library's About box"))
-        self.about_qt_action.triggered.connect(QApplication.aboutQt)  # type: ignore
+        self.about_qt_action.triggered.connect(QApplication.aboutQt)
 
     def create_menus(self):
         self.file_menu = self.menuBar().addMenu("&File")
@@ -270,10 +289,10 @@ class MainWindow(QMainWindow):
         menu = QMenu()
         quit_action = QAction(self.tr("Quit"), self)
         quit_action.setToolTip(self.tr("Quit the application"))
-        quit_action.triggered.connect(self.system_tray_quit)  # type: ignore
+        quit_action.triggered.connect(self.system_tray_quit)
         open_action = QAction(self.tr("Open"), self)
         open_action.setToolTip(self.tr("Open the application"))
-        open_action.triggered.connect(self.system_tray_open)  # type: ignore
+        open_action.triggered.connect(self.system_tray_open)
         menu.addAction(open_action)
         menu.addSeparator()
         menu.addAction(quit_action)
@@ -284,15 +303,14 @@ class MainWindow(QMainWindow):
         self.system_tray.setContextMenu(menu)
         self.system_tray.show()
 
-        self.system_tray.activated.connect(self.system_tray_activated)  # type: ignore
+        self.system_tray.activated.connect(self.system_tray_activated)
 
     def create_status_bar(self):
         self.statusBar().showMessage(self.tr("Ready"))
 
     def create_dock_windows(self):
         self.log_dock = QDockWidget(self.tr("Logs"), self)
-        self.log_dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea |  # type: ignore
-                                      Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.log_dock.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea | Qt.DockWidgetArea.BottomDockWidgetArea)
         self.log_dock.setObjectName("Logs Window")
         self.log_dock.setMinimumHeight(150)
         self.log_widget = LogWidget(self.log_dock)
@@ -306,17 +324,16 @@ class MainWindow(QMainWindow):
         dock = QDockWidget(self.tr("Available Components"), self)
         dock.setObjectName("Available Components Window")
         dock.setMinimumWidth(200)
-        dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)  # type: ignore
-        dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |  # type: ignore
-                             Qt.DockWidgetArea.RightDockWidgetArea)
+        dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
+        dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
         self.available_comps_widget = AllComponentsWidget(dock)
         dock.setWidget(self.available_comps_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         dock = QDockWidget(self.tr("Component Configuration"), self)
         dock.setObjectName("Component Configuration Window")
-        dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)  # type: ignore
-        dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea)  # type: ignore
+        dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea)
         dock.setMinimumHeight(150)
         dock.setMaximumHeight(150)
 
@@ -339,19 +356,19 @@ class MainWindow(QMainWindow):
 
     def create_settings_window(self):
         self.settings_widget = SettingsWidget(self, self.settings)
-        self.settings_widget.obsConfigChanged.connect(self.obs_settings_changed)  # type: ignore
-        self.settings_widget.accountHostConnectPressed.connect(self.account_host_connect_pressed)  # type: ignore
-        self.settings_widget.accountBotConnectPressed.connect(self.account_bot_connect_pressed)  # type: ignore
-        self.settings_widget.accountHostDisconnectPressed.connect(self.account_host_disconnect_pressed)  # type: ignore
-        self.settings_widget.accountBotDisconnectPressed.connect(self.account_bot_disconnect_pressed)  # type: ignore
-        self.settings_widget.systemTrayEnabled.connect(self.system_tray_enabled)  # type: ignore
+        self.settings_widget.obsConfigChanged.connect(self.obs_settings_changed)
+        self.settings_widget.accountHostConnectPressed.connect(self.account_host_connect_pressed)
+        self.settings_widget.accountBotConnectPressed.connect(self.account_bot_connect_pressed)
+        self.settings_widget.accountHostDisconnectPressed.connect(self.account_host_disconnect_pressed)
+        self.settings_widget.accountBotDisconnectPressed.connect(self.account_bot_disconnect_pressed)
+        self.settings_widget.systemTrayEnabled.connect(self.system_tray_enabled)
         self.system_tray_enabled(self.settings_widget.system_tray_check_box.isChecked())
 
     def restore_window_settings(self):
-        self.restoreGeometry(self.settings.value("geometry"))  # type: ignore
-        self.restoreState(self.settings.value("window_state"))  # type: ignore
-        self.move(self.settings.value("pos", self.pos()))  # type: ignore
-        self.resize(QSize(800, 600))  # type: ignore
+        self.restoreGeometry(self.settings.value("geometry"))
+        self.restoreState(self.settings.value("window_state"))
+        self.move(self.settings.value("pos", self.pos()))
+        self.resize(QSize(800, 600))
         if self.settings.value("maximized", self.isMaximized(), bool):
             self.showMaximized()
 
@@ -371,7 +388,7 @@ class MainWindow(QMainWindow):
     # Slots
     #################################################################
 
-    def obs_settings_changed(self, settings):
+    def obs_settings_changed(self, settings: dict[str, Any]):
         self.app.set_obs_config(settings["host"], settings["port"], settings["password"])
 
     def account_host_connect_pressed(self):
@@ -418,45 +435,50 @@ class MainWindow(QMainWindow):
     def component_clicked(self, component_id: str) -> None:
         self.last_clicked_component = component_id
 
+        if not self.host_connected or not self.bot_connected:
+            return
+
         active_components = self.app.get_active_components()
-        if component_id in active_components:
-            component_instance = active_components[component_id]
-            if not component_instance.has_started:
-                return
-            try:
-                config_something = component_instance.get_config_ui()
-            except Exception as e:
-                gLogger.error(''.join(traceback.format_tb(e.__traceback__)))
-                return
-            layout = self.component_config_main_widget.layout()
-            self.component_dock_widget.setMinimumSize(0, 150)  # Reset dock minimum size
-            if isinstance(config_something, QWidget):
-                if self.active_component_config_widget is not None:
-                    if self.active_component_config_widget != config_something:
-                        layout.removeWidget(self.active_component_config_widget)
-                        self.active_component_config_widget.setParent(None)  # type: ignore
-                        self.active_component_config_widget.deleteLater()
-                        self.active_component_config_widget = None
-                        self.component_config_main_widget.adjustSize()
-                        self.component_dock_widget.adjustSize()
-                    else:
-                        return
-                self.component_dock_widget.setMaximumHeight(16777215)
-                self.active_component_config_widget = config_something
-                config_something.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-                config_something.adjustSize()
-                layout.addWidget(self.active_component_config_widget)
-            if config_something is None:
-                if self.active_component_config_widget:
+        if component_id not in active_components:
+            return
+
+        component_instance = active_components[component_id]
+        # if not component_instance.has_started:
+        #     return
+        try:
+            config_something = component_instance.get_config_ui()
+        except Exception as e:
+            gLogger.error("".join(traceback.format_tb(e.__traceback__)))
+            return
+        layout = self.component_config_main_widget.layout()
+        self.component_dock_widget.setMinimumSize(0, 150)  # Reset dock minimum size
+        if isinstance(config_something, QWidget):
+            if self.active_component_config_widget is not None:
+                if self.active_component_config_widget != config_something:
                     layout.removeWidget(self.active_component_config_widget)
-                    self.active_component_config_widget.setParent(None)  # type: ignore
+                    self.active_component_config_widget.setParent(None)
                     self.active_component_config_widget.deleteLater()
                     self.active_component_config_widget = None
-                    self.component_dock_widget.setMinimumHeight(150)
-                    self.component_dock_widget.setMaximumHeight(150)
+                    self.component_config_main_widget.adjustSize()
+                    self.component_dock_widget.adjustSize()
+                else:
+                    return
+            self.component_dock_widget.setMaximumHeight(16777215)
+            self.active_component_config_widget = config_something
+            config_something.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            config_something.adjustSize()
+            layout.addWidget(self.active_component_config_widget)
+        if config_something is None:
+            if self.active_component_config_widget:
+                layout.removeWidget(self.active_component_config_widget)
+                self.active_component_config_widget.setParent(None)
+                self.active_component_config_widget.deleteLater()
+                self.active_component_config_widget = None
+                self.component_dock_widget.setMinimumHeight(150)
+                self.component_dock_widget.setMaximumHeight(150)
 
     def system_tray_enabled(self, enabled: bool):
-        QApplication.instance().setQuitOnLastWindowClosed(not enabled)  # type: ignore
+        QApplication.instance().setQuitOnLastWindowClosed(not enabled)
 
     def system_tray_activated(self, reason: QSystemTrayIcon.ActivationReason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
@@ -486,24 +508,28 @@ class MainWindow(QMainWindow):
     def edobot_stopped(self):
         if self.active_component_config_widget:
             self.component_config_main_widget.layout().removeWidget(self.active_component_config_widget)
-            self.active_component_config_widget.setParent(None)  # type: ignore
+            self.active_component_config_widget.setParent(None)
             self.active_component_config_widget.deleteLater()
             self.active_component_config_widget = None
 
-    def add_component_widget(self, component: ChatComponent):
+    def edobot_component_added(self, component: ChatComponent):
         widget = ComponentWidget(component.get_id(), component.get_metadata())
         self.component_list.add_component(widget)
 
-    def host_connected(self, user: model.User):
+    def edobot_host_connected(self, user: model.User):
+        self.host_connected = True
         self.settings_widget.set_host_account(user.display_name)
 
-    def bot_connected(self, user: model.User):
+    def edobot_bot_connected(self, user: model.User):
+        self.bot_connected = True
         self.settings_widget.set_bot_account(user.display_name)
 
-    def host_disconnected(self):
+    def edobot_host_disconnected(self):
+        self.host_connected = False
         self.settings_widget.set_host_account(None)
 
-    def bot_disconnected(self):
+    def edobot_bot_disconnected(self):
+        self.bot_connected = False
         self.settings_widget.set_bot_account(None)
 
     #################################################################
@@ -511,7 +537,7 @@ class MainWindow(QMainWindow):
     #################################################################
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.settings_widget.is_system_tray_enabled() and self.log_dock.isFloating():  # type: ignore
+        if self.settings_widget.is_system_tray_enabled() and self.log_dock.isFloating():
             self.log_dock.hide()
         event.accept()
 
@@ -529,7 +555,7 @@ class MainWindow(QMainWindow):
     # Private
     #################################################################
 
-    def __open_url(self, url):
+    def __open_url(self, url: str):
         gLogger.info(f"You will be redirected to the browser to login to {url}")
         try:
             webbrowser.open_new(url)
@@ -538,8 +564,7 @@ class MainWindow(QMainWindow):
 
 
 class TimeFormatter(logging.Formatter):
-
-    def formatTime(self, record, datefmt=None):
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None):
         locale = arrow.now()
         if datefmt:
             return locale.format(datefmt)
@@ -565,13 +590,13 @@ def main():
         if qt_app.is_unique():
             qt_app.start_listener()
             main_win = MainWindow(args)
-            qt_app.anotherInstance.connect(main_win.system_tray_open)  # type: ignore
+            qt_app.anotherInstance.connect(main_win.system_tray_open)
             ret = qt_app.exec_()
             main_win.shutdown()
             main_win = None
             qt_app = None
             sys.exit(ret)
     except Exception as e:
-        traceback_str = ''.join(traceback.format_tb(e.__traceback__))
+        traceback_str = "".join(traceback.format_tb(e.__traceback__))
         gLogger.critical(f"Critical error: {e}\n{traceback_str}")
         raise e

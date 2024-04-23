@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Set, Union, final
+from typing import Any, List, Set, Union, final
 
 import qtawesome as qta
 from PySide6.QtGui import QIcon
@@ -18,14 +18,13 @@ class ChatComponent(ABC):
 
     class Metadata:
 
-        def __init__(self, name: str, description: str, icon: Optional[QIcon] = None, debug: bool = False):
+        def __init__(self, name: str, description: str, icon: QIcon | None = None, debug: bool = False):
             self.name = name
             self.description = description
             self.icon: QIcon = qta.icon("fa5.question-circle") if icon is None else icon
             self.debug = debug
 
     def __init__(self) -> None:
-        self.has_started = False
         super().__init__()
 
     @final
@@ -46,7 +45,7 @@ class ChatComponent(ABC):
         raise NotImplementedError("Please implement this method")
 
     @abstractmethod
-    def get_command(self) -> Optional[Union[str, List[str]]]:
+    def get_command(self) -> str | List[str] | None:
         raise NotImplementedError("Please implement this method")
 
     @abstractmethod
@@ -54,20 +53,22 @@ class ChatComponent(ABC):
                         message: str,
                         user: User,
                         user_types: Set[UserType],
-                        metadata: Optional[Any] = None) -> None:
+                        metadata: Any | None = None) -> None:
         pass
 
     @abstractmethod
-    def process_event(self, event_type: EventType, metadata: Optional[Any] = None) -> None:
+    def process_event(self, event_type: EventType, metadata: Any | None = None) -> None:
         pass
 
-    def start(self) -> None:
-        self.has_started = True
+    @abstractmethod
+    def start(self) -> bool:
+        return False
 
+    @abstractmethod
     def stop(self) -> None:
-        self.has_started = False
+        pass
 
-    def get_config_ui(self) -> Union[QWidget, dict[str, Any], None]:
+    def get_config_ui(self) -> QWidget | dict[str, Any] | None:
         return None
 
     def on_config_updated(self, name: str, value: Any) -> None:

@@ -1,6 +1,9 @@
+import json
 import logging
 import time
-from typing import List, MutableMapping, Optional, overload
+from typing import Any, List, MutableMapping, Optional, overload
+
+import requests
 
 import model
 from core.constants import Constants
@@ -109,14 +112,27 @@ class Service:
         editors = [model.ChannelEditor(**x) for x in response["data"] or []]
         return editors
 
-    def __get_cache_requestor(self, method, path, params=None):
+    def create_eventsub_subscription(self, type: str, version: str, condition: dict[str, Any],
+                                     transport: dict[str, str]) -> List[model.ChannelEditor]:
+        data = {"type": type, "version": version, "condition": condition, "transport": transport}
+        response = requests.request("POST",
+                                    "https://api.twitch.tv/helix" + "/eventsub/subscriptions",
+                                    headers={
+                                        "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
+                                        "Client-Id": Constants.CLIENT_ID,
+                                        "Content-Type": "application/json"
+                                    },
+                                    data=json.dumps(data))
+        return response.json()
+
+    def __get_cache_requestor(self, method: str, path: str, **kwargs: Any):
         return CacheRequest(method,
                             "https://api.twitch.tv/helix" + path,
-                            params=params,
                             headers={
                                 "Authorization": f"{self.token.token_type.title()} {self.token.access_token}",
                                 "Client-Id": Constants.CLIENT_ID
-                            })
+                            },
+                            **kwargs)
 
     def stop_(self):
         self.__active = False

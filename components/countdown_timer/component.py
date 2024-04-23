@@ -7,7 +7,7 @@ import qtawesome as qta
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QWidget
 
-from edobot.core import ChatComponent
+from edobot.core import Component
 from edobot.model import EventType, User, UserType
 from edobot.services import twitch
 
@@ -17,14 +17,14 @@ from .reward_timer import RewardTimer
 gLogger = logging.getLogger("edobot.components.counter")
 
 
-class CountdownTimerComponent(ChatComponent):
+class CountdownTimerComponent(Component):
     @staticmethod
     def get_id() -> str:
         return "countdown_timer"
 
     @staticmethod
-    def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
+    def get_metadata() -> Component.Metadata:
+        return Component.Metadata(
             name=QCoreApplication.translate("CountdownTimerCompConfig", "Countdown Timer", None),
             description=QCoreApplication.translate(
                 "CountdownTimerCompConfig", "Add a countdown that interacts with Channel Points, Subs or Bits", None

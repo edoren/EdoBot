@@ -10,7 +10,7 @@ from PySide6.QtGui import QFocusEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
 
-from edobot.core import ChatComponent, Constants
+from edobot.core import Component, Constants
 from edobot.model import EventType, User, UserType
 from edobot.services import twitch
 
@@ -45,7 +45,7 @@ class PlainTextEdit(QPlainTextEdit):
         self._changed = state
 
 
-class AutoShoutOut(ChatComponent):
+class AutoShoutOut(Component):
     BotBlacklist = [
         "streamelements",
         "streamlabs",
@@ -67,8 +67,8 @@ class AutoShoutOut(ChatComponent):
         return "auto_shoutout"
 
     @staticmethod
-    def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
+    def get_metadata() -> Component.Metadata:
+        return Component.Metadata(
             name=QCoreApplication.translate("AutoShoutOut", "Auto Shout-Out", None),
             description=QCoreApplication.translate(
                 "AutoShoutOut", "Automatically shout-out streamers in the chat", None

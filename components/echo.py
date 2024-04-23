@@ -1,7 +1,7 @@
 import logging
 from typing import Any, List, Optional, Set, Union, override
 
-from edobot.core import ChatComponent
+from edobot.core import Component
 from edobot.model import EventType, User, UserType
 from edobot.services import twitch
 
@@ -10,7 +10,7 @@ __all__ = ["EchoComponent"]
 gLogger = logging.getLogger("edobot.components.echo")
 
 
-class EchoComponent(ChatComponent):
+class EchoComponent(Component):
     @staticmethod
     @override
     def get_id() -> str:
@@ -18,8 +18,8 @@ class EchoComponent(ChatComponent):
 
     @staticmethod
     @override
-    def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(name="Echo", description="Displays the chat in the logs", icon=None, debug=True)
+    def get_metadata() -> Component.Metadata:
+        return Component.Metadata(name="Echo", description="Displays the chat in the logs", icon=None, debug=True)
 
     @override
     def get_cmmand(self) -> str | List[str] | None:

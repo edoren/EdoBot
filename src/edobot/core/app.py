@@ -18,7 +18,7 @@ from edobot import model
 from edobot.obs import OBSInterface, OBSWebSocket, StreamlabsOBS
 from edobot.services import twitch
 
-from .chat_component import ChatComponent
+from .component import Component
 from .config import Config
 from .constants import Constants
 from .data_base import DataBase
@@ -83,10 +83,10 @@ class App:
         self.chat_service = None
         self.pubsub_service = None
 
-        self.available_components: MutableMapping[str, Type[ChatComponent]] = {}
+        self.available_components: MutableMapping[str, Type[Component]] = {}
         self.available_components_folders: MutableMapping[str, Optional[str]] = {}
         self.failed_components: List[str] = []
-        self.active_components: MutableMapping[str, ChatComponent] = {}
+        self.active_components: MutableMapping[str, Component] = {}
         self.components_lock = threading.Lock()
         self.update_available_components()
 
@@ -111,8 +111,8 @@ class App:
         # callbacks
         self.started: Optional[Callable[[], None]] = None
         self.stopped: Optional[Callable[[], None]] = None
-        self.component_added: Optional[Callable[[ChatComponent], None]] = None
-        self.component_removed: Optional[Callable[[ChatComponent], None]] = None
+        self.component_added: Optional[Callable[[Component], None]] = None
+        self.component_removed: Optional[Callable[[Component], None]] = None
         self.host_connected: Optional[Callable[[model.User], None]] = None
         self.host_disconnected: Optional[Callable[[], None]] = None
         self.bot_connected: Optional[Callable[[model.User], None]] = None
@@ -238,13 +238,13 @@ class App:
         if self.bot_disconnected:
             self.bot_disconnected()
 
-    def get_available_components(self) -> Mapping[str, Type[ChatComponent]]:
+    def get_available_components(self) -> Mapping[str, Type[Component]]:
         return self.available_components
 
     def get_component_folder(self, component_id: str) -> Optional[str]:
         return self.available_components_folders[component_id]
 
-    def get_active_components(self) -> Mapping[str, ChatComponent]:
+    def get_active_components(self) -> Mapping[str, Component]:
         return self.active_components
 
     def set_obs_choice(self, choice: str) -> None:
@@ -279,7 +279,7 @@ class App:
             spec.loader.exec_module(module)  # type: ignore
             for class_name, class_type in inspect.getmembers(module, inspect.isclass):
                 try:
-                    if issubclass(class_type, ChatComponent) and class_type is not ChatComponent:
+                    if issubclass(class_type, Component) and class_type is not Component:
                         component_id = class_type.get_id()
                         if component_id in self.available_components:
                             gLogger.error(
@@ -320,7 +320,7 @@ class App:
                             file_path = os.path.join(full_path, filename)
                             import_component(file_path, module_name, full_path)
 
-    def add_component(self, component_id: str) -> Optional[ChatComponent]:
+    def add_component(self, component_id: str) -> Optional[Component]:
         if component_id in self.active_components:
             return
 
@@ -548,7 +548,7 @@ class App:
         return Config(component_config_file)
 
     @staticmethod
-    def __secure_component_method_call(component: ChatComponent, method_name: str, *args: Any, **kwargs: Any) -> bool:
+    def __secure_component_method_call(component: Component, method_name: str, *args: Any, **kwargs: Any) -> bool:
         try:
             method = getattr(component, method_name)
             method(*args, **kwargs)

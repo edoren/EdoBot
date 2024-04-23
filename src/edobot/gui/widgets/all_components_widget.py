@@ -4,7 +4,7 @@ from typing import Optional
 from PySide6.QtCore import QByteArray, QMimeData, Qt
 from PySide6.QtWidgets import QAbstractItemView, QLabel, QListWidgetItem, QWidget
 
-from edobot.core.chat_component import ChatComponent
+from edobot.core.component import Component
 
 from .base_list_widget import BaseListWidget
 
@@ -12,7 +12,7 @@ __all__ = ["AllComponentsWidget"]
 
 
 class AllComponentsWidgetItem(QListWidgetItem):
-    def __init__(self, id: str, meta: ChatComponent.Metadata):
+    def __init__(self, id: str, meta: Component.Metadata):
         super().__init__()
         self.widget = QLabel(meta.name)
         self.widget.setStyleSheet("QLabel { padding: 0 5px 0 5px; }")
@@ -57,7 +57,7 @@ class AllComponentsWidget(BaseListWidget):
         del painter
         del pixmap
 
-    def add_component(self, id: str, meta: ChatComponent.Metadata):
+    def add_component(self, id: str, meta: Component.Metadata):
         item = AllComponentsWidgetItem(id, meta)
         self.addItem(item)
         self.setItemWidget(item, item.widget)

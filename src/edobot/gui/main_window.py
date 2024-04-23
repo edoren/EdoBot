@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 )
 
 from edobot import model
-from edobot.core import App, ChatComponent, Constants
+from edobot.core import App, Component, Constants
 
 from .unique_application import UniqueApplication
 from .widgets import ActiveComponentsWidget, AllComponentsWidget, ComponentWidget, SettingsWidget
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
     edobotBotConnected = Signal(model.User)
     edobotHostDisconnected = Signal()
     edobotBotDisconnected = Signal()
-    edobotComponentAdded = Signal(ChatComponent)
+    edobotComponentAdded = Signal(Component)
 
     def __init__(self, args: argparse.Namespace):
         super().__init__()
@@ -512,7 +512,7 @@ class MainWindow(QMainWindow):
             self.active_component_config_widget.deleteLater()
             self.active_component_config_widget = None
 
-    def edobot_component_added(self, component: ChatComponent):
+    def edobot_component_added(self, component: Component):
         widget = ComponentWidget(component.get_id(), component.get_metadata())
         self.component_list.add_component(widget)
 

@@ -11,10 +11,10 @@ from edobot.obs import OBSInterface
 from edobot.services.twitch import Chat  # TODO: Replace with ChatWrapper
 from edobot.services.twitch import Service as TwitchService
 
-__all__ = ["ChatComponent"]
+__all__ = ["Component"]
 
 
-class ChatComponent(ABC):
+class Component(ABC):
     class Metadata:
         def __init__(self, name: str, description: str, icon: QIcon | None = None, debug: bool = False):
             self.name = name
@@ -39,7 +39,7 @@ class ChatComponent(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_metadata() -> "ChatComponent.Metadata":
+    def get_metadata() -> "Component.Metadata":
         raise NotImplementedError("Please implement this method")
 
     @abstractmethod

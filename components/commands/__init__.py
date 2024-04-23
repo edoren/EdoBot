@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from edobot.core import ChatComponent
+from edobot.core import Component
 from edobot.model import EventType, User, UserType
 
 __all__ = ["CommandsComponent"]
@@ -241,7 +241,7 @@ class CommandsTableWidget(QWidget):
         return result
 
 
-class CommandsComponent(ChatComponent):  # TODO: Change to chat store
+class CommandsComponent(Component):  # TODO: Change to chat store
     def __init__(self) -> None:
         super().__init__()
         # command_name: last_called_time
@@ -254,8 +254,8 @@ class CommandsComponent(ChatComponent):  # TODO: Change to chat store
         return "commands"
 
     @staticmethod
-    def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
+    def get_metadata() -> Component.Metadata:
+        return Component.Metadata(
             name=QCoreApplication.translate("Commands", "Commands", None),
             description=QCoreApplication.translate("Commands", "Add custom commands to interact with the chat", None),
             icon=qta.icon("fa5.list-alt"),

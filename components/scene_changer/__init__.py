@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from edobot.core import ChatComponent
+from edobot.core import Component
 from edobot.model import EventType, User, UserType
 
 gLogger = logging.getLogger("edobot.components.scene_changer")
@@ -141,14 +141,14 @@ class SceneChangerComponentConfigWidget(QWidget):
         event.accept()
 
 
-class SceneChangerComponent(ChatComponent):
+class SceneChangerComponent(Component):
     @staticmethod
     def get_id() -> str:
         return "scene_changer"
 
     @staticmethod
-    def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
+    def get_metadata() -> Component.Metadata:
+        return Component.Metadata(
             name=QCoreApplication.translate("SceneChangerConfig", "Scene Changer", None),
             description=QCoreApplication.translate(
                 "SceneChangerConfig", "Allows chat to change the current OBS scene", None

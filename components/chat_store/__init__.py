@@ -9,7 +9,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QFileDialog, QWidget
 
-from edobot.core import ChatComponent
+from edobot.core import Component
 from edobot.model import EventType, User, UserType
 
 __all__ = ["ChatStoreComponent"]
@@ -17,7 +17,7 @@ __all__ = ["ChatStoreComponent"]
 gLogger = logging.getLogger("edobot.components.chat_store")
 
 
-class ChatStoreComponent(ChatComponent):
+class ChatStoreComponent(Component):
     def __init__(self) -> None:
         super().__init__()
         self.widget: Optional[QWidget] = None
@@ -27,8 +27,8 @@ class ChatStoreComponent(ChatComponent):
         return "chat_store"
 
     @staticmethod
-    def get_metadata() -> ChatComponent.Metadata:
-        return ChatComponent.Metadata(
+    def get_metadata() -> Component.Metadata:
+        return Component.Metadata(
             name=QCoreApplication.translate("ChatStore", "Chat Store", None),
             description=QCoreApplication.translate("ChatStore", "Stores the chat in a specific folder", None),
             icon=qta.icon("fa5s.database"),

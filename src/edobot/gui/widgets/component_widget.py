@@ -5,14 +5,14 @@ from PySide6.QtCore import QFile, QSize, Signal
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
-from edobot.core.chat_component import ChatComponent
+from edobot.core.component import Component
 from edobot.core.constants import Constants
 
 
 class ComponentWidget(QWidget):
     removeClicked = Signal(str)
 
-    def __init__(self, id: str, meta: ChatComponent.Metadata) -> None:
+    def __init__(self, id: str, meta: Component.Metadata) -> None:
         super().__init__()
 
         self.id = id

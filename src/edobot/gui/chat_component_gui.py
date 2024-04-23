@@ -5,7 +5,7 @@ import qtawesome as qta
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget
 
-from core.chat_component import ChatComponent
+from edobot.core.chat_component import ChatComponent
 
 __all__ = ["ChatComponentGUI"]
 

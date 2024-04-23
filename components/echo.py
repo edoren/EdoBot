@@ -1,9 +1,9 @@
 import logging
-from typing import Any, List, Optional, Set, Union
+from typing import Any, List, Optional, Set, Union, override
 
-from core import ChatComponent
-from model import EventType, User, UserType
-from services import twitch
+from edobot.core import ChatComponent
+from edobot.model import EventType, User, UserType
+from edobot.services import twitch
 
 __all__ = ["EchoComponent"]
 
@@ -13,24 +13,30 @@ gLogger = logging.getLogger("edobot.components.echo")
 class EchoComponent(ChatComponent):
 
     @staticmethod
+    @override
     def get_id() -> str:
         return "echo"
 
     @staticmethod
+    @override
     def get_metadata() -> ChatComponent.Metadata:
         return ChatComponent.Metadata(name="Echo", description="Displays the chat in the logs", icon=None, debug=True)
 
-    def get_command(self) -> Optional[Union[str, List[str]]]:
+    @override
+    def get_cmmand(self) -> str | List[str] | None:
         return None  # To get all the messages without command filtering
 
+    @override
     def start(self) -> None:
         gLogger.info("Starting Echo component")
         super().start()
 
+    @override
     def stop(self) -> None:
         gLogger.info("Stopping Echo component")
         super().stop()
 
+    @override
     def process_message(self,
                         message: str,
                         user: User,
@@ -38,6 +44,7 @@ class EchoComponent(ChatComponent):
                         metadata: Optional[Any] = None) -> None:
         gLogger.info((f"[{user.display_name}] {message}"))
 
+    @override
     def process_event(self, event_type: EventType, metadata: Any) -> None:
         if event_type == event_type.REWARD_REDEEMED:
             points_event: twitch.events.ChannelPointsEvent = metadata

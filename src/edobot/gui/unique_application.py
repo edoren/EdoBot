@@ -2,7 +2,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import QApplication
 
-from core import Constants
+from edobot.core import Constants
 
 
 class UniqueApplication(QApplication):

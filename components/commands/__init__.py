@@ -7,12 +7,27 @@ import qtawesome as qta
 from PySide6.QtCore import QCoreApplication, QFile, QRegularExpression, QSize, Qt
 from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QHeaderView, QLineEdit,
-                               QMessageBox, QPlainTextEdit, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem,
-                               QToolButton, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLineEdit,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QSpinBox,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
-from core import ChatComponent
-from model import EventType, User, UserType
+from edobot.core import ChatComponent
+from edobot.model import EventType, User, UserType
 
 __all__ = ["CommandsComponent"]
 

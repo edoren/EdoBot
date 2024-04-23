@@ -7,7 +7,7 @@ import traceback
 import webbrowser
 import zipfile
 from datetime import datetime
-from typing import Callable, List, Optional, Any
+from typing import Any, Callable, List, Optional
 
 import arrow
 from PySide6.QtCore import QEvent, QLocale, QSettings, QSize, Qt, QTranslator, QUrl, Signal
@@ -27,8 +27,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-import model
-from core import App, ChatComponent, Constants
+from edobot import model
+from edobot.core import App, ChatComponent, Constants
 
 from .unique_application import UniqueApplication
 from .widgets import ActiveComponentsWidget, AllComponentsWidget, ComponentWidget, SettingsWidget

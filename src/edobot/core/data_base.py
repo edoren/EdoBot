@@ -3,7 +3,7 @@ from typing import Optional
 
 from tinydb import TinyDB, where
 
-from model import AccessToken
+from edobot.model import AccessToken
 
 __all__ = ["DataBase"]
 

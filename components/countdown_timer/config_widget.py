@@ -4,10 +4,23 @@ from typing import Any, List, Mapping
 from PySide6.QtCore import QCoreApplication, QFile, Qt, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import (QComboBox, QGroupBox, QLineEdit, QListWidget, QListWidgetItem, QMenu, QMessageBox,
-                               QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget, QLabel)
+from PySide6.QtWidgets import (
+    QComboBox,
+    QGroupBox,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
-from model import EventType
+from edobot.model import EventType
 
 from .form_widget import FormWidget
 from .reward_timer import RewardTimer

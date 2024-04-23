@@ -3,14 +3,13 @@ import logging
 from enum import Enum
 from typing import Any, Callable, List, Union
 
-from model import EventType
-from network import WebSocket
+from edobot.model import EventType
+from edobot.network import WebSocket
 
 from .eventsub_events.bits_badge_event import BitsBadgeEvent
 from .eventsub_events.bits_event import BitsEvent, BitsEventMeta
 from .eventsub_events.channel_points_event import ChannelPointsEvent
 from .eventsub_events.subscription_event import SubscriptionEvent
-
 from .service import Service
 
 __all__ = ["EventSub"]

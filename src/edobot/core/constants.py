@@ -17,7 +17,7 @@ if _is_frozen:
     with open(os.path.join(_data_dir, "version.info"), "r") as f:
         _app_version = f.read()
 else:
-    _exe_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    _exe_dir = os.path.normpath(os.getcwd())
     _data_dir = os.path.join(_exe_dir, "data")
     _app_version = "unknown"
     if __debug__:

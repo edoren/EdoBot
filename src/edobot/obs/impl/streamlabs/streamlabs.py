@@ -2,10 +2,10 @@ import logging
 import time
 from typing import Any, List, Mapping, Optional, Union
 
-from network.socket_connector import SocketConnector
+from edobot.network.socket_connector import SocketConnector
+from edobot.obs.model import SceneModel
+from edobot.obs.obs_interface import OBSInterface
 
-from ...model import SceneModel
-from ...obs_interface import OBSInterface
 from .base.slobs_client import SLOBSClient
 
 __all__ = ["StreamlabsOBS"]

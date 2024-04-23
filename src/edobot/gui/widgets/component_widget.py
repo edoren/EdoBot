@@ -5,8 +5,8 @@ from PySide6.QtCore import QFile, QSize, Signal
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
-from core.chat_component import ChatComponent
-from core.constants import Constants
+from edobot.core.chat_component import ChatComponent
+from edobot.core.constants import Constants
 
 
 class ComponentWidget(QWidget):

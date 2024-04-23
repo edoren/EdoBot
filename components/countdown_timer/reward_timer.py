@@ -1,7 +1,7 @@
 import uuid
 from typing import Any, List, Mapping, MutableMapping
 
-from model.event_type import EventType
+from edobot.model.event_type import EventType
 
 
 class RewardTimer:

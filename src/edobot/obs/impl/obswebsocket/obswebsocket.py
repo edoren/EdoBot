@@ -3,12 +3,10 @@ import time
 from typing import Any, List, Mapping, Optional, Union
 
 import obsws_python as obs
-from websocket import WebSocketConnectionClosedException
 
-from network import SocketConnector
-
-from ...model import SceneModel
-from ...obs_interface import OBSInterface
+from edobot.network import SocketConnector
+from edobot.obs.model import SceneModel
+from edobot.obs.obs_interface import OBSInterface
 
 __all__ = ["OBSWebSocket"]
 

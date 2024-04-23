@@ -5,10 +5,10 @@ from typing import Any, List, MutableMapping, Optional, overload
 
 import requests
 
-import model
-from core.constants import Constants
-from model.access_token import AccessToken
-from network.cache_request import CacheRequest
+from edobot import model
+from edobot.core.constants import Constants
+from edobot.model.access_token import AccessToken
+from edobot.network.cache_request import CacheRequest
 
 __all__ = ["Service"]
 

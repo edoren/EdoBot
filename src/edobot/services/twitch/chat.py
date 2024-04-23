@@ -2,8 +2,8 @@ import logging
 import time
 from typing import Any, Callable, List, Mapping, Optional
 
-from model import EventType
-from network import WebSocket
+from edobot.model import EventType
+from edobot.network import WebSocket
 
 from .events import RaidEvent
 from .irc_tags import PrivateMsgTags

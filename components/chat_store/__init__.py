@@ -9,8 +9,8 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QFileDialog, QWidget
 
-from core import ChatComponent
-from model import EventType, User, UserType
+from edobot.core import ChatComponent
+from edobot.model import EventType, User, UserType
 
 __all__ = ["ChatStoreComponent"]
 

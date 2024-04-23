@@ -1,6 +1,7 @@
 # import datetime
 from typing import Any
 
+
 # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelchannel_points_custom_reward_redemptionadd
 class ChannelPointsEvent:
     class Reward:

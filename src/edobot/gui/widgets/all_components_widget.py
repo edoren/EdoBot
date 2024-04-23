@@ -2,9 +2,9 @@ import json
 from typing import Optional
 
 from PySide6.QtCore import QByteArray, QMimeData, Qt
-from PySide6.QtWidgets import QLabel, QListWidget, QListWidgetItem, QWidget
+from PySide6.QtWidgets import QAbstractItemView, QLabel, QListWidgetItem, QWidget
 
-from core.chat_component import ChatComponent
+from edobot.core.chat_component import ChatComponent
 
 from .base_list_widget import BaseListWidget
 
@@ -33,8 +33,8 @@ class AllComponentsWidget(BaseListWidget):
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
-        self.setDragDropMode(QListWidget.DragDropMode.DragOnly)
-        self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.DragOnly)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setSortingEnabled(True)
         self.setStyleSheet("QListWidget::item { background: transparent; }\n"

@@ -5,11 +5,11 @@ import qtawesome as qta
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget
 
-from core.config import Config
-from model import EventType, User, UserType
-from obs import OBSInterface
-from services.twitch import Chat  # TODO: Replace with ChatWrapper
-from services.twitch import Service as TwitchService
+from edobot.core.config import Config
+from edobot.model import EventType, User, UserType
+from edobot.obs import OBSInterface
+from edobot.services.twitch import Chat  # TODO: Replace with ChatWrapper
+from edobot.services.twitch import Service as TwitchService
 
 __all__ = ["ChatComponent"]
 

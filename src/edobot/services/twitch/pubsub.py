@@ -5,8 +5,8 @@ import time
 from enum import Enum
 from typing import Callable, List, MutableMapping, Optional, Union
 
-from model import EventType
-from network import WebSocket
+from edobot.model import EventType
+from edobot.network import WebSocket
 
 from .events.bits_badge_event import BitsBadgeEvent
 from .events.bits_event import BitsEvent, BitsEventMeta

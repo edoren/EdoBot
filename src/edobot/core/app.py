@@ -14,9 +14,9 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Callable, List, Mapping, MutableMapping, Optional, Set, Type
 
-import model
-from obs import OBSInterface, OBSWebSocket, StreamlabsOBS
-from services import twitch
+from edobot import model
+from edobot.obs import OBSInterface, OBSWebSocket, StreamlabsOBS
+from edobot.services import twitch
 
 from .chat_component import ChatComponent
 from .config import Config

@@ -10,9 +10,9 @@ from PySide6.QtGui import QFocusEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QCheckBox, QComboBox, QLineEdit, QPlainTextEdit, QSpinBox, QWidget
 
-from core import ChatComponent, Constants
-from model import EventType, User, UserType
-from services import twitch
+from edobot.core import ChatComponent, Constants
+from edobot.model import EventType, User, UserType
+from edobot.services import twitch
 
 __all__ = ["AutoShoutOut"]
 

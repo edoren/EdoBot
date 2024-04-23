@@ -6,11 +6,23 @@ import qtawesome as qta
 from PySide6.QtCore import QCoreApplication, QFile
 from PySide6.QtGui import QAction, QShowEvent
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import (QCheckBox, QComboBox, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-                               QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMenu,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
 
-from core import ChatComponent
-from model import EventType, User, UserType
+from edobot.core import ChatComponent
+from edobot.model import EventType, User, UserType
 
 gLogger = logging.getLogger("edobot.components.scene_changer")
 

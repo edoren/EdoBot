@@ -7,9 +7,9 @@ import qtawesome as qta
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QWidget
 
-from core import ChatComponent
-from model import EventType, User, UserType
-from services import twitch
+from edobot.core import ChatComponent
+from edobot.model import EventType, User, UserType
+from edobot.services import twitch
 
 from .config_widget import CountdownTimerWidget
 from .reward_timer import RewardTimer

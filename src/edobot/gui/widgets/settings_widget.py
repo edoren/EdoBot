@@ -7,7 +7,7 @@ from PySide6.QtGui import QIntValidator, QShowEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from core.constants import Constants
+from edobot.core.constants import Constants
 
 
 class SettingsWidget(QWidget):

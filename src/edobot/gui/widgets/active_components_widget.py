@@ -3,7 +3,7 @@ from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
-from PySide6.QtWidgets import QAbstractItemView, QListWidget, QListWidgetItem, QWidget
+from PySide6.QtWidgets import QAbstractItemView, QListWidgetItem, QWidget
 
 from .all_components_widget import AllComponentsWidget
 from .base_list_widget import BaseListWidget
@@ -17,8 +17,8 @@ class ActiveComponentsWidget(BaseListWidget):
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
-        self.setDragDropMode(QListWidget.DragDropMode.DragDrop)
-        self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setAlternatingRowColors(True)
         self.setAcceptDrops(True)

@@ -9,4 +9,4 @@ jobs:
       - name: run Ruff to test if python code is correctly formatted
         uses: chartboost/ruff-action@v1
         with:
-          args: "format --check"
+          args: "format --check --diff"
